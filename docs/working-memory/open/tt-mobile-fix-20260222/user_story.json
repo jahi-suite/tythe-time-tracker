@@ -18,7 +18,7 @@
       "id": "mobile-03",
       "title": "Responsive layout adjustments",
       "acceptance_criteria": "layout='wide' removed or conditionally applied. Custom CSS added via st.markdown for mobile: reduced padding on small screens, tap-friendly button sizes (min 44px), sidebar auto-collapse on mobile. Media queries target screens under 768px.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "mobile-04",
