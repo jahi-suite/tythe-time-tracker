@@ -26,9 +26,9 @@ class TimeTrackingService:
             repository: Time entry repository instance. If None, creates a default one.
         """
         if repository is None:
-            conn = get_db_connection()
+            conn, conn_error = get_db_connection()
             if conn is None:
-                raise ValueError("Could not establish database connection")
+                raise ValueError(conn_error or "Could not establish database connection")
             db_connection = DatabaseConnection(conn)
             self.repository = TimeEntryRepository(db_connection)
         else:

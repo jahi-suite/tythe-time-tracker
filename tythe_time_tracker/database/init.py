@@ -5,7 +5,7 @@ This module handles the setup and initialization of database tables.
 """
 
 import logging
-from typing import Optional
+from typing import Optional, Tuple
 
 from .connection import get_db_connection
 from .connection import DatabaseConnection
@@ -14,20 +14,21 @@ from ..core.constants import DatabaseConstants
 logger = logging.getLogger(__name__)
 
 
-def init_database() -> bool:
+def init_database() -> Tuple[bool, Optional[str]]:
     """Initialize the database tables if they don't exist.
-    
+
     Returns:
-        True if initialization was successful, False otherwise.
+        (True, None) if successful, (False, error_message) otherwise.
     """
     try:
-        conn = get_db_connection()
-        if not conn:
-            logger.error("Failed to establish database connection")
-            return False
-        
+        conn, conn_error = get_db_connection()
+        if conn_error or not conn:
+            msg = conn_error or "Could not connect to the database. Check host, port, user, and password."
+            logger.error(msg)
+            return False, msg
+
         db = DatabaseConnection(conn)
-        
+
         with db.get_cursor() as cursor:
             # Create time_entries table if it doesn't exist
             cursor.execute(f"""
@@ -40,37 +41,35 @@ def init_database() -> bool:
                     {DatabaseConstants.CREATED_AT_COLUMN} TIMESTAMPTZ DEFAULT NOW()
                 );
             """)
-            
+
             # Check if pay_rate_type column exists, add if not
             cursor.execute(f"""
-                SELECT column_name 
-                FROM information_schema.columns 
-                WHERE table_name = '{DatabaseConstants.TIME_ENTRIES_TABLE}' 
+                SELECT column_name
+                FROM information_schema.columns
+                WHERE table_name = '{DatabaseConstants.TIME_ENTRIES_TABLE}'
                 AND column_name = '{DatabaseConstants.PAY_RATE_TYPE_COLUMN}'
             """)
-            
+
             if not cursor.fetchone():
                 cursor.execute(f"""
-                    ALTER TABLE {DatabaseConstants.TIME_ENTRIES_TABLE} 
+                    ALTER TABLE {DatabaseConstants.TIME_ENTRIES_TABLE}
                     ADD COLUMN {DatabaseConstants.PAY_RATE_TYPE_COLUMN} TEXT DEFAULT '{DatabaseConstants.DEFAULT_PAY_RATE}'
                 """)
                 logger.info("Database updated with pay rate functionality")
-        
+
         logger.info("Database initialization completed successfully")
-        return True
-        
+        return True, None
+
     except Exception as e:
+        msg = str(e)
         logger.error(f"Database initialization failed: {e}")
-        return False
+        return False, msg
 
 
-def ensure_database_ready() -> bool:
+def ensure_database_ready() -> Tuple[bool, Optional[str]]:
     """Ensure the database is ready for use.
-    
-    This function initializes the database if needed and returns
-    whether the database is ready for operations.
-    
+
     Returns:
-        True if database is ready, False otherwise.
+        (True, None) if ready, (False, error_message) otherwise.
     """
     return init_database() 

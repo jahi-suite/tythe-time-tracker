@@ -8,33 +8,34 @@ import psycopg2
 from psycopg2.extensions import connection
 from psycopg2.pool import SimpleConnectionPool
 
+from ..config.settings import get_database_config
 from ..core.constants import DatabaseConstants, ErrorMessages, PayRateType
 
 logger = logging.getLogger(__name__)
 
 
-def get_db_connection() -> Optional[connection]:
-    """Create and return a database connection using Streamlit secrets.
-    
+def get_db_connection() -> tuple[Optional[connection], Optional[str]]:
+    """Create and return a database connection from config (secrets or env).
+
     Returns:
-        Database connection if successful, None otherwise.
+        (connection, None) on success, (None, error_message) on failure.
     """
     try:
-        import streamlit as st
-        
+        config = get_database_config()
+        port = int(config.port) if isinstance(config.port, str) else config.port
         conn = psycopg2.connect(
-            host=st.secrets["SUPABASE"]["HOST"],
-            database=st.secrets["SUPABASE"]["DATABASE"],
-            user=st.secrets["SUPABASE"]["USER"],
-            password=st.secrets["SUPABASE"]["PASSWORD"],
-            port=st.secrets["SUPABASE"]["PORT"],
-            # Force IPv4 connection to avoid IPv6 issues
-            options='-c family=ipv4'
+            host=config.host,
+            database=config.database,
+            user=config.user,
+            password=config.password,
+            port=port,
+            sslmode="require",
         )
-        return conn
+        return conn, None
     except Exception as e:
+        msg = str(e)
         logger.error(f"Database connection failed: {e}")
-        return None
+        return None, msg
 
 
 class DatabaseConnection:

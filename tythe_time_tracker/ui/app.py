@@ -28,8 +28,29 @@ def setup_page_config() -> None:
 
 def initialize_database() -> None:
     """Initialize the database on app startup."""
-    if not ensure_database_ready():
+    ready, error_message = ensure_database_ready()
+    if not ready:
         st.error("❌ Failed to initialize database. Please check your configuration.")
+        if error_message:
+            st.code(error_message, language=None)
+        with st.expander("💡 Fix for Streamlit Cloud (use Session pooler)", expanded=True):
+            st.markdown(
+                "Direct connection (db.xxx:5432) does not work from Streamlit Cloud (IPv4). "
+                "In Supabase click **Connect** → set Method to **Session pooler** → copy the **host** from the URI."
+            )
+            st.markdown("Then in Streamlit Cloud → Settings → Secrets use this (replace the host with yours):")
+            st.code(
+                '''[SUPABASE]
+HOST = "aws-0-eu-west-1.pooler.supabase.com"
+DATABASE = "postgres"
+USER = "postgres.nfwzrlxhjcxdznsnkhhm"
+PASSWORD = "3Spressomartini!!"
+PORT = "5432"
+
+MANAGER_PASSWORD = "tythe2024"''',
+                language="toml",
+            )
+            st.caption("See STREAMLIT_CLOUD_DATABASE.md in the repo for step-by-step.")
         st.stop()
 
 

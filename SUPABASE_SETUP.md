@@ -44,12 +44,13 @@ This guide will help you set up a free Supabase database and connect it to The T
 
 ---
 
-## 4. Fill in the `.env` File
+## 4. Connect the app: local (`.env`) or Streamlit Cloud (Secrets)
 
-1. In your project folder, find the file called `env.example`
-2. Make a copy and rename it to `.env` (just remove `example`)
-3. Open `.env` in a text editor
-4. Fill in the values from your Supabase project:
+### Option A – Running locally
+
+1. Copy `env.example` to `.env`:  
+   `cp env.example .env`
+2. Open `.env` and set:
 
 ```
 SUPABASE_HOST=db.abc123.supabase.co
@@ -60,7 +61,27 @@ SUPABASE_PORT=5432
 MANAGER_PASSWORD=tythe2024
 ```
 
-Replace the values after `=` with your actual details.
+Replace the values with your actual Supabase details.
+
+### Option B – Deploying on Streamlit Cloud
+
+**Use the Session pooler** (not the direct connection), or the app may fail to connect (IPv4).
+
+1. In **Supabase**: Connect to your project → **Connection string** → set **Method** to **Session pooler**. Note the **host** (e.g. `aws-0-eu-west-1.pooler.supabase.com`), **port 6543**, and **user** (often `postgres.YOUR_PROJECT_REF`).
+2. In **Streamlit Cloud**, open your app → **Settings** → **Secrets**. Paste and fill in:
+
+```toml
+[SUPABASE]
+HOST = "aws-0-XX-XXXXX.pooler.supabase.com"
+DATABASE = "postgres"
+USER = "postgres.YOUR_PROJECT_REF"
+PASSWORD = "your-database-password"
+PORT = "6543"
+
+MANAGER_PASSWORD = "tythe2024"
+```
+
+3. Save and redeploy. The app will use these when it runs in the cloud.
 
 ---
 

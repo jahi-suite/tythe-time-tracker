@@ -70,7 +70,8 @@ class DatabaseConfig:
             database = supabase_config["DATABASE"]
             user = supabase_config["USER"]
             password = supabase_config["PASSWORD"]
-            port = int(supabase_config["PORT"])
+            port_val = supabase_config["PORT"]
+            port = int(port_val) if port_val is not None else 5432
             
             return cls(
                 host=host,

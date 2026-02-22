@@ -3,6 +3,7 @@
 .env.local
 .env.production
 .env.staging
+secrets-to-paste-in-streamlit.toml
 
 # Python
 __pycache__/
