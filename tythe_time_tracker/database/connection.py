@@ -20,6 +20,7 @@ def get_db_connection() -> tuple[Optional[connection], Optional[str]]:
     Returns:
         (connection, None) on success, (None, error_message) on failure.
     """
+    config = None
     try:
         config = get_database_config()
         port = int(config.port) if isinstance(config.port, str) else config.port
@@ -34,6 +35,8 @@ def get_db_connection() -> tuple[Optional[connection], Optional[str]]:
         return conn, None
     except Exception as e:
         msg = str(e)
+        if config is not None:
+            msg += f' (attempted user: "{config.user}")'
         logger.error(f"Database connection failed: {e}")
         return None, msg
 

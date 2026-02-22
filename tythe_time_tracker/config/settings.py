@@ -64,15 +64,21 @@ class DatabaseConfig:
         """
         import streamlit as st
         
+        def _get(key: str) -> str:
+            raw = supabase_config.get(key) or supabase_config.get(key.lower())
+            if raw is None:
+                raise KeyError(key)
+            return str(raw).strip()
+
         try:
             supabase_config = st.secrets["SUPABASE"]
-            host = supabase_config["HOST"]
-            database = supabase_config["DATABASE"]
-            user = supabase_config["USER"]
-            password = supabase_config["PASSWORD"]
-            port_val = supabase_config["PORT"]
+            host = _get("HOST")
+            database = _get("DATABASE")
+            user = _get("USER")
+            password = _get("PASSWORD")
+            port_val = supabase_config.get("PORT") or supabase_config.get("port")
             port = int(port_val) if port_val is not None else 5432
-            
+
             return cls(
                 host=host,
                 database=database,
