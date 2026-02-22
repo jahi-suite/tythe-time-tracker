@@ -83,14 +83,34 @@ def init_database() -> Tuple[bool, Optional[str]]:
         return False, msg
 
 
+def _get_seed_credentials() -> Tuple[str, str]:
+    """Get seed manager username and password from env or Streamlit secrets."""
+    username = os.environ.get("SEED_MANAGER_USERNAME", "").strip()
+    password = os.environ.get("SEED_MANAGER_PASSWORD", "").strip()
+    if username and password:
+        return username, password
+    try:
+        import streamlit as st
+        secrets = st.secrets if hasattr(st, "secrets") else {}
+        # Top-level or under SUPABASE
+        supabase = secrets.get("SUPABASE") or {}
+        username = (secrets.get("SEED_MANAGER_USERNAME") or supabase.get("SEED_MANAGER_USERNAME") or "").strip()
+        password = (secrets.get("SEED_MANAGER_PASSWORD") or supabase.get("SEED_MANAGER_PASSWORD") or "").strip()
+        if isinstance(username, str) and isinstance(password, str):
+            return username, password
+    except Exception:
+        pass
+    return "", ""
+
+
 def _seed_manager_if_empty(conn) -> None:
     """Insert a seed manager if users table is empty and env vars are set.
 
-    Reads SEED_MANAGER_USERNAME and SEED_MANAGER_PASSWORD from environment.
+    Reads SEED_MANAGER_USERNAME and SEED_MANAGER_PASSWORD from environment
+    or Streamlit secrets (top-level or under [SUPABASE]).
     Skips silently if either var is missing or the table already has rows.
     """
-    seed_username = os.environ.get("SEED_MANAGER_USERNAME", "").strip()
-    seed_password = os.environ.get("SEED_MANAGER_PASSWORD", "").strip()
+    seed_username, seed_password = _get_seed_credentials()
 
     if not seed_username or not seed_password:
         logger.debug("Seed manager env vars not set; skipping seed.")

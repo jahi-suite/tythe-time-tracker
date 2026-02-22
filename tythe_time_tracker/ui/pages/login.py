@@ -10,6 +10,14 @@ def show() -> None:
     st.title("The Tythe Barn - Time Tracker")
     st.subheader("Please log in to continue")
 
+    with st.expander("First time? Create the first manager account"):
+        st.markdown(
+            "If no accounts exist yet, set these in your `.env` (or Streamlit secrets) and **restart the app**:\n\n"
+            "- `SEED_MANAGER_USERNAME` — e.g. `admin`\n"
+            "- `SEED_MANAGER_PASSWORD` — your chosen password\n\n"
+            "On the next startup, the app will create that manager account. Then log in with those credentials."
+        )
+
     with st.form("login_form"):
         username = st.text_input("Username")
         password = st.text_input("Password", type="password")
