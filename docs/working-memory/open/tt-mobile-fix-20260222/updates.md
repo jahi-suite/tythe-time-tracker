@@ -15,3 +15,7 @@
 ## Verification
 
 mobile-01: PASS — all acceptance criteria met (config.toml exists with required [server] and [browser] sections).
+
+**2026-02-22** — story: mobile-02. Added viewport meta tag injection in `setup_page_config()` in `tythe_time_tracker/ui/app.py` via `st.markdown('<meta name="viewport" ...>', unsafe_allow_html=True)` immediately after `st.set_page_config()`. Plan verification command: PASS. Marked mobile-02 as passing in user_story.json.
+
+mobile-02: PASS — viewport meta tag injected right after set_page_config.

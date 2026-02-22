@@ -12,7 +12,7 @@
       "id": "mobile-02",
       "title": "Inject viewport meta tag",
       "acceptance_criteria": "tythe_time_tracker/ui/app.py contains st.markdown() call with viewport meta tag (width=device-width, initial-scale=1.0) using unsafe_allow_html=True, placed right after set_page_config.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "mobile-03",
