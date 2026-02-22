@@ -24,6 +24,14 @@
 - Verified: correct password returns True, wrong password returns False
 - Commit: `9f54546`
 
+**2026-02-22 — auth-03: Login page**
+- Added `authenticate_user(username, password)` to `tythe_time_tracker/core/auth.py`: queries `users` table for active user, verifies bcrypt password, returns `{id, username, role, display_name}` or None
+- Created `tythe_time_tracker/ui/pages/login.py`: Streamlit form with username + password fields, calls `authenticate_user`, stores result in `st.session_state.current_user`, shows error on bad credentials
+- Updated `tythe_time_tracker/ui/app.py`: login gate in `main()` — if `current_user` not in session_state, show `login.show()` and return
+- Updated `tythe_time_tracker/ui/pages/__init__.py`: added `login` module import and export
+- Story auth-03 acceptance criteria met; marked `passes: true`
+- Commit: `8f4ce45`
+
 ## Verification
 
 Not yet run.

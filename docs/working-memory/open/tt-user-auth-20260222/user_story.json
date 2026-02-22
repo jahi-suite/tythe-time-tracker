@@ -18,7 +18,7 @@
       "id": "auth-03",
       "title": "Login page",
       "acceptance_criteria": "Login form with username and password fields renders as app landing page. On valid credentials, st.session_state.current_user is set with id, username, role, display_name. Invalid credentials show error message.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "auth-04",
