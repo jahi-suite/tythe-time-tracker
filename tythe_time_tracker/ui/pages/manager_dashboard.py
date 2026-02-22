@@ -12,6 +12,7 @@ from ...core.services import TimeTrackingService
 from ...core.models import TimeEntry
 from ...core.auth import create_user, get_all_users, set_user_active
 from ...utils.time_utils import TimeUtils
+from ..components.footer import render_footer
 from export_functions import (
     export_to_excel, export_to_pdf, split_shift_by_rate
 )
@@ -369,4 +370,6 @@ def show() -> None:
         show_delete_entry_tab()
 
     with tab5:
-        show_manage_users_tab() 
+        show_manage_users_tab()
+
+    render_footer()

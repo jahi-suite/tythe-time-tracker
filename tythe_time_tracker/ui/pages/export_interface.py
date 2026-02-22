@@ -9,6 +9,7 @@ from typing import Optional
 
 from ...core.services import TimeTrackingService
 from ...utils.time_utils import TimeUtils
+from ..components.footer import render_footer
 from export_functions import (
     get_date_range, get_timesheet_data, export_to_excel, 
     export_to_pdf, calculate_summary, split_shift_by_rate
@@ -278,11 +279,11 @@ def show() -> None:
     st.markdown("---")
     if st.button("🚀 Export Directly", type="primary"):
         is_manager = st.session_state.get('manager_authenticated', False)
-        
+
         if not employee_name and not is_manager:
             st.warning("Please enter your name")
             return
-        
+
         # Get data
         entries = get_timesheet_data(
             employee_name=employee_name if employee_name else None,
@@ -290,5 +291,7 @@ def show() -> None:
             end_date=end_date,
             is_manager=is_manager
         )
-        
-        handle_export(entries, export_format, start_date, end_date) 
+
+        handle_export(entries, export_format, start_date, end_date)
+
+    render_footer()

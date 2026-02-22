@@ -7,6 +7,7 @@ from typing import Tuple
 
 from ...core.services import TimeTrackingService
 from ...utils.time_utils import TimeUtils
+from ..components.footer import render_footer
 
 
 def show_employee_status(employee_name: str) -> None:
@@ -74,3 +75,5 @@ def show() -> None:
     with col2:
         st.subheader("Quick Status")
         show_employee_status(employee_name)
+
+    render_footer()

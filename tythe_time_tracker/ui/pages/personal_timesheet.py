@@ -9,6 +9,7 @@ from ...core.services import TimeTrackingService
 from ...core.models import TimeEntry
 from ...utils.time_utils import TimeUtils
 from export_functions import split_shift_by_rate
+from ..components.footer import render_footer
 
 
 def format_timesheet_data(entries: List[TimeEntry]) -> List[dict]:
@@ -63,3 +64,5 @@ def show() -> None:
         st.dataframe(timesheet_data, use_container_width=True)
     else:
         st.info(f"No time entries found for {employee_name}")
+
+    render_footer()
