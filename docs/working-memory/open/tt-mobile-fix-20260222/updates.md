@@ -10,6 +10,8 @@
 
 ## Progress
 
+**2026-02-22** — story: mobile-01. Verified `.streamlit/config.toml` already exists with all required mobile-01 settings (`enableCORS=false`, `enableXsrfProtection=false`, `gatherUsageStats=false`). Marked mobile-01 as passing in user_story.json.
+
 ## Verification
 
-Not yet run.
+mobile-01: PASS — all acceptance criteria met (config.toml exists with required [server] and [browser] sections).

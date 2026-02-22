@@ -6,7 +6,7 @@
       "id": "mobile-01",
       "title": "Add Streamlit config for mobile compatibility",
       "acceptance_criteria": ".streamlit/config.toml exists with [server] section (enableCORS=false, enableXsrfProtection=false) and [browser] section (gatherUsageStats=false).",
-      "passes": false
+      "passes": true
     },
     {
       "id": "mobile-02",
