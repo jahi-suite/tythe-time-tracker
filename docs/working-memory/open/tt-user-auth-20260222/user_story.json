@@ -36,7 +36,7 @@
       "id": "auth-06",
       "title": "Manager creates employee and manager accounts",
       "acceptance_criteria": "Manager dashboard has a 'Manage Users' tab with: create user form (username, password, display_name, role), list of all users with active/deactivate toggle. Only managers can access.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "auth-07",

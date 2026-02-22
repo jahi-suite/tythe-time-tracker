@@ -47,6 +47,14 @@
 - Story auth-05 acceptance criteria met; marked `passes: true`
 - Commit: `272e7b0`
 
+**2026-02-22 — auth-06: Manager user management**
+- Added `create_user(username, password, display_name, role)` to `tythe_time_tracker/core/auth.py`: hashes password with bcrypt, inserts into users table, returns (success, message); handles duplicate username errors
+- Added `get_all_users()` to `auth.py`: returns list of all user dicts (id, username, role, display_name, active) ordered by role then display_name
+- Added `set_user_active(user_id, active)` to `auth.py`: activates or deactivates a user account
+- Added `show_manage_users_tab()` to `tythe_time_tracker/ui/pages/manager_dashboard.py`: create-user form (username, password, display_name, role selectbox), list of all users with Activate/Deactivate buttons (self-deactivation blocked with "(you)" label)
+- Wired "👤 Manage Users" as 5th tab in `show()` in `manager_dashboard.py`
+- Story auth-06 acceptance criteria met; marked `passes: true`
+
 ## Verification
 
 Not yet run.

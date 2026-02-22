@@ -10,6 +10,7 @@ from collections import defaultdict
 
 from ...core.services import TimeTrackingService
 from ...core.models import TimeEntry
+from ...core.auth import create_user, get_all_users, set_user_active
 from ...utils.time_utils import TimeUtils
 from export_functions import (
     export_to_excel, export_to_pdf, split_shift_by_rate
@@ -282,6 +283,67 @@ def show_delete_entry_tab() -> None:
             st.warning("Please enter an Entry ID")
 
 
+def show_manage_users_tab() -> None:
+    """Show the 'Manage Users' tab for creating and toggling user accounts."""
+    st.subheader("👤 Create New User")
+
+    with st.form("create_user_form"):
+        col1, col2 = st.columns(2)
+        with col1:
+            new_username = st.text_input("Username", key="new_username")
+            new_display_name = st.text_input("Display Name", key="new_display_name")
+        with col2:
+            new_password = st.text_input("Password", type="password", key="new_password")
+            new_role = st.selectbox("Role", ["employee", "manager"], key="new_role")
+        submitted = st.form_submit_button("➕ Create User", type="primary")
+
+    if submitted:
+        success, message = create_user(new_username, new_password, new_display_name, new_role)
+        if success:
+            st.success(message)
+            st.rerun()
+        else:
+            st.error(message)
+
+    st.markdown("---")
+    st.subheader("👥 All Users")
+
+    users = get_all_users()
+    if not users:
+        st.info("No users found.")
+        return
+
+    current_user_id = st.session_state.current_user.get("id")
+    for user in users:
+        col1, col2, col3, col4 = st.columns([2, 2, 1, 1])
+        with col1:
+            st.markdown(f"**{user['display_name']}** (`{user['username']}`)")
+        with col2:
+            st.markdown(f"Role: {user['role']}")
+        with col3:
+            status_label = "Active" if user["active"] else "Inactive"
+            st.markdown(status_label)
+        with col4:
+            if user["id"] == current_user_id:
+                st.markdown("*(you)*")
+            elif user["active"]:
+                if st.button("Deactivate", key=f"deactivate_{user['id']}"):
+                    ok, msg = set_user_active(user["id"], False)
+                    if ok:
+                        st.success(msg)
+                        st.rerun()
+                    else:
+                        st.error(msg)
+            else:
+                if st.button("Activate", key=f"activate_{user['id']}"):
+                    ok, msg = set_user_active(user["id"], True)
+                    if ok:
+                        st.success(msg)
+                        st.rerun()
+                    else:
+                        st.error(msg)
+
+
 def show() -> None:
     """Display the manager dashboard."""
     # Require manager role
@@ -292,16 +354,19 @@ def show() -> None:
     show_manager_header()
     
     # Manager controls tabs
-    tab1, tab2, tab3, tab4 = st.tabs(["📊 View All Entries", "➕ Add Shift", "✏️ Edit Shift", "🗑️ Delete Entry"])
-    
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 View All Entries", "➕ Add Shift", "✏️ Edit Shift", "🗑️ Delete Entry", "👤 Manage Users"])
+
     with tab1:
         show_all_entries_tab()
-    
+
     with tab2:
         show_add_shift_tab()
-    
+
     with tab3:
         show_edit_shift_tab()
-    
+
     with tab4:
-        show_delete_entry_tab() 
+        show_delete_entry_tab()
+
+    with tab5:
+        show_manage_users_tab() 
