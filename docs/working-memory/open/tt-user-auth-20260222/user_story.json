@@ -1,0 +1,48 @@
+{
+  "initiative": "tt-user-auth-20260222",
+  "updated": "2026-02-22",
+  "stories": [
+    {
+      "id": "auth-01",
+      "title": "Create users table in Supabase",
+      "acceptance_criteria": "users table exists with columns: id (UUID PK), username (TEXT UNIQUE), password_hash (TEXT), role (TEXT with CHECK), display_name (TEXT), active (BOOLEAN), created_at (TIMESTAMPTZ). DDL added to init.py and executes without error.",
+      "passes": true
+    },
+    {
+      "id": "auth-02",
+      "title": "Password hashing utility with bcrypt",
+      "acceptance_criteria": "tythe_time_tracker/core/auth.py exists with hash_password() and verify_password() functions. bcrypt added to requirements.txt. Functions correctly hash and verify passwords.",
+      "passes": false
+    },
+    {
+      "id": "auth-03",
+      "title": "Login page",
+      "acceptance_criteria": "Login form with username and password fields renders as app landing page. On valid credentials, st.session_state.current_user is set with id, username, role, display_name. Invalid credentials show error message.",
+      "passes": false
+    },
+    {
+      "id": "auth-04",
+      "title": "Protect all routes behind authentication",
+      "acceptance_criteria": "All pages check st.session_state.current_user; unauthenticated users see login page. Manager dashboard additionally checks role=='manager'. Logout button in sidebar clears session.",
+      "passes": false
+    },
+    {
+      "id": "auth-05",
+      "title": "Seed first manager on DB init",
+      "acceptance_criteria": "When users table is empty and SEED_MANAGER_USERNAME + SEED_MANAGER_PASSWORD env vars are set, a manager account is created automatically during init. Skipped if vars are missing or table is non-empty.",
+      "passes": false
+    },
+    {
+      "id": "auth-06",
+      "title": "Manager creates employee and manager accounts",
+      "acceptance_criteria": "Manager dashboard has a 'Manage Users' tab with: create user form (username, password, display_name, role), list of all users with active/deactivate toggle. Only managers can access.",
+      "passes": false
+    },
+    {
+      "id": "auth-07",
+      "title": "Wire employee identity to authenticated session",
+      "acceptance_criteria": "Clock in/out uses current_user display_name from session (no free-text name input). Personal timesheet auto-filters to logged-in user's name. Employee interface no longer has a name text input.",
+      "passes": false
+    }
+  ]
+}
