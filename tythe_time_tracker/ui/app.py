@@ -23,10 +23,30 @@ def setup_page_config() -> None:
     st.set_page_config(
         page_title="The Tythe Barn - Time Tracker",
         page_icon="🕒",
-        layout="wide"
+        initial_sidebar_state="collapsed",
     )
     st.markdown(
         '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        """<style>
+@media (max-width: 768px) {
+    .block-container {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        padding-top: 1rem !important;
+    }
+    .stButton > button {
+        min-height: 44px !important;
+        font-size: 1rem !important;
+    }
+    [data-testid="stSidebar"] {
+        width: 80vw !important;
+        max-width: 320px !important;
+    }
+}
+</style>""",
         unsafe_allow_html=True,
     )
 
