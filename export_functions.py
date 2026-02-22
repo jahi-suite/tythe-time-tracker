@@ -2,6 +2,8 @@ import pandas as pd
 import streamlit as st
 from datetime import datetime, timedelta, timezone, time as dtime
 from reportlab.lib import colors
+
+from tythe_time_tracker.utils.time_utils import TimeUtils
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -96,7 +98,8 @@ def calculate_hours(clock_in, clock_out):
     return round(hours, 2)
 
 def get_bst_time(utc_time):
-    return utc_time + timedelta(hours=1)
+    """Convert UTC to UK local time (GMT/BST). Use TimeUtils for DST-safe conversion."""
+    return TimeUtils.convert_to_bst(utc_time)
 
 def is_bst_enhanced_hours(dt):
     # dt should be BST

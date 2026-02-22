@@ -2,37 +2,51 @@
 
 import pytest
 from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo
 
 from tythe_time_tracker.utils.time_utils import TimeUtils
 from tythe_time_tracker.core.constants import TimeConstants
 from export_functions import split_shift_by_rate, get_bst_time
 
+UK_TZ = ZoneInfo("Europe/London")
+
 
 class TestTimeUtils:
     """Test TimeUtils class."""
     
-    def test_convert_to_bst_with_utc_time(self):
-        """Test converting UTC time to BST."""
+    def test_convert_to_bst_with_utc_time_winter(self):
+        """In winter (Jan) UK is on GMT: 12:00 UTC = 12:00 local."""
         utc_time = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
-        bst_time = TimeUtils.convert_to_bst(utc_time)
-        
-        expected_bst = datetime(2024, 1, 1, 13, 0, 0, tzinfo=timezone.utc)
-        assert bst_time == expected_bst
+        uk_time = TimeUtils.convert_to_bst(utc_time)
+        expected = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UK_TZ)
+        assert uk_time == expected
+    
+    def test_convert_to_bst_with_utc_time_summer(self):
+        """In summer (Jun) UK is on BST: 12:00 UTC = 13:00 local."""
+        utc_time = datetime(2024, 6, 1, 12, 0, 0, tzinfo=timezone.utc)
+        uk_time = TimeUtils.convert_to_bst(utc_time)
+        expected = datetime(2024, 6, 1, 13, 0, 0, tzinfo=UK_TZ)
+        assert uk_time == expected
     
     def test_convert_to_bst_with_naive_time(self):
-        """Test converting naive time to BST (assumes UTC)."""
+        """Naive time is treated as UTC, then converted to UK local."""
         naive_time = datetime(2024, 1, 1, 12, 0, 0)
-        bst_time = TimeUtils.convert_to_bst(naive_time)
-        
-        expected_bst = datetime(2024, 1, 1, 13, 0, 0, tzinfo=timezone.utc)
-        assert bst_time == expected_bst
+        uk_time = TimeUtils.convert_to_bst(naive_time)
+        expected = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UK_TZ)
+        assert uk_time == expected
     
-    def test_convert_to_utc_with_naive_time(self):
-        """Test converting naive time to UTC."""
+    def test_convert_to_utc_with_naive_time_winter(self):
+        """Naive time is UK local. In Jan 12:00 GMT = 12:00 UTC."""
         naive_time = datetime(2024, 1, 1, 12, 0, 0)
         utc_time = TimeUtils.convert_to_utc(naive_time)
-        
         expected_utc = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+        assert utc_time == expected_utc
+    
+    def test_convert_to_utc_with_naive_time_summer(self):
+        """In summer 12:00 BST = 11:00 UTC."""
+        naive_time = datetime(2024, 6, 1, 12, 0, 0)
+        utc_time = TimeUtils.convert_to_utc(naive_time)
+        expected_utc = datetime(2024, 6, 1, 11, 0, 0, tzinfo=timezone.utc)
         assert utc_time == expected_utc
     
     def test_convert_to_utc_with_utc_time(self):
@@ -61,18 +75,18 @@ class TestTimeUtils:
         assert TimeUtils.is_enhanced_hours(enhanced_time)
     
     def test_is_enhanced_hours_boundary_times(self):
-        """Test boundary times for enhanced hours."""
-        # 7 PM BST boundary (should be enhanced)
-        seven_pm_bst = datetime(2024, 1, 1, 18, 0, 0, tzinfo=timezone.utc)  # 7 PM UTC = 8 PM BST
-        assert TimeUtils.is_enhanced_hours(seven_pm_bst)
+        """Test boundary times for enhanced hours (Jan = GMT, so UTC = local)."""
+        # 7 PM local boundary (should be enhanced)
+        seven_pm_local = datetime(2024, 1, 1, 19, 0, 0, tzinfo=timezone.utc)  # Jan: 19:00 UTC = 7 PM GMT
+        assert TimeUtils.is_enhanced_hours(seven_pm_local)
         
-        # 3:59 AM BST boundary (should be enhanced)
-        three_fifty_nine_bst = datetime(2024, 1, 1, 2, 59, 0, tzinfo=timezone.utc)  # 2:59 UTC = 3:59 BST
-        assert TimeUtils.is_enhanced_hours(three_fifty_nine_bst)
+        # 3:59 AM local (should be enhanced)
+        three_fifty_nine_local = datetime(2024, 1, 1, 3, 59, 0, tzinfo=timezone.utc)  # 3:59 UTC = 3:59 GMT
+        assert TimeUtils.is_enhanced_hours(three_fifty_nine_local)
         
-        # 4 AM BST boundary (should be standard)
-        four_am_bst_standard = datetime(2024, 1, 1, 3, 0, 0, tzinfo=timezone.utc)  # 3:00 UTC = 4:00 BST
-        assert not TimeUtils.is_enhanced_hours(four_am_bst_standard)
+        # 4 AM local boundary (should be standard)
+        four_am_standard = datetime(2024, 1, 1, 4, 0, 0, tzinfo=timezone.utc)  # 4:00 UTC = 4:00 GMT
+        assert not TimeUtils.is_enhanced_hours(four_am_standard)
     
     def test_format_duration_with_end_time(self):
         """Test formatting duration with end time."""
@@ -116,16 +130,14 @@ class TestTimeUtils:
         assert time_diff < 1
     
     def test_get_current_bst_time(self):
-        """Test getting current BST time."""
-        bst_time = TimeUtils.get_current_bst_time()
-        
-        assert bst_time.tzinfo == timezone.utc
-        assert isinstance(bst_time, datetime)
-        
-        # Should be 1 hour ahead of UTC
+        """Test getting current UK local time (GMT/BST)."""
+        uk_time = TimeUtils.get_current_bst_time()
+        assert uk_time.tzinfo == UK_TZ
+        assert isinstance(uk_time, datetime)
+        # Should match convert_to_bst(current_utc) within 1 second (calls are at slightly different times)
         utc_time = TimeUtils.get_current_utc_time()
-        time_diff = (bst_time - utc_time).total_seconds()
-        assert abs(time_diff - 3600) < 1  # Within 1 second of 1 hour
+        expected = TimeUtils.convert_to_bst(utc_time)
+        assert abs((uk_time - expected).total_seconds()) < 1
     
     def test_is_valid_time_range_valid(self):
         """Test valid time range."""

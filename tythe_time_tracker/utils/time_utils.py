@@ -2,8 +2,12 @@
 
 from datetime import datetime, timedelta, timezone
 from typing import Optional
+from zoneinfo import ZoneInfo
 
 from ..core.constants import TimeConstants
+
+# UK timezone: GMT in winter, BST (UTC+1) in summer — DST handled automatically
+UK_TZ = ZoneInfo("Europe/London")
 
 
 class TimeUtils:
@@ -11,36 +15,35 @@ class TimeUtils:
     
     @staticmethod
     def convert_to_bst(utc_time: datetime) -> datetime:
-        """Convert UTC time to BST (British Summer Time).
+        """Convert UTC time to UK local time (GMT in winter, BST in summer).
+        
+        Uses Europe/London so daylight saving is applied correctly.
         
         Args:
             utc_time: UTC datetime to convert.
             
         Returns:
-            BST datetime.
+            UK local datetime (timezone-aware).
         """
         if utc_time.tzinfo is None:
-            # Assume it's UTC if no timezone info
             utc_time = utc_time.replace(tzinfo=timezone.utc)
-        
-        bst_offset = timedelta(hours=TimeConstants.BST_OFFSET_HOURS)
-        return utc_time + bst_offset
+        return utc_time.astimezone(UK_TZ)
     
     @staticmethod
     def convert_to_utc(local_time: datetime) -> datetime:
-        """Convert local time to UTC.
+        """Convert UK local time to UTC.
+        
+        When the datetime is naive, it is interpreted as Europe/London (so manager-
+        entered times are correct for UK). Handles GMT/BST automatically.
         
         Args:
-            local_time: Local datetime to convert.
+            local_time: UK local datetime (or naive, treated as UK local).
             
         Returns:
             UTC datetime.
         """
         if local_time.tzinfo is None:
-            # Assume it's local time and convert to UTC
-            # This is a simplified conversion - in production you might want more sophisticated handling
-            local_time = local_time.replace(tzinfo=timezone.utc)
-        
+            local_time = local_time.replace(tzinfo=UK_TZ)
         return local_time.astimezone(timezone.utc)
     
     @staticmethod

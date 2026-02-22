@@ -229,17 +229,20 @@ def show_edit_shift_tab() -> None:
     
     col1, col2 = st.columns(2)
     
+    # Show times in UK local (GMT/BST) so edit form matches what managers expect
+    clock_in_uk = TimeUtils.convert_to_bst(shift.clock_in)
     with col1:
         employee_name = st.text_input("Employee Name:", value=shift.employee, key="edit_employee")
-        clock_in_date = st.date_input("Clock-In Date:", value=shift.clock_in.date(), key="edit_clock_in_date")
-        clock_in_time = st.time_input("Clock-In Time:", value=shift.clock_in.time(), key="edit_clock_in_time")
+        clock_in_date = st.date_input("Clock-In Date:", value=clock_in_uk.date(), key="edit_clock_in_date")
+        clock_in_time = st.time_input("Clock-In Time:", value=clock_in_uk.time(), key="edit_clock_in_time")
         is_supervisor = st.checkbox("👑 Supervisor Role", value=shift.pay_rate_type == "Supervisor", key="edit_supervisor")
     
     with col2:
-        # Handle None clock_out values properly
+        # Handle None clock_out values properly; show in UK local time
         if shift.clock_out:
-            default_clock_out_date = shift.clock_out.date()
-            default_clock_out_time = shift.clock_out.time()
+            clock_out_uk = TimeUtils.convert_to_bst(shift.clock_out)
+            default_clock_out_date = clock_out_uk.date()
+            default_clock_out_time = clock_out_uk.time()
         else:
             default_clock_out_date = None
             default_clock_out_time = None
