@@ -40,6 +40,13 @@
 - Story auth-04 acceptance criteria met; marked `passes: true`
 - Commit: `3b4511f`
 
+**2026-02-22 — auth-05: Seed first manager on DB init**
+- Added `import os` to `database/init.py`
+- Added `_seed_manager_if_empty(conn)` helper: reads `SEED_MANAGER_USERNAME` + `SEED_MANAGER_PASSWORD` env vars; skips if either is absent or users table has any rows; otherwise hashes password with bcrypt and inserts a `role='manager'`, `display_name='Admin'` account
+- Called `_seed_manager_if_empty(conn)` from `init_database()` after table creation block
+- Story auth-05 acceptance criteria met; marked `passes: true`
+- Commit: `272e7b0`
+
 ## Verification
 
 Not yet run.
