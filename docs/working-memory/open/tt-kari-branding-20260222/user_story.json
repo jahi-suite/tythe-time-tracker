@@ -18,7 +18,7 @@
       "id": "brand-03",
       "title": "Login page branding",
       "acceptance_criteria": "Login page displays prominent 'Powered by Kari Suite' branding (larger than footer, centered, below login form). App title and Kari Suite branding shown together in a cohesive branded layout.",
-      "passes": false
+      "passes": true
     }
   ]
 }

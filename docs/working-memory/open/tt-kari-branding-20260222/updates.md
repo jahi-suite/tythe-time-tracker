@@ -29,6 +29,17 @@ Full verification (>= 5 files) will pass after brand-02 adds footer to all pages
 
 ---
 
+**2026-02-22** - brand-03 complete.
+- Added prominent "Powered by Kari Suite" branding to the bottom of `login.py`'s `show()` function.
+  - Placed after the login form and all error/success feedback.
+  - Style: centered, 1.0rem font (larger than footer's 0.75rem), semi-bold "Kari Suite" in darker grey (#555555), hr separator above, 2.5rem top margin.
+  - App title already present as `st.title("The Tythe Barn - Time Tracker")` at top of page — cohesive branded layout.
+  - Removed early `return` on empty-field validation so branding always renders below the form.
+- Committed: `b5cd318 feat(branding): add prominent Kari Suite branding to login page (brand-03)`.
+- `user_story.json` brand-03 marked `passes: true`.
+
+---
+
 **2026-02-22** - brand-02 complete.
 - Added `from ..components.footer import render_footer` import to all 4 page files.
 - Added `render_footer()` call at the bottom of `show()` in:
