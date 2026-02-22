@@ -11,9 +11,10 @@ from ..config.settings import get_app_config
 from ..database.init import ensure_database_ready
 from .pages import (
     employee_interface,
-    personal_timesheet,
     export_interface,
-    manager_dashboard
+    login,
+    manager_dashboard,
+    personal_timesheet,
 )
 
 
@@ -103,7 +104,12 @@ def main() -> None:
     
     # Initialize database
     initialize_database()
-    
+
+    # Gate: show login page if user is not authenticated
+    if "current_user" not in st.session_state:
+        login.show()
+        return
+
     # Main title
     st.title("🕒 The Tythe Barn - Time Tracker")
     st.markdown("---")
