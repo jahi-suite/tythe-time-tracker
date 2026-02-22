@@ -12,7 +12,7 @@
       "id": "brand-02",
       "title": "Add footer to all pages",
       "acceptance_criteria": "render_footer() is called at the bottom of employee_interface.py, personal_timesheet.py, export_interface.py, and manager_dashboard.py. Footer appears after all page content on every page.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "brand-03",
