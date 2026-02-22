@@ -10,42 +10,26 @@ from collections import defaultdict
 
 from ...core.services import TimeTrackingService
 from ...core.models import TimeEntry
-from ...config.settings import get_app_config
 from ...utils.time_utils import TimeUtils
 from export_functions import (
     export_to_excel, export_to_pdf, split_shift_by_rate
 )
 
 
-def handle_manager_authentication() -> bool:
-    """Handle manager authentication."""
-    if 'manager_authenticated' not in st.session_state:
-        st.session_state.manager_authenticated = False
-    
-    if not st.session_state.manager_authenticated:
-        st.header("👨‍💼 Manager Dashboard")
-        password = st.text_input("Enter manager password:", type="password")
-        if st.button("Login"):
-            config = get_app_config()
-            if password == config.manager_password:
-                st.session_state.manager_authenticated = True
-                st.success("Login successful!")
-                st.rerun()
-            else:
-                st.error("Incorrect password")
+def check_manager_role() -> bool:
+    """Return True if the current user has the manager role, else show an error."""
+    user = st.session_state.get("current_user")
+    if not user or user.get("role") != "manager":
+        st.error("⛔ Access denied. Manager role required.")
         return False
-    
     return True
 
 
 def show_manager_header() -> None:
     """Show manager dashboard header."""
+    user = st.session_state.current_user
     st.header("👨‍💼 Manager Dashboard")
-    st.success("✅ Manager access granted")
-    
-    if st.button("Logout"):
-        st.session_state.manager_authenticated = False
-        st.rerun()
+    st.success(f"✅ Logged in as {user['display_name']}")
 
 
 def show_all_entries_tab() -> None:
@@ -300,8 +284,8 @@ def show_delete_entry_tab() -> None:
 
 def show() -> None:
     """Display the manager dashboard."""
-    # Handle authentication
-    if not handle_manager_authentication():
+    # Require manager role
+    if not check_manager_role():
         return
     
     # Show header

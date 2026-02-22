@@ -70,6 +70,12 @@ def show_pay_rate_info() -> None:
 
 def show_navigation() -> str:
     """Display navigation sidebar and return selected page."""
+    user = st.session_state.current_user
+    st.sidebar.markdown(f"**Logged in as:** {user['display_name']}  \n*({user['role']})*")
+    if st.sidebar.button("Logout", key="sidebar_logout"):
+        del st.session_state["current_user"]
+        st.rerun()
+    st.sidebar.markdown("---")
     return st.sidebar.selectbox(
         "Choose a page:",
         ["Employee Clock In/Out", "Personal Timesheet", "Export Timesheet", "Manager Dashboard"]
