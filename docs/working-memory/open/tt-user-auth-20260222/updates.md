@@ -32,6 +32,14 @@
 - Story auth-03 acceptance criteria met; marked `passes: true`
 - Commit: `8f4ce45`
 
+**2026-02-22 — auth-04: Protect all routes behind authentication**
+- `app.py` `show_navigation()`: added sidebar user display (display_name + role) and Logout button that deletes `st.session_state.current_user` and calls `st.rerun()`
+- `manager_dashboard.py`: replaced `handle_manager_authentication()` (shared-password approach) with `check_manager_role()` — checks `st.session_state.current_user` exists and `role == 'manager'`; shows "Access denied" error for non-managers
+- Removed `get_app_config` import from `manager_dashboard.py` (no longer used)
+- Existing login gate in `app.py` `main()` already covered unauthenticated → login redirect (auth-03)
+- Story auth-04 acceptance criteria met; marked `passes: true`
+- Commit: `3b4511f`
+
 ## Verification
 
 Not yet run.

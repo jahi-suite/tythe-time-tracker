@@ -24,7 +24,7 @@
       "id": "auth-04",
       "title": "Protect all routes behind authentication",
       "acceptance_criteria": "All pages check st.session_state.current_user; unauthenticated users see login page. Manager dashboard additionally checks role=='manager'. Logout button in sidebar clears session.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "auth-05",
