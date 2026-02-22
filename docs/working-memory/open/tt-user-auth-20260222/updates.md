@@ -55,6 +55,16 @@
 - Wired "👤 Manage Users" as 5th tab in `show()` in `manager_dashboard.py`
 - Story auth-06 acceptance criteria met; marked `passes: true`
 
+**2026-02-22 — auth-07: Wire employee identity to authenticated session**
+- `employee_interface.py`: removed `st.text_input("Enter your full name:")` and the conditional guard; now reads `st.session_state.current_user["display_name"]` directly; quick status always shown; removed unused `get_db_connection` import
+- `personal_timesheet.py`: removed `st.text_input("Enter your full name to view timesheet:")` and all conditional logic around it; now reads `st.session_state.current_user["display_name"]` and auto-loads timesheet immediately on page render
+- Also committed: `login.py` first-time setup expander, `init.py` `_get_seed_credentials()` helper for Streamlit secrets support (unstaged from previous sessions)
+- Story auth-07 acceptance criteria met; marked `passes: true`
+- Commit: `4a3d4bc`
+
 ## Verification
 
-Not yet run.
+```bash
+python3 -c "import json; d=json.load(open('docs/working-memory/open/tt-user-auth-20260222/user_story.json')); print(len([s for s in d['stories'] if not s.get('passes')]))"
+# Prints 0
+```

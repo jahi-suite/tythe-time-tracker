@@ -42,7 +42,7 @@
       "id": "auth-07",
       "title": "Wire employee identity to authenticated session",
       "acceptance_criteria": "Clock in/out uses current_user display_name from session (no free-text name input). Personal timesheet auto-filters to logged-in user's name. Employee interface no longer has a name text input.",
-      "passes": false
+      "passes": true
     }
   ]
 }
