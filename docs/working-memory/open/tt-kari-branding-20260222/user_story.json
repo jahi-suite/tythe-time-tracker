@@ -6,7 +6,7 @@
       "id": "brand-01",
       "title": "Create reusable footer component",
       "acceptance_criteria": "tythe_time_tracker/ui/components/footer.py exists with render_footer() function. Function renders 'Powered by Kari Suite' via st.markdown with styled HTML (subtle, muted, centered, small font, hr separator above).",
-      "passes": false
+      "passes": true
     },
     {
       "id": "brand-02",
