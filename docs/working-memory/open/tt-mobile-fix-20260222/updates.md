@@ -23,3 +23,7 @@ mobile-02: PASS — viewport meta tag injected right after set_page_config.
 **2026-02-22** — story: mobile-03. Removed `layout="wide"` from `set_page_config()` (default centered layout is more mobile-friendly). Added `initial_sidebar_state="collapsed"` so sidebar doesn't dominate small screens. Injected CSS via `st.markdown` with `@media (max-width: 768px)` targeting: reduced `.block-container` padding, `.stButton > button` min-height 44px, and sidebar width constraint. Plan verification: PASS. Marked mobile-03 as passing.
 
 mobile-03: PASS — layout='wide' removed, CSS media queries injected, sidebar collapses on load.
+
+**2026-02-22** — story: mobile-04. Updated `requirements.txt` to pin `streamlit>=1.32.0` (up from `>=1.28.0`). Versions after 1.31 include significant mobile rendering fixes. Verified app.py AST-parses cleanly with no errors. Marked mobile-04 as passing in user_story.json.
+
+mobile-04: PASS — streamlit pinned to >=1.32.0, app.py parses without errors.

@@ -24,7 +24,7 @@
       "id": "mobile-04",
       "title": "Pin Streamlit version for mobile fixes",
       "acceptance_criteria": "requirements.txt has streamlit>=1.32.0 (up from >=1.28.0). No import or config errors with the updated version constraint.",
-      "passes": false
+      "passes": true
     }
   ]
 }
