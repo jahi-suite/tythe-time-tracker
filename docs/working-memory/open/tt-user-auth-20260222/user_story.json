@@ -12,7 +12,7 @@
       "id": "auth-02",
       "title": "Password hashing utility with bcrypt",
       "acceptance_criteria": "tythe_time_tracker/core/auth.py exists with hash_password() and verify_password() functions. bcrypt added to requirements.txt. Functions correctly hash and verify passwords.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "auth-03",
