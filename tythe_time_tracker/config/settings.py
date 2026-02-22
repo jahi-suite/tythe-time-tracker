@@ -145,8 +145,16 @@ class AppConfig:
             version = "2.0.0"  # Default version
             debug = False  # Default debug setting
             log_level = "INFO"  # Default log level
-            manager_password = st.secrets.get("MANAGER_PASSWORD")
-            
+            # MANAGER_PASSWORD can be top-level or under SUPABASE (e.g. in same Secrets block)
+            supabase = st.secrets.get("SUPABASE") or {}
+            manager_password = (
+                st.secrets.get("MANAGER_PASSWORD")
+                or supabase.get("MANAGER_PASSWORD")
+                or supabase.get("manager_password")
+            )
+            if manager_password is not None:
+                manager_password = str(manager_password).strip()
+
             return cls(
                 version=version,
                 debug=debug,
