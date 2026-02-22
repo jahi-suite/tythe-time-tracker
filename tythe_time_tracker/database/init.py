@@ -30,6 +30,20 @@ def init_database() -> Tuple[bool, Optional[str]]:
         db = DatabaseConnection(conn)
 
         with db.get_cursor() as cursor:
+            # Create users table if it doesn't exist
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS {DatabaseConstants.USERS_TABLE} (
+                    {DatabaseConstants.ID_COLUMN} UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                    {DatabaseConstants.USERNAME_COLUMN} TEXT UNIQUE NOT NULL,
+                    {DatabaseConstants.PASSWORD_HASH_COLUMN} TEXT NOT NULL,
+                    {DatabaseConstants.ROLE_COLUMN} TEXT NOT NULL DEFAULT 'employee'
+                        CHECK ({DatabaseConstants.ROLE_COLUMN} IN ('employee', 'manager')),
+                    {DatabaseConstants.DISPLAY_NAME_COLUMN} TEXT NOT NULL,
+                    {DatabaseConstants.ACTIVE_COLUMN} BOOLEAN DEFAULT true,
+                    {DatabaseConstants.CREATED_AT_COLUMN} TIMESTAMPTZ DEFAULT NOW()
+                );
+            """)
+
             # Create time_entries table if it doesn't exist
             cursor.execute(f"""
                 CREATE TABLE IF NOT EXISTS {DatabaseConstants.TIME_ENTRIES_TABLE} (

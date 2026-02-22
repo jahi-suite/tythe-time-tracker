@@ -31,11 +31,19 @@ class TimeConstants:
     HOURS_PRECISION: Final[int] = 2
 
 
+class UserRole(str, Enum):
+    """User roles for authentication."""
+    
+    EMPLOYEE = "employee"
+    MANAGER = "manager"
+
+
 class DatabaseConstants:
     """Database-related constants."""
     
     # Table names
     TIME_ENTRIES_TABLE: Final[str] = "time_entries"
+    USERS_TABLE: Final[str] = "users"
     
     # Column names
     ID_COLUMN: Final[str] = "id"
@@ -44,6 +52,13 @@ class DatabaseConstants:
     CLOCK_OUT_COLUMN: Final[str] = "clock_out"
     PAY_RATE_TYPE_COLUMN: Final[str] = "pay_rate_type"
     CREATED_AT_COLUMN: Final[str] = "created_at"
+
+    # User table column names
+    USERNAME_COLUMN: Final[str] = "username"
+    PASSWORD_HASH_COLUMN: Final[str] = "password_hash"
+    ROLE_COLUMN: Final[str] = "role"
+    DISPLAY_NAME_COLUMN: Final[str] = "display_name"
+    ACTIVE_COLUMN: Final[str] = "active"
 
     # Default pay rate
     DEFAULT_PAY_RATE: Final[str] = PayRateType.STANDARD
