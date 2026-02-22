@@ -85,19 +85,26 @@ def init_database() -> Tuple[bool, Optional[str]]:
 
 def _get_seed_credentials() -> Tuple[str, str]:
     """Get seed manager username and password from env or Streamlit secrets."""
-    username = os.environ.get("SEED_MANAGER_USERNAME", "").strip()
-    password = os.environ.get("SEED_MANAGER_PASSWORD", "").strip()
+    username = (os.environ.get("SEED_MANAGER_USERNAME") or "").strip()
+    password = (os.environ.get("SEED_MANAGER_PASSWORD") or "").strip()
     if username and password:
         return username, password
     try:
         import streamlit as st
-        secrets = st.secrets if hasattr(st, "secrets") else {}
-        # Top-level or under SUPABASE
-        supabase = secrets.get("SUPABASE") or {}
-        username = (secrets.get("SEED_MANAGER_USERNAME") or supabase.get("SEED_MANAGER_USERNAME") or "").strip()
-        password = (secrets.get("SEED_MANAGER_PASSWORD") or supabase.get("SEED_MANAGER_PASSWORD") or "").strip()
-        if isinstance(username, str) and isinstance(password, str):
-            return username, password
+        s = getattr(st, "secrets", None)
+        if s is None:
+            return "", ""
+        # Streamlit: [SUPABASE] section
+        for sec in ("SUPABASE", "supabase"):
+            try:
+                sub = s[sec]
+                u = (sub.get("SEED_MANAGER_USERNAME") or sub.get("seed_manager_username") or "")
+                p = (sub.get("SEED_MANAGER_PASSWORD") or sub.get("seed_manager_password") or "")
+                u, p = str(u).strip(), str(p).strip()
+                if u and p:
+                    return u, p
+            except (KeyError, TypeError, AttributeError):
+                continue
     except Exception:
         pass
     return "", ""
@@ -148,4 +155,41 @@ def ensure_database_ready() -> Tuple[bool, Optional[str]]:
     Returns:
         (True, None) if ready, (False, error_message) otherwise.
     """
-    return init_database() 
+    return init_database()
+
+
+def run_seed_if_empty() -> bool:
+    """If users table is empty and seed credentials exist, create the seed manager now.
+
+    Call this from the login page so the first user is created when secrets are
+    available (e.g. on Streamlit Cloud where init might run before secrets are loaded).
+    Returns True if a user was created (caller may want to st.rerun()).
+    """
+    ok, _ = bootstrap_seed_manager()
+    return ok
+
+
+def bootstrap_seed_manager() -> Tuple[bool, str]:
+    """Create seed manager if table is empty. Returns (success, message)."""
+    conn, err = get_db_connection()
+    if err or not conn:
+        return False, f"Database: {err or 'no connection'}"
+    try:
+        db = DatabaseConnection(conn)
+        with db.get_cursor() as cur:
+            cur.execute(f"SELECT COUNT(*) FROM {DatabaseConstants.USERS_TABLE}")
+            if cur.fetchone()[0] > 0:
+                return False, "Users already exist"
+        seed_username, seed_password = _get_seed_credentials()
+        if not seed_username or not seed_password:
+            return False, "Secrets not found: set SEED_MANAGER_USERNAME and SEED_MANAGER_PASSWORD in Streamlit secrets under [SUPABASE]"
+        _seed_manager_if_empty(conn)
+        with db.get_cursor() as cur:
+            cur.execute(f"SELECT COUNT(*) FROM {DatabaseConstants.USERS_TABLE}")
+            if cur.fetchone()[0] > 0:
+                return True, f"Admin user '{seed_username}' created. Log in with that username and your SEED_MANAGER_PASSWORD."
+        return False, "Insert did not create a row"
+    except Exception as e:
+        return False, str(e)
+    finally:
+        conn.close() 

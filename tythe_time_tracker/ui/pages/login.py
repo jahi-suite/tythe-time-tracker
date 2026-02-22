@@ -3,20 +3,29 @@
 import streamlit as st
 
 from ...core.auth import authenticate_user
+from ...database.init import bootstrap_seed_manager, run_seed_if_empty
 
 
 def show() -> None:
     """Display the login form as the app landing page."""
+    # Ensure seed manager exists when table is empty and secrets are set (e.g. Streamlit Cloud)
+    if run_seed_if_empty():
+        st.rerun()
+
     st.title("The Tythe Barn - Time Tracker")
     st.subheader("Please log in to continue")
 
     with st.expander("First time? Create the first manager account"):
         st.markdown(
-            "If no accounts exist yet, set these in your `.env` (or Streamlit secrets) and **restart the app**:\n\n"
-            "- `SEED_MANAGER_USERNAME` — e.g. `admin`\n"
-            "- `SEED_MANAGER_PASSWORD` — your chosen password\n\n"
-            "On the next startup, the app will create that manager account. Then log in with those credentials."
+            "Add **SEED_MANAGER_USERNAME** and **SEED_MANAGER_PASSWORD** under the `[SUPABASE]` section in Streamlit secrets, then click below."
         )
+        if st.button("Create first admin from secrets"):
+            ok, msg = bootstrap_seed_manager()
+            if ok:
+                st.success(msg)
+                st.rerun()
+            else:
+                st.error(msg)
 
     with st.form("login_form"):
         username = st.text_input("Username")

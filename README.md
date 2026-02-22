@@ -42,6 +42,13 @@ A simple, web-based time tracking system for employees at The Tythe Barn to cloc
    MANAGER_PASSWORD=tythe2024
    ```
 
+   **First-time login:** To create the first manager account, add (then restart the app):
+   ```env
+   SEED_MANAGER_USERNAME=admin
+   SEED_MANAGER_PASSWORD=your-secure-password
+   ```
+   The app creates this account when the users table is empty. Log in with that username and password.
+
 ### 3. Install Dependencies
 
 ```bash
@@ -80,8 +87,11 @@ CREATE TABLE time_entries (
 
 ## 🔧 Configuration
 
-### Manager Password
-Change the default manager password by setting the `MANAGER_PASSWORD` environment variable.
+### First manager account (seed)
+When there are no users, set `SEED_MANAGER_USERNAME` and `SEED_MANAGER_PASSWORD` in `.env` (or Streamlit secrets), then start the app. It will create that manager account so you can log in. Omit these after the first run if you prefer.
+
+### Manager password (legacy)
+The legacy `MANAGER_PASSWORD` env var is still supported for the old single-password manager gate; with user auth, managers log in with their own accounts.
 
 ### Database Connection
 All database connection parameters are configurable via environment variables:
