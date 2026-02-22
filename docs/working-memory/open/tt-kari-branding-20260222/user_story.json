@@ -1,0 +1,24 @@
+{
+  "initiative": "tt-kari-branding-20260222",
+  "updated": "2026-02-22",
+  "stories": [
+    {
+      "id": "brand-01",
+      "title": "Create reusable footer component",
+      "acceptance_criteria": "tythe_time_tracker/ui/components/footer.py exists with render_footer() function. Function renders 'Powered by Kari Suite' via st.markdown with styled HTML (subtle, muted, centered, small font, hr separator above).",
+      "passes": false
+    },
+    {
+      "id": "brand-02",
+      "title": "Add footer to all pages",
+      "acceptance_criteria": "render_footer() is called at the bottom of employee_interface.py, personal_timesheet.py, export_interface.py, and manager_dashboard.py. Footer appears after all page content on every page.",
+      "passes": false
+    },
+    {
+      "id": "brand-03",
+      "title": "Login page branding",
+      "acceptance_criteria": "Login page displays prominent 'Powered by Kari Suite' branding (larger than footer, centered, below login form). App title and Kari Suite branding shown together in a cohesive branded layout.",
+      "passes": false
+    }
+  ]
+}

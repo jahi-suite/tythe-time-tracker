@@ -1,0 +1,30 @@
+{
+  "initiative": "tt-mobile-fix-20260222",
+  "updated": "2026-02-22",
+  "stories": [
+    {
+      "id": "mobile-01",
+      "title": "Add Streamlit config for mobile compatibility",
+      "acceptance_criteria": ".streamlit/config.toml exists with [server] section (enableCORS=false, enableXsrfProtection=false) and [browser] section (gatherUsageStats=false).",
+      "passes": false
+    },
+    {
+      "id": "mobile-02",
+      "title": "Inject viewport meta tag",
+      "acceptance_criteria": "tythe_time_tracker/ui/app.py contains st.markdown() call with viewport meta tag (width=device-width, initial-scale=1.0) using unsafe_allow_html=True, placed right after set_page_config.",
+      "passes": false
+    },
+    {
+      "id": "mobile-03",
+      "title": "Responsive layout adjustments",
+      "acceptance_criteria": "layout='wide' removed or conditionally applied. Custom CSS added via st.markdown for mobile: reduced padding on small screens, tap-friendly button sizes (min 44px), sidebar auto-collapse on mobile. Media queries target screens under 768px.",
+      "passes": false
+    },
+    {
+      "id": "mobile-04",
+      "title": "Pin Streamlit version for mobile fixes",
+      "acceptance_criteria": "requirements.txt has streamlit>=1.32.0 (up from >=1.28.0). No import or config errors with the updated version constraint.",
+      "passes": false
+    }
+  ]
+}

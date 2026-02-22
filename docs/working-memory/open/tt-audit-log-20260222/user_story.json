@@ -1,0 +1,30 @@
+{
+  "initiative": "tt-audit-log-20260222",
+  "updated": "2026-02-22",
+  "stories": [
+    {
+      "id": "audit-01",
+      "title": "Create audit_log table in Supabase",
+      "acceptance_criteria": "audit_log table exists with columns: id (UUID PK), action (TEXT with CHECK), target_table (TEXT), target_id (UUID), changed_by (TEXT), old_values (JSONB), new_values (JSONB), created_at (TIMESTAMPTZ). DDL added to init.py and executes without error.",
+      "passes": false
+    },
+    {
+      "id": "audit-02",
+      "title": "Audit logging service and repository methods",
+      "acceptance_criteria": "tythe_time_tracker/core/audit.py exists with log_change() function. repository.py has insert_audit_log() and get_audit_logs() methods. log_change() successfully inserts audit records.",
+      "passes": false
+    },
+    {
+      "id": "audit-03",
+      "title": "Wire audit logging into add/edit/delete operations",
+      "acceptance_criteria": "services.py calls log_change() on add_shift_manually (action='add', new_values captured), edit_shift (action='edit', old and new values captured), and delete_entry (action='delete', old_values captured). changed_by comes from session current_user.",
+      "passes": false
+    },
+    {
+      "id": "audit-04",
+      "title": "Manager changelog view tab",
+      "acceptance_criteria": "Manager dashboard has a 'Change Log' tab showing audit entries with: timestamp, action, employee affected, changed by, change summary. Filterable by date range, employee name, and action type. Edit entries show before/after diff.",
+      "passes": false
+    }
+  ]
+}

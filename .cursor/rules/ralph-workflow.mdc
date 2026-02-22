@@ -1,0 +1,49 @@
+---
+description: Ralph Wiggum autonomous workflow. Governs how every fresh agent session orients, works, and verifies.
+alwaysApply: true
+---
+
+# Ralph Wiggum Workflow
+
+Each agent session starts with fresh context. Progress persists through CODE ON DISK and GIT COMMITS, not conversation history.
+
+## On Session Start
+
+Before doing anything:
+
+```bash
+git log --oneline -5
+git status
+ls docs/working-memory/open/
+```
+
+- Read active task folders: plan.md, updates.md, user_story.json (if present)
+- If a verification command exists in plan.md, run it to see current state
+- Do NOT rely on prior conversation context
+
+## Do ONE Atomic Unit of Work
+
+1. Read plan.md (and user_story.json if present) to find what to do
+2. Make ONE change (one file or one story)
+3. Commit immediately
+4. Run verification if defined
+5. Update updates.md with what you did
+
+Do NOT try to complete an entire multi-step task in one session.
+
+## Never Self-Assess as Done
+
+External verification decides completion:
+- grep commands checking for remaining patterns
+- Type checkers (tsc --noEmit, dart analyze)
+- Test runners (pytest, npm test, flutter test)
+- Build commands
+- Custom verification scripts
+
+## Update Working Memory
+
+After progress, update the task's updates.md with timestamp and what was done.
+
+## If No Active Task
+
+If docs/working-memory/open/ is empty: report what you found, ask for direction, do NOT invent work.
