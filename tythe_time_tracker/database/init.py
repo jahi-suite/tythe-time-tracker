@@ -5,6 +5,7 @@ This module handles the setup and initialization of database tables.
 """
 
 import logging
+import os
 from typing import Optional, Tuple
 
 from .connection import get_db_connection
@@ -71,6 +72,8 @@ def init_database() -> Tuple[bool, Optional[str]]:
                 """)
                 logger.info("Database updated with pay rate functionality")
 
+        _seed_manager_if_empty(conn)
+
         logger.info("Database initialization completed successfully")
         return True, None
 
@@ -78,6 +81,45 @@ def init_database() -> Tuple[bool, Optional[str]]:
         msg = str(e)
         logger.error(f"Database initialization failed: {e}")
         return False, msg
+
+
+def _seed_manager_if_empty(conn) -> None:
+    """Insert a seed manager if users table is empty and env vars are set.
+
+    Reads SEED_MANAGER_USERNAME and SEED_MANAGER_PASSWORD from environment.
+    Skips silently if either var is missing or the table already has rows.
+    """
+    seed_username = os.environ.get("SEED_MANAGER_USERNAME", "").strip()
+    seed_password = os.environ.get("SEED_MANAGER_PASSWORD", "").strip()
+
+    if not seed_username or not seed_password:
+        logger.debug("Seed manager env vars not set; skipping seed.")
+        return
+
+    from ..core.auth import hash_password
+
+    db = DatabaseConnection(conn)
+    with db.get_cursor() as cursor:
+        cursor.execute(f"SELECT COUNT(*) FROM {DatabaseConstants.USERS_TABLE}")
+        count = cursor.fetchone()[0]
+
+        if count > 0:
+            logger.debug("Users table non-empty; skipping seed manager.")
+            return
+
+        password_hash = hash_password(seed_password)
+        cursor.execute(
+            f"""
+            INSERT INTO {DatabaseConstants.USERS_TABLE}
+                ({DatabaseConstants.USERNAME_COLUMN},
+                 {DatabaseConstants.PASSWORD_HASH_COLUMN},
+                 {DatabaseConstants.ROLE_COLUMN},
+                 {DatabaseConstants.DISPLAY_NAME_COLUMN})
+            VALUES (%s, %s, 'manager', 'Admin')
+            """,
+            (seed_username, password_hash),
+        )
+        logger.info("Seed manager account created: %s", seed_username)
 
 
 def ensure_database_ready() -> Tuple[bool, Optional[str]]:
