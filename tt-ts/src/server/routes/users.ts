@@ -4,6 +4,26 @@ import { requireManager } from '../middleware/auth.js'
 import { createIpRateLimit } from '../middleware/rateLimit.js'
 
 const router = Router()
+const MAX_PAY_RATE = 999.99
+
+function parsePayRateInput(value: unknown, label: string): number | null {
+  if (value === undefined || value === null || value === '') return null
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    throw new Error(`${label} must be a number or null`)
+  }
+  if (value < 0) {
+    throw new Error(`${label} cannot be negative`)
+  }
+  if (value > MAX_PAY_RATE) {
+    throw new Error(`${label} must be ${MAX_PAY_RATE} or less`)
+  }
+  const rounded = Math.round(value * 100) / 100
+  if (Math.abs(value - rounded) > 1e-9) {
+    throw new Error(`${label} must have at most 2 decimal places`)
+  }
+  return value
+}
+
 const resetPasswordRateLimit = createIpRateLimit({
   maxRequests: 5,
   windowMs: 15 * 60 * 1000,
@@ -83,11 +103,22 @@ router.post('/:id/deactivate', async (req, res) => {
 
 router.post('/:id/pay-rates', async (req, res) => {
   const { standard, enhanced, supervisor } = req.body ?? {}
+  let parsedStandard: number | null
+  let parsedEnhanced: number | null
+  let parsedSupervisor: number | null
+  try {
+    parsedStandard = parsePayRateInput(standard, 'standard')
+    parsedEnhanced = parsePayRateInput(enhanced, 'enhanced')
+    parsedSupervisor = parsePayRateInput(supervisor, 'supervisor')
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message })
+    return
+  }
   const [ok, msg] = await auth.setUserPayRates(
     req.params.id,
-    standard ?? null,
-    enhanced ?? null,
-    supervisor ?? null
+    parsedStandard,
+    parsedEnhanced,
+    parsedSupervisor
   )
   if (!ok) {
     res.status(400).json({ error: msg })

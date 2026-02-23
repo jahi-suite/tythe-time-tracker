@@ -3,6 +3,15 @@ import type { AuthUser, User } from '../../shared/types.js'
 import { DB, ALLOWED_ROLES } from '../../shared/constants.js'
 import { query } from '../db/connection.js'
 
+const MAX_PAY_RATE = 999.99
+
+function isValidPayRateValue(value: number | null): boolean {
+  if (value === null) return true
+  if (typeof value !== 'number' || !Number.isFinite(value)) return false
+  if (value < 0 || value > MAX_PAY_RATE) return false
+  return Math.abs(value - Math.round(value * 100) / 100) <= 1e-9
+}
+
 export function hashPassword(plain: string): string {
   return bcrypt.hashSync(plain, bcrypt.genSaltSync())
 }
@@ -123,6 +132,9 @@ export async function setUserPayRates(
   enhanced: number | null,
   supervisor: number | null
 ): Promise<[boolean, string]> {
+  if (!isValidPayRateValue(standard) || !isValidPayRateValue(enhanced) || !isValidPayRateValue(supervisor)) {
+    return [false, `Pay rates must be null or numbers between 0 and ${MAX_PAY_RATE} with up to 2 decimals.`]
+  }
   try {
     const res = await query(
       `UPDATE ${DB.USERS_TABLE}
