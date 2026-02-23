@@ -25,9 +25,9 @@ export function ExportPage() {
       <h2>Export Timesheet</h2>
       <div className="card">
         {isManager ? (
-          <p className="success">Manager Export Access — You can export timesheets for any employee or the entire team.</p>
+          <p className="message-success">Manager Export Access — You can export timesheets for any employee or the entire team.</p>
         ) : (
-          <p className="info">Employee Export Access — You can only export your own timesheet.</p>
+          <p className="message-info">Employee Export Access — You can only export your own timesheet.</p>
         )}
       </div>
       <div className="card">

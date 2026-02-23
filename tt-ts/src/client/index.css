@@ -155,9 +155,32 @@ body {
 }
 
 .caption { color: var(--tt-text-muted); font-size: 0.9rem; }
-.error { color: #c00; }
-.success { color: #0a0; }
-.info { color: var(--tt-primary); }
+
+.message-success,
+.message-error,
+.message-info {
+  margin: 0.75rem 0;
+  padding: 0.7rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  line-height: 1.35;
+  color: var(--tt-text);
+}
+
+.message-success {
+  background: #edf7f2;
+  border-color: #6ea889;
+}
+
+.message-error {
+  background: #fbeff0;
+  border-color: #bb6670;
+}
+
+.message-info {
+  background: #eef5fc;
+  border-color: #6d94bd;
+}
 
 .card {
   border: 1px solid var(--tt-border);

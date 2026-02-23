@@ -64,7 +64,7 @@ export function TimesheetPage() {
         </div>
       ) : (
         <div className="card">
-          <p className="info">No time entries found for {user?.display_name}</p>
+          <p className="message-info">No time entries found for {user?.display_name}</p>
         </div>
       )}
     </div>

@@ -8,3 +8,6 @@
 - 2026-02-23: Completed `polish-02` (sidebar navigation) in `tt-ts/`.
 - Replaced the sidebar page dropdown with a vertical navigation link list in `tt-ts/src/client/pages/Layout.tsx`.
 - Added active-state and 44px-tap-target sidebar navigation styling in `tt-ts/src/client/index.css`.
+- 2026-02-23: Completed `polish-03` (success/error/info message styling) in `tt-ts/`.
+- Added `.message-success`, `.message-error`, and `.message-info` alert styles in `tt-ts/src/client/index.css` using the corporate palette.
+- Applied the new message classes across `ClockPage`, `TimesheetPage`, `ExportPage`, `ManagerPage`, `LoginPage`, and `Layout` form feedback.

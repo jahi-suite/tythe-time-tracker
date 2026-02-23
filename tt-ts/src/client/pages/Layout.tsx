@@ -91,8 +91,8 @@ export function Layout() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
-            {passwordError && <p className="error">{passwordError}</p>}
-            {passwordSuccess && <p className="success">{passwordSuccess}</p>}
+            {passwordError && <p className="message-error">{passwordError}</p>}
+            {passwordSuccess && <p className="message-success">{passwordSuccess}</p>}
             <button type="submit">Change password</button>
           </form>
         </details>

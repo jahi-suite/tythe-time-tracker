@@ -45,7 +45,7 @@ export function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="current-password"
         />
-        {error && <p className="error">{error}</p>}
+        {error && <p className="message-error">{error}</p>}
         <button type="submit" disabled={loading}>
           Log In
         </button>
@@ -118,7 +118,7 @@ export function FirstSetupPage() {
           onChange={(e) => setConfirm(e.target.value)}
           required
         />
-        {error && <p className="error">{error}</p>}
+        {error && <p className="message-error">{error}</p>}
         <button type="submit" disabled={loading}>
           Create admin account
         </button>

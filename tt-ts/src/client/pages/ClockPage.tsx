@@ -77,17 +77,17 @@ export function ClockPage() {
           <h3>Quick Status</h3>
           {openShift ? (
             <>
-              <p className="success">{user?.display_name} is currently clocked in</p>
+              <p className="message-success">{user?.display_name} is currently clocked in</p>
               <p>Clocked in at: {bstTime} BST</p>
               <p>Pay Rate: {openShift.pay_rate_type}</p>
             </>
           ) : (
-            <p className="info">{user?.display_name} is not currently clocked in</p>
+            <p className="message-info">{user?.display_name} is not currently clocked in</p>
           )}
         </div>
       </div>
       {message && (
-        <p className={message.type}>{message.text}</p>
+        <p className={`message-${message.type}`}>{message.text}</p>
       )}
     </div>
   )

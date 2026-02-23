@@ -529,7 +529,7 @@ export function ManagerPage() {
     <div className="page">
       <h2>Manager Dashboard</h2>
       <div className="card">
-        <p className="success">Logged in as {user?.display_name}</p>
+        <p className="message-success">Logged in as {user?.display_name}</p>
       </div>
       <div className="tabs">
         <button onClick={() => setTab('entries')} className={tab === 'entries' ? 'active' : ''}>
@@ -671,8 +671,8 @@ export function ManagerPage() {
                 <option value="Supervisor">Supervisor</option>
               </select>
             </label>
-            {addShiftError && <p className="error">{addShiftError}</p>}
-            {addShiftSuccess && <p className="success">{addShiftSuccess}</p>}
+            {addShiftError && <p className="message-error">{addShiftError}</p>}
+            {addShiftSuccess && <p className="message-success">{addShiftSuccess}</p>}
             <div className="btn-row">
               <button type="submit" className="btn-primary" disabled={addShiftSubmitting}>
                 {addShiftSubmitting ? 'Adding...' : 'Add Shift'}
@@ -733,8 +733,8 @@ export function ManagerPage() {
                 </select>
               </label>
             </div>
-            {createUserError && <p className="error">{createUserError}</p>}
-            {createUserSuccess && <p className="success">{createUserSuccess}</p>}
+            {createUserError && <p className="message-error">{createUserError}</p>}
+            {createUserSuccess && <p className="message-success">{createUserSuccess}</p>}
             <div className="btn-row">
               <button type="submit" className="btn-primary" disabled={createUserSubmitting}>
                 {createUserSubmitting ? 'Creating...' : 'Create User'}
@@ -743,8 +743,8 @@ export function ManagerPage() {
           </form>
 
           <h3>All Users</h3>
-          {userStatusError && <p className="error">{userStatusError}</p>}
-          {userStatusSuccess && <p className="success">{userStatusSuccess}</p>}
+          {userStatusError && <p className="message-error">{userStatusError}</p>}
+          {userStatusSuccess && <p className="message-success">{userStatusSuccess}</p>}
           <ul>
             {userList.map((u) => (
               <li key={u.id} style={{ marginBottom: '1rem' }}>
@@ -819,8 +819,8 @@ export function ManagerPage() {
                         />
                       </label>
                     </div>
-                    {editUserError && <p className="error">{editUserError}</p>}
-                    {editUserSuccess && <p className="success">{editUserSuccess}</p>}
+                    {editUserError && <p className="message-error">{editUserError}</p>}
+                    {editUserSuccess && <p className="message-success">{editUserSuccess}</p>}
                     <div className="btn-row">
                       <button type="submit" className="btn-primary" disabled={editUserSubmitting}>
                         {editUserSubmitting ? 'Saving...' : 'Save Changes'}
@@ -905,8 +905,8 @@ export function ManagerPage() {
                         />
                       </label>
                     </div>
-                    {userPayRatesError[u.id] && <p className="error">{userPayRatesError[u.id]}</p>}
-                    {userPayRatesSuccess[u.id] && <p className="success">{userPayRatesSuccess[u.id]}</p>}
+                    {userPayRatesError[u.id] && <p className="message-error">{userPayRatesError[u.id]}</p>}
+                    {userPayRatesSuccess[u.id] && <p className="message-success">{userPayRatesSuccess[u.id]}</p>}
                     <div className="btn-row">
                       <button type="submit" className="btn-secondary" disabled={Boolean(userPayRatesSubmittingId)}>
                         {userPayRatesSubmittingId === u.id ? 'Saving...' : 'Save Pay Rates'}
@@ -934,7 +934,7 @@ export function ManagerPage() {
       {tab === 'edit' && (
         <div className="card">
           <h3>Edit Shift</h3>
-          <p className="info">
+          <p className="message-info">
             Copy an Entry ID from the View All Entries tab, then load it here to edit that shift.
           </p>
           <form onSubmit={handleEditShiftLoad}>
@@ -947,8 +947,8 @@ export function ManagerPage() {
                 placeholder="Paste Entry ID here..."
               />
             </label>
-            {editShiftLookupError && <p className="error">{editShiftLookupError}</p>}
-            {editShiftLookupSuccess && <p className="success">{editShiftLookupSuccess}</p>}
+            {editShiftLookupError && <p className="message-error">{editShiftLookupError}</p>}
+            {editShiftLookupSuccess && <p className="message-success">{editShiftLookupSuccess}</p>}
             <div className="btn-row">
               <button type="submit" className="btn-secondary" disabled={editShiftLoading}>
                 {editShiftLoading ? 'Loading...' : 'Load Shift'}
@@ -1029,8 +1029,8 @@ export function ManagerPage() {
                 <option value="Supervisor">Supervisor</option>
               </select>
             </label>
-              {editShiftError && <p className="error">{editShiftError}</p>}
-              {editShiftSuccess && <p className="success">{editShiftSuccess}</p>}
+              {editShiftError && <p className="message-error">{editShiftError}</p>}
+              {editShiftSuccess && <p className="message-success">{editShiftSuccess}</p>}
               <div className="btn-row">
                 <button type="submit" className="btn-primary" disabled={editShiftSubmitting}>
                   {editShiftSubmitting ? 'Updating...' : 'Update Shift'}
@@ -1043,7 +1043,7 @@ export function ManagerPage() {
       {tab === 'delete' && (
         <div className="card">
           <h3>Delete Entry</h3>
-          <p className="info">Copy an Entry ID from the View All Entries tab, then delete it here.</p>
+          <p className="message-info">Copy an Entry ID from the View All Entries tab, then delete it here.</p>
           <form onSubmit={handleDeleteShiftSubmit}>
             <label>
               Enter Entry ID to delete:
@@ -1054,8 +1054,8 @@ export function ManagerPage() {
                 placeholder="Paste Entry ID here..."
               />
             </label>
-            {deleteShiftError && <p className="error">{deleteShiftError}</p>}
-            {deleteShiftSuccess && <p className="success">{deleteShiftSuccess}</p>}
+            {deleteShiftError && <p className="message-error">{deleteShiftError}</p>}
+            {deleteShiftSuccess && <p className="message-success">{deleteShiftSuccess}</p>}
             <div className="btn-row">
               <button type="submit" className="btn-secondary" disabled={deleteShiftSubmitting}>
                 {deleteShiftSubmitting ? 'Deleting...' : 'Delete Entry'}
