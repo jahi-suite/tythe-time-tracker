@@ -11,3 +11,6 @@
 - 2026-02-23: Completed `polish-03` (success/error/info message styling) in `tt-ts/`.
 - Added `.message-success`, `.message-error`, and `.message-info` alert styles in `tt-ts/src/client/index.css` using the corporate palette.
 - Applied the new message classes across `ClockPage`, `TimesheetPage`, `ExportPage`, `ManagerPage`, `LoginPage`, and `Layout` form feedback.
+- 2026-02-23: Completed `polish-04` (forms, inputs, and First Setup hero) in `tt-ts/`.
+- Added shared corporate form control styles for inputs/selects (light surfaces, dark text, clear borders/focus state) and button refinements in `tt-ts/src/client/index.css`, including checkbox/radio exceptions.
+- Updated `FirstSetupPage` in `tt-ts/src/client/pages/LoginPage.tsx` to use the same branded hero block pattern as `LoginPage` (eyebrow, title, subtitle, logo).

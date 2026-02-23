@@ -87,8 +87,12 @@ export function FirstSetupPage() {
 
   return (
     <div className="login-page">
-      <h2>Set up your admin account</h2>
-      <p className="caption">No accounts exist yet. Create the first manager account to get started.</p>
+      <img src="/tythe-logo.png" alt="Tythe Barn" width={200} style={{ display: 'block', margin: '0 auto 1rem' }} />
+      <div className="login-hero">
+        <p className="login-eyebrow">First-Time Setup</p>
+        <h1 className="login-title">Create Your Admin Account</h1>
+        <p className="login-subtitle">No accounts exist yet. Create the first manager account to get started.</p>
+      </div>
       <form onSubmit={handleSubmit} className="login-form">
         <input
           type="text"
