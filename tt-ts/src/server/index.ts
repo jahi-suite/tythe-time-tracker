@@ -15,6 +15,7 @@ import auditRoutes from './routes/audit.js'
 import exportRoutes from './routes/export.js'
 import { requireSameOriginForMutations } from './middleware/csrf.js'
 import { getPool } from './db/connection.js'
+import { runMigrations } from './db/migrate.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const require = createRequire(import.meta.url)
@@ -115,6 +116,7 @@ app.use(cookieParser())
 app.use(express.json())
 
 async function startServer() {
+  await runMigrations()
   const store = await createSessionStore()
 
   app.use(
