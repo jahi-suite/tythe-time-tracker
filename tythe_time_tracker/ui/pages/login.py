@@ -1,5 +1,7 @@
 """Login page for the Tythe Barn Time Tracker."""
 
+from pathlib import Path
+
 import streamlit as st
 
 from ...core.auth import authenticate_user
@@ -12,6 +14,13 @@ def show() -> None:
     # Ensure seed manager exists when table is empty and secrets are set (e.g. Streamlit Cloud)
     if run_seed_if_empty():
         st.rerun()
+
+    logo_path = Path(__file__).resolve().parent.parent.parent / "static" / "kari-logo.png"
+    if logo_path.exists():
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            st.image(str(logo_path), width=180)
+        st.markdown("<br>", unsafe_allow_html=True)
 
     st.markdown(
         """
