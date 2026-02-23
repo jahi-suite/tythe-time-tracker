@@ -47,6 +47,7 @@ Session storage defaults to `memory` in development and `pg` in production (`SES
 `SESSION_STORE=pg` requires `connect-pg-simple`; `SESSION_STORE=redis` requires `redis` + `connect-redis` and `REDIS_URL`.
 Database SSL certificate validation defaults to `rejectUnauthorized: false` for Supabase pooler compatibility.
 Set `DB_SSL_REJECT_UNAUTHORIZED=true` when using a trusted CA/certificate chain and a compatible Postgres endpoint.
+Optionally set `FIRST_SETUP_TOKEN` to require a one-time shared token for `POST /api/auth/first-setup` while the users table is empty.
 
 ## Browser Support
 

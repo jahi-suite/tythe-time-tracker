@@ -123,10 +123,18 @@ router.get('/first-setup', async (_req, res) => {
 })
 
 router.post('/first-setup', authMutationRateLimit, async (req, res) => {
-  const { username, password, displayName } = req.body ?? {}
+  const { username, password, displayName, setupToken } = req.body ?? {}
   if (!username || !password || !displayName) {
     res.status(400).json({ error: 'Username, password, and display name required' })
     return
+  }
+  const requiredFirstSetupToken = process.env.FIRST_SETUP_TOKEN?.trim()
+  if (requiredFirstSetupToken) {
+    const needsSetup = await auth.isUsersTableEmpty()
+    if (needsSetup && setupToken !== requiredFirstSetupToken) {
+      res.status(403).json({ error: 'Invalid first-setup token' })
+      return
+    }
   }
   const [ok, msg] = await auth.createFirstManager(username, password, displayName)
   if (!ok) {
