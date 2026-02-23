@@ -293,7 +293,8 @@ th:last-child { border-top-right-radius: 10px; }
 tbody tr:last-child td { border-bottom: 0; }
 
 .tabs { display: flex; gap: 0.25rem; margin-bottom: 1rem; flex-wrap: wrap; }
-.tabs button { padding: 0.5rem 1rem; border: 1px solid var(--tt-border); background: #fff; cursor: pointer; border-radius: 6px; }
+.tabs button { padding: 0.5rem 1rem; border: 1px solid var(--tt-border); background: #fff; color: var(--tt-text); cursor: pointer; border-radius: 6px; }
+.tabs button:hover:not(.active) { background: #f4f7fb; }
 .tabs button.active { background: var(--tt-primary); color: white; border-color: var(--tt-primary); }
 
 .loading { padding: 2rem; text-align: center; }
