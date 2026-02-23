@@ -37,6 +37,12 @@ export function requireSameOriginForMutations(req: Request, res: Response, next:
   const protocol = forwardedProto || req.protocol
   const allowedOrigins = new Set([`${protocol}://${host}`, `https://${host}`, `http://${host}`])
 
+  // In development, allow Vite dev server origin (different port) when API is on localhost
+  const isDev = process.env.NODE_ENV !== 'production'
+  if (isDev && requestOrigin.startsWith('http://localhost:') && host.startsWith('localhost')) {
+    allowedOrigins.add(requestOrigin)
+  }
+
   if (!allowedOrigins.has(requestOrigin)) {
     res.status(403).json({ error: 'Invalid request origin' })
     return
