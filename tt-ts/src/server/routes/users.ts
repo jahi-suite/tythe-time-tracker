@@ -1,8 +1,14 @@
 import { Router } from 'express'
 import * as auth from '../auth/index.js'
 import { requireManager } from '../middleware/auth.js'
+import { createIpRateLimit } from '../middleware/rateLimit.js'
 
 const router = Router()
+const resetPasswordRateLimit = createIpRateLimit({
+  maxRequests: 5,
+  windowMs: 15 * 60 * 1000,
+  message: 'Too many password reset attempts, please try again later',
+})
 
 router.use(requireManager)
 
@@ -90,7 +96,7 @@ router.post('/:id/pay-rates', async (req, res) => {
   res.json({ ok: true, message: msg })
 })
 
-router.post('/:id/reset-password', async (req, res) => {
+router.post('/:id/reset-password', resetPasswordRateLimit, async (req, res) => {
   const actor = req.session!.user!
   const { newPassword } = req.body ?? {}
   if (!newPassword) {

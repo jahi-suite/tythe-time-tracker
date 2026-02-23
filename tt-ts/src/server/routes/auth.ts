@@ -1,10 +1,20 @@
 import { Router } from 'express'
 import * as auth from '../auth/index.js'
 import { requireAuth } from '../middleware/auth.js'
+import { createIpRateLimit } from '../middleware/rateLimit.js'
 
 const router = Router()
+const loginRateLimit = createIpRateLimit({
+  maxRequests: 5,
+  windowMs: 15 * 60 * 1000,
+  message: 'Too many login attempts, please try again later',
+})
+const authMutationRateLimit = createIpRateLimit({
+  maxRequests: 5,
+  windowMs: 15 * 60 * 1000,
+})
 
-router.post('/login', async (req, res) => {
+router.post('/login', loginRateLimit, async (req, res) => {
   const { username, password } = req.body ?? {}
   if (!username || !password) {
     res.status(400).json({ error: 'Username and password required' })
@@ -50,7 +60,7 @@ router.get('/me', (req, res) => {
   res.json(user)
 })
 
-router.post('/change-password', requireAuth, async (req, res) => {
+router.post('/change-password', authMutationRateLimit, requireAuth, async (req, res) => {
   const { currentPassword, newPassword } = req.body ?? {}
   const user = req.session!.user!
   if (!currentPassword || !newPassword) {
@@ -75,7 +85,7 @@ router.get('/first-setup', async (_req, res) => {
   res.json({ needsSetup: empty })
 })
 
-router.post('/first-setup', async (req, res) => {
+router.post('/first-setup', authMutationRateLimit, async (req, res) => {
   const { username, password, displayName } = req.body ?? {}
   if (!username || !password || !displayName) {
     res.status(400).json({ error: 'Username, password, and display name required' })
