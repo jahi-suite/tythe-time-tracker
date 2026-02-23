@@ -1,164 +1,109 @@
-# 🕒 The Tythe Barn - Time Tracker
+# Employee Portal — The Tythe Barn
 
-A simple, web-based time tracking system for employees at The Tythe Barn to clock in/out and for managers to view and manage timesheets.
+A web-based time tracking system for employees to clock in/out and for managers to view, manage, and export timesheets. Built for The Tythe Barn with branding from [Kari Suite](https://kari.suite).
 
-## ✨ Features
+## Features
 
-### 👤 Employee Features
-- **Simple Clock In/Out**: Just enter your name and click to clock in or out
-- **Duplicate Prevention**: Prevents multiple open shifts for the same employee
-- **Quick Status**: See if you're currently clocked in
-- **Personal Timesheet**: View your own time entries with dates, times, and durations
+### Employee Features
+- **Clock In/Out** — Log shifts with optional supervisor role
+- **Pay Rates** — Automatic Standard (day), Enhanced (night), and Supervisor rates
+- **Personal Timesheet** — View your own time entries with dates, times, and pay breakdown
+- **Export** — Export your timesheet to Excel or PDF
 
-### 👨‍💼 Manager Features
-- **Password Protection**: Secure access to manager dashboard
-- **All Entries View**: See time entries from all employees
-- **Delete Functionality**: Remove incorrect entries
-- **Real-time Updates**: Data refreshes automatically
+### Manager Features
+- **User Management** — Create and manage employee/manager accounts
+- **All Entries View** — See time entries from all staff
+- **Add / Edit / Delete** — Add shifts manually, edit entries, remove incorrect data
+- **Export** — Export any employee's timesheet or all staff (Excel/PDF)
+- **Audit Log** — View change history for manager actions
+- **Quick Export** — One-click export all from the dashboard
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Set Up Supabase Database
 
-1. Go to [Supabase](https://supabase.com) and create a free account
-2. Create a new project
-3. Go to Settings → Database to get your connection details
-4. Copy the connection string details
+1. Create a project at [Supabase](https://supabase.com)
+2. Go to Settings → Database for connection details
+3. For Streamlit Cloud, use **Session pooler** (not direct connection)
 
-### 2. Configure Environment Variables
+### 2. Configure Secrets
 
-1. Copy `env.example` to `.env`:
-   ```bash
-   cp env.example .env
-   ```
+Use `.env` locally or Streamlit Cloud secrets. Structure:
 
-2. Edit `.env` with your Supabase credentials:
-   ```env
-   SUPABASE_HOST=your-project-ref.supabase.co
-   SUPABASE_DATABASE=postgres
-   SUPABASE_USER=postgres
-   SUPABASE_PASSWORD=your-database-password
-   SUPABASE_PORT=5432
-   MANAGER_PASSWORD=tythe2024
-   ```
+```toml
+[SUPABASE]
+HOST = "your-pooler-host.supabase.com"
+DATABASE = "postgres"
+USER = "postgres.xxx"
+PASSWORD = "your-password"
+PORT = "5432"
 
-   **First-time login:** To create the first manager account, add (then restart the app):
-   ```env
-   SEED_MANAGER_USERNAME=admin
-   SEED_MANAGER_PASSWORD=your-secure-password
-   ```
-   The app creates this account when the users table is empty. Log in with that username and password.
+MANAGER_PASSWORD = "tythe2024"
+```
 
-### 3. Install Dependencies
+**First manager account:** Add these when the users table is empty:
+
+```toml
+SEED_MANAGER_USERNAME = "admin"
+SEED_MANAGER_PASSWORD = "your-secure-password"
+```
+
+Log in with that account; the app creates it on first run.
+
+### 3. Install and Run
 
 ```bash
 pip install -r requirements.txt
-```
-
-### 4. Run the Application
-
-```bash
 streamlit run app.py
 ```
 
-The app will be available at `http://localhost:8501`
+App runs at `http://localhost:8501`
 
-## 🌐 Deployment to Streamlit Cloud
+## Deployment (Streamlit Cloud)
 
-1. Push your code to a GitHub repository
-2. Go to [Streamlit Cloud](https://streamlit.io/cloud)
-3. Connect your GitHub account
-4. Deploy your app by selecting the repository
-5. Add your environment variables in the Streamlit Cloud dashboard
+1. Push to GitHub
+2. Connect repo at [Streamlit Cloud](https://streamlit.io/cloud)
+3. Add secrets (Settings → Secrets) in TOML format
+4. Use **Session pooler** host from Supabase for IPv4 compatibility
 
-## 📊 Database Schema
+See `STREAMLIT_CLOUD_DATABASE.md` for step-by-step setup.
 
-The app automatically creates the required table:
+## Usage
 
-```sql
-CREATE TABLE time_entries (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    employee TEXT NOT NULL,
-    clock_in TIMESTAMPTZ NOT NULL,
-    clock_out TIMESTAMPTZ,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
+### Employees
+1. Log in with your username and password
+2. Go to **Employee Clock In/Out** to clock in/out
+3. Use **Personal Timesheet** to view your history
+4. Use **Export Timesheet** to download your data
+
+### Managers
+1. Log in with your manager account
+2. **Manager Dashboard** — View all entries, add/edit/delete shifts, manage users
+3. **Export Timesheet** — Export individual or all staff (Excel/PDF)
+4. **Change Log** tab — View audit history of manager actions
+
+## Tech Stack
+
+- **Frontend**: Streamlit
+- **Database**: Supabase (PostgreSQL)
+- **Auth**: bcrypt, user accounts with roles (employee/manager)
+- **Export**: openpyxl (Excel), ReportLab (PDF)
+
+## Project Structure
+
+```
+tythe_time_tracker/
+├── ui/           # Streamlit pages and components
+├── core/         # Services, auth, models
+├── database/     # Connection, repository, init
+├── config/       # Settings
+└── static/       # Logos (Tythe, Kari)
 ```
 
-## 🔧 Configuration
+## Contributing
 
-### First manager account (seed)
-When there are no users, set `SEED_MANAGER_USERNAME` and `SEED_MANAGER_PASSWORD` in `.env` (or Streamlit secrets), then start the app. It will create that manager account so you can log in. Omit these after the first run if you prefer.
-
-### Manager password (legacy)
-The legacy `MANAGER_PASSWORD` env var is still supported for the old single-password manager gate; with user auth, managers log in with their own accounts.
-
-### Database Connection
-All database connection parameters are configurable via environment variables:
-- `SUPABASE_HOST`: Your Supabase project host
-- `SUPABASE_DATABASE`: Database name (usually 'postgres')
-- `SUPABASE_USER`: Database user (usually 'postgres')
-- `SUPABASE_PASSWORD`: Your database password
-- `SUPABASE_PORT`: Database port (usually 5432)
-
-## 📱 Mobile-Friendly
-
-The app is designed to work well on mobile devices through web browsers. Employees can easily clock in/out from their phones.
-
-## 🔒 Security Notes
-
-- This MVP uses simple password protection for the manager dashboard
-- No user accounts are required - employees just enter their names
-- All data is stored in Supabase (PostgreSQL)
-- Consider implementing proper authentication for production use
-
-## 🛠️ Tech Stack
-
-- **Frontend**: Streamlit (Python web framework)
-- **Database**: Supabase (PostgreSQL)
-- **Hosting**: Streamlit Community Cloud
-- **Database Client**: psycopg2
-
-## 📝 Usage Instructions
-
-### For Employees:
-1. Navigate to "Employee Clock In/Out"
-2. Enter your full name
-3. Click "Clock In" to start a shift
-4. Click "Clock Out" to end your shift
-5. Use "Personal Timesheet" to view your history
-
-### For Managers:
-1. Navigate to "Manager Dashboard"
-2. Enter the manager password
-3. View all employee time entries
-4. Delete incorrect entries by entering the Entry ID
-
-## 🐛 Troubleshooting
-
-### Database Connection Issues
-- Verify your Supabase credentials in the `.env` file
-- Ensure your Supabase project is active
-- Check that your IP is allowed in Supabase settings
-
-### App Not Starting
-- Make sure all dependencies are installed: `pip install -r requirements.txt`
-- Check that the `.env` file exists and has correct values
-- Verify Python version compatibility (3.7+)
-
-## 📈 Future Enhancements
-
-- User authentication system
-- Export functionality (CSV, PDF)
-- Payroll integration
-- Break time tracking
-- Shift scheduling
-- Mobile app version
-
-## 🤝 Contributing
-
-This is an MVP for The Tythe Barn. For questions or improvements, please contact the development team.
+This is an MVP for The Tythe Barn. For questions or improvements, contact the development team.
 
 ---
 
-**Built with ❤️ for The Tythe Barn** 
+**Employee Portal — The Tythe Barn** · Powered by Kari Suite
