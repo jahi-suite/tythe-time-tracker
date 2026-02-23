@@ -149,3 +149,11 @@ th { background: #f4f7fb; }
 
 .loading { padding: 2rem; text-align: center; }
 .footer-note { font-size: 0.7rem; margin-top: 0.25rem; }
+.pay-rate-info { margin-top: 0.5rem; font-size: 0.9rem; color: var(--tt-text-muted); }
+
+@media (max-width: 768px) {
+  .app-layout { grid-template-columns: 1fr; }
+  .app-layout nav.sidebar { border-right: none; border-bottom: 1px solid var(--tt-border); }
+  .grid-2 { grid-template-columns: 1fr; }
+  .app-layout main { padding: 1rem; }
+}
