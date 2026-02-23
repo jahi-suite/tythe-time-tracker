@@ -183,6 +183,34 @@ def run_seed_if_empty() -> bool:
     return ok
 
 
+def is_users_table_empty() -> bool:
+    """Return True if the users table has no rows."""
+    conn, err = get_db_connection()
+    if err or not conn:
+        return True  # Assume empty if we can't connect
+    try:
+        db = DatabaseConnection(conn)
+        with db.get_cursor() as cur:
+            cur.execute(f"SELECT COUNT(*) FROM {DatabaseConstants.USERS_TABLE}")
+            return cur.fetchone()[0] == 0
+    except Exception:
+        return True
+    finally:
+        conn.close()
+
+
+def create_first_manager_from_ui(username: str, password: str, display_name: str) -> Tuple[bool, str]:
+    """Create the first manager account when users table is empty. No secrets required.
+
+    Returns (True, success_message) or (False, error_message).
+    """
+    from ..core.auth import create_user
+
+    if not is_users_table_empty():
+        return False, "An admin account already exists. Please log in."
+    return create_user(username, password, display_name, "manager")
+
+
 def bootstrap_seed_manager() -> Tuple[bool, str]:
     """Create seed manager if table is empty. Returns (success, message)."""
     conn, err = get_db_connection()

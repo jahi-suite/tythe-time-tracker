@@ -3,7 +3,7 @@
 import streamlit as st
 
 from ...core.auth import authenticate_user
-from ...database.init import bootstrap_seed_manager, run_seed_if_empty
+from ...database.init import bootstrap_seed_manager, create_first_manager_from_ui, is_users_table_empty, run_seed_if_empty
 from ..components.footer import render_footer
 from ..components.logos import render_tythe_only
 
@@ -97,19 +97,51 @@ def show() -> None:
         """,
         unsafe_allow_html=True,
     )
-    st.caption("Please log in to continue.")
+    # First-time setup: no users yet — show "Set up your admin account" form
+    if is_users_table_empty():
+        st.markdown("### Set up your admin account")
+        st.caption("No accounts exist yet. Create the first manager account to get started.")
 
-    with st.expander("First time? Create the first manager account"):
-        st.markdown(
-            "Add **SEED_MANAGER_USERNAME** and **SEED_MANAGER_PASSWORD** under the `[SUPABASE]` section in Streamlit secrets, then click below."
-        )
-        if st.button("Create first admin from secrets"):
-            ok, msg = bootstrap_seed_manager()
-            if ok:
-                st.success(msg)
-                st.rerun()
+        with st.form("first_admin_form"):
+            setup_username = st.text_input("Username", placeholder="e.g. admin")
+            setup_display_name = st.text_input("Display name", placeholder="e.g. Manager")
+            setup_password = st.text_input("Password", type="password")
+            setup_confirm = st.text_input("Confirm password", type="password")
+            setup_submitted = st.form_submit_button("Create admin account")
+
+        if setup_submitted:
+            if not setup_username or not setup_display_name or not setup_password:
+                st.error("Please fill in all fields.")
+            elif setup_password != setup_confirm:
+                st.error("Passwords do not match.")
+            elif len(setup_password) < 6:
+                st.error("Password must be at least 6 characters.")
             else:
-                st.error(msg)
+                ok, msg = create_first_manager_from_ui(
+                    setup_username.strip(), setup_password, setup_display_name.strip()
+                )
+                if ok:
+                    st.success(f"{msg} You can now log in below.")
+                    st.rerun()
+                else:
+                    st.error(msg)
+
+        with st.expander("Advanced: Create from Streamlit secrets instead"):
+            st.markdown(
+                "Add **SEED_MANAGER_USERNAME** and **SEED_MANAGER_PASSWORD** under `[SUPABASE]` in secrets, then click below."
+            )
+            if st.button("Create first admin from secrets"):
+                ok, msg = bootstrap_seed_manager()
+                if ok:
+                    st.success(msg)
+                    st.rerun()
+                else:
+                    st.error(msg)
+
+        render_footer()
+        return
+
+    st.caption("Please log in to continue.")
 
     with st.form("login_form"):
         username = st.text_input("Username")
