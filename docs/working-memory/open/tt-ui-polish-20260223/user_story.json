@@ -1,0 +1,24 @@
+{
+  "initiative": "tt-ui-polish-20260223",
+  "updated": "2026-02-23",
+  "stories": [
+    {
+      "id": "polish-01",
+      "title": "Professional theme and color scheme",
+      "acceptance_criteria": "app.py: page_icon is professional (not casual emoji). Global CSS adds a corporate color palette (blues/grays). Typography and message styling feel professional. Mobile responsiveness preserved.",
+      "passes": false
+    },
+    {
+      "id": "polish-02",
+      "title": "Clean headers and labels",
+      "acceptance_criteria": "All pages (employee_interface, personal_timesheet, export_interface, manager_dashboard, login): headers and button labels use professional text, not emoji-heavy labels. E.g. 'Employee Clock In/Out' not '👤 Employee Clock In/Out', 'Clock In' not '🟢 Clock In'. Functionality unchanged.",
+      "passes": false
+    },
+    {
+      "id": "polish-03",
+      "title": "Layout and trust signals",
+      "acceptance_criteria": "Subtle card-style containers or dividers where appropriate. Improved spacing and visual hierarchy. Tables and forms have clean borders and readable layout. Overall appearance feels corporate and trustworthy.",
+      "passes": false
+    }
+  ]
+}
