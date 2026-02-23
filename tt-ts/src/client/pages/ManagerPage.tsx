@@ -131,6 +131,45 @@ export function ManagerPage() {
     return `${hour}:${minute}`
   }
 
+  async function loadShiftForEdit(entryIdValue: string) {
+    setEditShiftLookupError('')
+    setEditShiftLookupSuccess('')
+    setEditShiftError('')
+    setEditShiftSuccess('')
+
+    const entryId = entryIdValue.trim()
+    if (!entryId) {
+      setEditShiftLookupError('Please enter an Entry ID to edit a shift.')
+      setEditShiftLoadedId(null)
+      return
+    }
+
+    setEditShiftLoading(true)
+    try {
+      const shift = await shifts.get(entryId)
+      setEditShiftForm({
+        employeeName: shift.employee ?? '',
+        clockInDate: toDateInputValueInLondon(shift.clock_in),
+        clockInTime: toTimeInputValueInLondon(shift.clock_in),
+        clockOutDate: shift.clock_out ? toDateInputValueInLondon(shift.clock_out) : '',
+        clockOutTime: shift.clock_out ? toTimeInputValueInLondon(shift.clock_out) : '',
+        isSupervisor: shift.pay_rate_type === 'Supervisor',
+        payRateOverride:
+          shift.pay_rate_type === 'Standard' || shift.pay_rate_type === 'Enhanced' || shift.pay_rate_type === 'Supervisor'
+            ? shift.pay_rate_type
+            : '',
+      })
+      setEditShiftLoadedId(shift.id)
+      setEditShiftLookupSuccess(`Found shift for ${shift.employee}.`)
+    } catch (err) {
+      setEditShiftLoadedId(null)
+      setEditShiftForm(DEFAULT_EDIT_SHIFT_FORM)
+      setEditShiftLookupError(err instanceof Error ? err.message : 'Failed to load shift.')
+    } finally {
+      setEditShiftLoading(false)
+    }
+  }
+
   async function handleAddShiftSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setAddShiftError('')
@@ -176,42 +215,7 @@ export function ManagerPage() {
 
   async function handleEditShiftLoad(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setEditShiftLookupError('')
-    setEditShiftLookupSuccess('')
-    setEditShiftError('')
-    setEditShiftSuccess('')
-
-    const entryId = editShiftEntryId.trim()
-    if (!entryId) {
-      setEditShiftLookupError('Please enter an Entry ID to edit a shift.')
-      setEditShiftLoadedId(null)
-      return
-    }
-
-    setEditShiftLoading(true)
-    try {
-      const shift = await shifts.get(entryId)
-      setEditShiftForm({
-        employeeName: shift.employee ?? '',
-        clockInDate: toDateInputValueInLondon(shift.clock_in),
-        clockInTime: toTimeInputValueInLondon(shift.clock_in),
-        clockOutDate: shift.clock_out ? toDateInputValueInLondon(shift.clock_out) : '',
-        clockOutTime: shift.clock_out ? toTimeInputValueInLondon(shift.clock_out) : '',
-        isSupervisor: shift.pay_rate_type === 'Supervisor',
-        payRateOverride:
-          shift.pay_rate_type === 'Standard' || shift.pay_rate_type === 'Enhanced' || shift.pay_rate_type === 'Supervisor'
-            ? shift.pay_rate_type
-            : '',
-      })
-      setEditShiftLoadedId(shift.id)
-      setEditShiftLookupSuccess(`Found shift for ${shift.employee}.`)
-    } catch (err) {
-      setEditShiftLoadedId(null)
-      setEditShiftForm(DEFAULT_EDIT_SHIFT_FORM)
-      setEditShiftLookupError(err instanceof Error ? err.message : 'Failed to load shift.')
-    } finally {
-      setEditShiftLoading(false)
-    }
+    await loadShiftForEdit(editShiftEntryId)
   }
 
   async function handleEditShiftSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -484,7 +488,26 @@ export function ManagerPage() {
                 {shifts.map((s) => (
                   <li key={s.id}>
                     {new Date(s.clock_in).toLocaleString('en-GB', { timeZone: 'Europe/London' })} —{' '}
-                    {s.clock_out ? new Date(s.clock_out).toLocaleString('en-GB', { timeZone: 'Europe/London' }) : 'In Progress'} — {s.pay_rate_type}
+                    {s.clock_out ? new Date(s.clock_out).toLocaleString('en-GB', { timeZone: 'Europe/London' }) : 'In Progress'} — {s.pay_rate_type}{' '}
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setTab('edit')
+                        setEditShiftEntryId(s.id)
+                        await loadShiftForEdit(s.id)
+                      }}
+                    >
+                      Edit
+                    </button>{' '}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTab('delete')
+                        setDeleteShiftEntryId(s.id)
+                      }}
+                    >
+                      Delete
+                    </button>
                   </li>
                 ))}
               </ul>
