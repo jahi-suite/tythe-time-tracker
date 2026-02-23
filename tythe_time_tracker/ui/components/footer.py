@@ -8,7 +8,7 @@ def render_footer() -> None:
         <style>
         .kari-footer {
             text-align: center;
-            color: #999999;
+            color: #5f6f82;
             font-size: 0.75rem;
             padding: 1.5rem 0 1rem 0;
         }

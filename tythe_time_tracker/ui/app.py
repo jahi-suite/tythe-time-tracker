@@ -90,6 +90,10 @@ h1, h2, h3, h4 {
 p, li, label, .stMarkdown, .stCaption {
     color: var(--tt-text);
 }
+/* Labels and form text: darker for readability */
+label, [data-testid="stWidgetLabel"] {
+    color: #1e2a36 !important;
+}
 
 [data-testid="stSidebar"] {
     background: #f7f9fc;
@@ -100,22 +104,43 @@ p, li, label, .stMarkdown, .stCaption {
     color: var(--tt-text);
 }
 
+/* Buttons: high-contrast for readability - dark text on light bg */
 .stButton > button {
-    background: linear-gradient(180deg, var(--tt-primary) 0%, var(--tt-primary-dark) 100%);
-    color: #fff;
-    border: 1px solid var(--tt-primary-dark);
+    background: #f0f4f8 !important;
+    color: #142434 !important;
+    border: 2px solid var(--tt-primary);
     border-radius: 8px;
     font-weight: 600;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
-
 .stButton > button:hover {
+    background: #e2e8f0 !important;
+    color: #142434 !important;
     border-color: var(--tt-primary-dark);
-    background: linear-gradient(180deg, #235886 0%, #173d60 100%);
 }
-
 .stButton > button:focus {
     box-shadow: 0 0 0 3px rgba(44, 110, 163, 0.2);
+}
+
+/* Primary buttons: white on blue for emphasis */
+.stButton > button[data-testid="baseButton-primary"] {
+    background: linear-gradient(180deg, var(--tt-primary) 0%, var(--tt-primary-dark) 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid var(--tt-primary-dark);
+}
+.stButton > button[data-testid="baseButton-primary"]:hover {
+    background: linear-gradient(180deg, #235886 0%, #173d60 100%) !important;
+    color: #ffffff !important;
+}
+
+/* Form controls: ensure dark, readable text */
+.stTextInput input, .stSelectbox div, .stDateInput input, .stTimeInput input,
+.stNumberInput input, .stTextArea textarea,
+[data-testid="stSelectbox"] label, [data-testid="stTextInput"] label {
+    color: #1e2a36 !important;
+}
+[data-testid="stSelectbox"] > div > div {
+    color: #1e2a36 !important;
 }
 
 .stTextInput > div > div,
@@ -131,6 +156,9 @@ div[data-testid="stAlert"] {
     border-radius: 10px;
     border: 1px solid var(--tt-border);
     box-shadow: 0 1px 2px rgba(12, 22, 34, 0.06);
+}
+div[data-testid="stAlert"] * {
+    color: #1e2a36 !important;
 }
 
 div[data-testid="stAlert"][kind="success"] {
@@ -246,7 +274,7 @@ def show_version_info() -> None:
     """Display version information in the sidebar."""
     config = get_app_config()
     st.sidebar.markdown(
-        f"<div style='text-align:right; color: #888; font-size: 0.9em;'>Version: {config.version}</div>",
+        f"<div style='text-align:right; color: #5f6f82; font-size: 0.9em;'>Version: {config.version}</div>",
         unsafe_allow_html=True
     )
 
