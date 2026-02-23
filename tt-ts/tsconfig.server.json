@@ -1,11 +1,12 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "skipLibCheck": true,
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "outDir": "dist-server",
     "noEmit": false
   },
-  "include": ["src/server/**/*", "src/shared/**/*"],
+  "include": ["src/server/**/*", "src/shared/**/*", "src/server/types/**/*"],
   "exclude": ["node_modules", "src/client"]
 }
