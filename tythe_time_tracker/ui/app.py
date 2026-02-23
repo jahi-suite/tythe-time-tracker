@@ -227,6 +227,21 @@ hr {
         max-width: 320px !important;
     }
 }
+
+@media (min-width: 769px) {
+    .stSelectbox > div > div,
+    [data-testid="stSelectbox"] > div > div,
+    [data-baseweb="select"] > div {
+        background-color: #f4f7fb !important;
+        color: #1e2a36 !important;
+    }
+
+    [data-baseweb="select"] input,
+    [data-baseweb="select"] span,
+    [data-baseweb="select"] div {
+        color: #1e2a36 !important;
+    }
+}
 </style>""",
         unsafe_allow_html=True,
     )
