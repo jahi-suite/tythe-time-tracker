@@ -16,9 +16,15 @@ from export_functions import (
 )
 
 
+def _is_manager() -> bool:
+    """Return True if the current user has the manager role."""
+    user = st.session_state.get("current_user") or {}
+    return user.get("role") == "manager"
+
+
 def show_export_access_info() -> None:
     """Show export access information based on user role."""
-    is_manager = st.session_state.get('manager_authenticated', False)
+    is_manager = _is_manager()
     
     if is_manager:
         st.success("Manager Export Access")
@@ -30,7 +36,7 @@ def show_export_access_info() -> None:
 
 def get_employee_selection() -> Optional[str]:
     """Get employee selection for export."""
-    is_manager = st.session_state.get('manager_authenticated', False)
+    is_manager = _is_manager()
     
     if is_manager:
         col1, col2 = st.columns(2)
@@ -48,7 +54,8 @@ def get_employee_selection() -> Optional[str]:
                 st.info("Bulk export will include all staff members")
                 return None
     else:
-        return st.text_input("Enter your name:", key="export_employee_name")
+        default_name = (st.session_state.get("current_user") or {}).get("display_name", "")
+        return st.text_input("Enter your name:", value=default_name, key="export_employee_name")
 
 
 def get_date_range_selection() -> tuple[date, date]:
@@ -103,7 +110,7 @@ def get_export_options() -> tuple[str, str]:
         )
     
     with col2:
-        is_manager = st.session_state.get('manager_authenticated', False)
+        is_manager = _is_manager()
         if is_manager:
             role_filter = st.selectbox(
                 "Filter by Role:",
@@ -241,7 +248,7 @@ def show() -> None:
     # Preview and export
     with st.container(border=True):
         if st.button("Preview Data", type="secondary"):
-            is_manager = st.session_state.get('manager_authenticated', False)
+            is_manager = _is_manager()
 
             if not employee_name and not is_manager:
                 st.warning("Please enter your name")
@@ -278,7 +285,7 @@ def show() -> None:
     # Direct export without preview
     with st.container(border=True):
         if st.button("Export Directly", type="primary"):
-            is_manager = st.session_state.get('manager_authenticated', False)
+            is_manager = _is_manager()
 
             if not employee_name and not is_manager:
                 st.warning("Please enter your name")

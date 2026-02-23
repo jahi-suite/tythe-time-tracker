@@ -1,0 +1,12 @@
+{
+  "initiative": "tt-export-manager-20260223",
+  "updated": "2026-02-23",
+  "stories": [
+    {
+      "id": "export-01",
+      "title": "Fix manager export access",
+      "acceptance_criteria": "Managers can export timesheets for any employee or all staff. Export page uses current_user.role == 'manager' instead of manager_authenticated. Managers see 'Individual Employee' / 'All Staff' options and role filter. Employees see 'Enter your name' only.",
+      "passes": true
+    }
+  ]
+}
