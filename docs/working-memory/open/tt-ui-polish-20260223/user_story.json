@@ -30,7 +30,7 @@
       "id": "polish-05",
       "title": "Login page and footer polish",
       "acceptance_criteria": "Login: input fields clearly visible (light bg, clear border). Login button readable with good contrast. Warmer background (not stark white) - use Tythe Barn palette (thetythebarn.co.uk: warm creams, sage greens, earthy tones). Footer: Kari logo tiny and inline next to Powered by Kari Suite text only (no large Kari in footer). Login page shows Tythe logo only at top; footer shows Tythe + tiny Kari next to text.",
-      "passes": false
+      "passes": true
     }
   ]
 }
