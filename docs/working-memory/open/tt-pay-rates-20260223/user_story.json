@@ -1,0 +1,36 @@
+{
+  "initiative": "tt-pay-rates-20260223",
+  "updated": "2026-02-23",
+  "stories": [
+    {
+      "id": "pay-rates-01",
+      "title": "DB schema for pay rates",
+      "acceptance_criteria": "Add standard_rate, enhanced_rate, supervisor_rate (DECIMAL(10,2) NULL) to users. Migration in database/init.py.",
+      "passes": true
+    },
+    {
+      "id": "pay-rates-02",
+      "title": "Auth/core: get and set rates",
+      "acceptance_criteria": "Add get_user_pay_rates(display_name) and set_user_pay_rates(user_id, standard, enhanced, supervisor). Extend get_all_users() to include rates.",
+      "passes": true
+    },
+    {
+      "id": "pay-rates-03",
+      "title": "Manager UI: set pay rates",
+      "acceptance_criteria": "In Manage Users tab: per-user expander or inline fields to set Standard/Enhanced/Supervisor £/hr. Save via new API.",
+      "passes": true
+    },
+    {
+      "id": "pay-rates-04",
+      "title": "Export: pay amounts in Excel/PDF",
+      "acceptance_criteria": "Pass user rates into calculate_staff_summary/export; add columns for pay per rate type and total pay. Excel and PDF both show £ amounts.",
+      "passes": true
+    },
+    {
+      "id": "pay-rates-05",
+      "title": "Personal timesheet: estimated pay",
+      "acceptance_criteria": "If user has rates set, show estimated pay for the period in personal timesheet.",
+      "passes": true
+    }
+  ]
+}
