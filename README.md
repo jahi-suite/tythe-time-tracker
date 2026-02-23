@@ -41,14 +41,7 @@ PORT = "5432"
 MANAGER_PASSWORD = "tythe2024"
 ```
 
-**First manager account:** Add these when the users table is empty:
-
-```toml
-SEED_MANAGER_USERNAME = "admin"
-SEED_MANAGER_PASSWORD = "your-secure-password"
-```
-
-Log in with that account; the app creates it on first run.
+**First manager account:** When no accounts exist, the login page shows a "Set up your admin account" form. Enter username, display name, and password — no secrets editing required. Optional: use `SEED_MANAGER_USERNAME` and `SEED_MANAGER_PASSWORD` in secrets for automated setup.
 
 ### 3. Install and Run
 

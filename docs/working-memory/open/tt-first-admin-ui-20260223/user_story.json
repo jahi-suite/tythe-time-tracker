@@ -1,0 +1,12 @@
+{
+  "initiative": "tt-first-admin-ui-20260223",
+  "updated": "2026-02-23",
+  "stories": [
+    {
+      "id": "first-admin-01",
+      "title": "First admin via UI form",
+      "acceptance_criteria": "When users table is empty, login page shows 'Set up your admin account' form with username, display name, password, confirm password. No Streamlit secrets required. On success, user can log in immediately. Secrets-based flow kept as optional fallback.",
+      "passes": true
+    }
+  ]
+}
