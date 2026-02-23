@@ -88,6 +88,9 @@ export function ManagerPage() {
   const [editUserError, setEditUserError] = useState('')
   const [editUserSuccess, setEditUserSuccess] = useState('')
   const [editUserSubmitting, setEditUserSubmitting] = useState(false)
+  const [userStatusError, setUserStatusError] = useState('')
+  const [userStatusSuccess, setUserStatusSuccess] = useState('')
+  const [userStatusSubmittingId, setUserStatusSubmittingId] = useState<string | null>(null)
 
   useEffect(() => {
     timesheet.getAll().then((d) => setEntries(d.entries)).catch(() => setEntries([]))
@@ -406,6 +409,37 @@ export function ManagerPage() {
     }
   }
 
+  async function handleUserStatusChange(targetUser: {
+    id: string
+    display_name: string
+    username: string
+    active: boolean
+  }) {
+    setUserStatusError('')
+    setUserStatusSuccess('')
+
+    if (user?.id && targetUser.id === user.id) {
+      setUserStatusError('You cannot deactivate your own user here.')
+      return
+    }
+
+    setUserStatusSubmittingId(targetUser.id)
+    try {
+      if (targetUser.active) {
+        await users.deactivate(targetUser.id)
+        setUserStatusSuccess(`Deactivated user ${targetUser.display_name}.`)
+      } else {
+        await users.activate(targetUser.id)
+        setUserStatusSuccess(`Activated user ${targetUser.display_name}.`)
+      }
+      users.list().then((d) => setUserList(d.users)).catch(() => setUserList([]))
+    } catch (err) {
+      setUserStatusError(err instanceof Error ? err.message : `Failed to update user status for ${targetUser.username}.`)
+    } finally {
+      setUserStatusSubmittingId(null)
+    }
+  }
+
   return (
     <div className="page">
       <h2>Manager Dashboard</h2>
@@ -605,6 +639,8 @@ export function ManagerPage() {
           </form>
 
           <h3>All Users</h3>
+          {userStatusError && <p className="error">{userStatusError}</p>}
+          {userStatusSuccess && <p className="success">{userStatusSuccess}</p>}
           <ul>
             {userList.map((u) => (
               <li key={u.id} style={{ marginBottom: '1rem' }}>
@@ -613,6 +649,14 @@ export function ManagerPage() {
                     {u.display_name} ({u.username}) — {u.role} — {u.active ? 'Active' : 'Inactive'}
                     {user?.id === u.id ? ' (you)' : ''}
                   </span>
+                  <button
+                    type="button"
+                    onClick={() => handleUserStatusChange(u)}
+                    disabled={Boolean(userStatusSubmittingId) || user?.id === u.id}
+                    title={user?.id === u.id ? 'Cannot deactivate your own user here' : undefined}
+                  >
+                    {userStatusSubmittingId === u.id ? 'Saving...' : u.active ? 'Deactivate' : 'Activate'}
+                  </button>
                   {user?.id === u.id ? (
                     <button type="button" disabled title="Cannot edit your own user here">
                       Edit
