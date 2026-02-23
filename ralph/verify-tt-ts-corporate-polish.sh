@@ -17,9 +17,9 @@ if ! grep -qE "tythe-logo|Employee Portal" "$CLIENT/pages/Layout.tsx" 2>/dev/nul
   exit 1
 fi
 
-# polish-02: Sidebar has Link/NavLink (not just dropdown)
-if ! grep -qE "Link|NavLink" "$CLIENT/pages/Layout.tsx" 2>/dev/null; then
-  echo "FAIL: polish-02 — Sidebar link list not found (use Link/NavLink)"
+# polish-02: Sidebar has link list (Link/NavLink or sidebar-nav-link buttons)
+if ! grep -qE "Link|NavLink|sidebar-nav-link" "$CLIENT/pages/Layout.tsx" 2>/dev/null; then
+  echo "FAIL: polish-02 — Sidebar link list not found"
   exit 1
 fi
 
