@@ -40,8 +40,8 @@ if ! grep -qE "typeof.*number|parseFloat|isNaN|Number\(|>= 0|<= 999|minValue|max
   exit 1
 fi
 
-# sec-06: audit log for pay-rate changes (audit module called from auth)
-if ! grep -qE "audit\.|logPayRate|auditLog|recordAudit" tt-ts/src/server/auth/index.ts 2>/dev/null; then
+# sec-06: audit log for pay-rate changes (in users route, which calls logChange/writeUserAuditLog)
+if ! grep -qE "pay_rates_updated|writeUserAuditLog.*pay|pay-rates.*writeUserAuditLog" tt-ts/src/server/routes/users.ts 2>/dev/null; then
   echo "FAIL: sec-06 — audit logging for pay-rate changes not found"
   exit 1
 fi
