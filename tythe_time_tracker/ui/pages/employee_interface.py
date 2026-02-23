@@ -18,13 +18,13 @@ def show_employee_status(employee_name: str) -> None:
     open_shift = service.get_open_shift(employee_name)
 
     if open_shift:
-        st.success(f"✅ {employee_name} is currently clocked in")
+        st.success(f"{employee_name} is currently clocked in")
         # Convert UTC time to BST for display
         bst_time = TimeUtils.convert_to_bst(open_shift.clock_in)
         st.info(f"Clocked in at: {bst_time.strftime('%Y-%m-%d %H:%M:%S')} BST")
         st.info(f"Pay Rate: {open_shift.pay_rate_type}")
     else:
-        st.info(f"ℹ️ {employee_name} is not currently clocked in")
+        st.info(f"{employee_name} is not currently clocked in")
 
 
 def handle_clock_in(employee_name: str, is_supervisor: bool) -> Tuple[bool, str]:

@@ -31,6 +31,16 @@ def setup_page_config() -> None:
     )
     st.markdown(
         """<style>
+/* Fix blurred/faded Streamlit default headers - force crisp, readable text */
+h1, h2, h3, h4, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4,
+[data-testid="stHeader"], [data-testid="stHeader"] *,
+div[data-testid="stHeader"] {
+    opacity: 1 !important;
+    filter: none !important;
+    color: #142434 !important;
+    font-weight: 600 !important;
+}
+
 /* Corporate theme palette and typography */
 :root {
     --tt-primary: #1f4e79;
@@ -63,8 +73,18 @@ html, body, [class*="css"] {
 }
 
 h1, h2, h3, h4 {
-    color: #142434;
+    color: #142434 !important;
     letter-spacing: -0.01em;
+    opacity: 1 !important;
+    filter: none !important;
+    font-weight: 600 !important;
+}
+
+/* Override Streamlit's faded header/title styling */
+.stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4,
+[class*="stMarkdown"] h1, [class*="stMarkdown"] h2 {
+    color: #142434 !important;
+    opacity: 1 !important;
 }
 
 p, li, label, .stMarkdown, .stCaption {
@@ -197,7 +217,7 @@ MANAGER_PASSWORD = "tythe2024"''',
 
 def show_pay_rate_info() -> None:
     """Display pay rate information in an expander."""
-    with st.expander("💰 Pay Rate Information", expanded=False):
+    with st.expander("Pay Rate Information", expanded=False):
         st.markdown("""
         **Pay Rate Rules:**
         - **Standard Rate:** Regular hours (4:00 AM - 7:00 PM)
@@ -257,7 +277,7 @@ def main() -> None:
         return
 
     # Main title
-    st.title("🕒 The Tythe Barn - Time Tracker")
+    st.title("The Tythe Barn — Time Tracker")
     st.markdown("---")
     
     # Show pay rate information
