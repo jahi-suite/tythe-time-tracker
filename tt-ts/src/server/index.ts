@@ -41,8 +41,8 @@ app.use('/api/users', usersRoutes)
 app.use('/api/audit', auditRoutes)
 app.use('/api/export', exportRoutes)
 
-// Serve static client in production (dist is sibling of dist-server)
-const distPath = path.join(path.dirname(__dirname), 'dist')
+// Serve static client (dist is at project root, sibling of src/server)
+const distPath = path.join(__dirname, '..', '..', 'dist')
 app.use(express.static(distPath))
 
 app.get('*', (_req, res) => {
