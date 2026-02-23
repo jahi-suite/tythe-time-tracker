@@ -125,7 +125,9 @@ tt-ts/
 ## Browser Support
 
 - **Desktop:** Chrome, Firefox, Safari, Edge
-- **Mobile:** Chrome or Safari 16.6+ (older Safari may fail to load)
+- **Mobile:** Chrome, Safari 14+ (legacy build with polyfills for older Safari; Safari 16.6+ recommended for best experience)
+
+The build includes a legacy bundle (`@vitejs/plugin-legacy`) for Safari 14–16.3. If you still see a regex error on very old Safari, use Chrome or upgrade to Safari 16.6+.
 
 ## Tests
 
