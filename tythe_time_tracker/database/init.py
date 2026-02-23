@@ -57,6 +57,20 @@ def init_database() -> Tuple[bool, Optional[str]]:
                 );
             """)
 
+            # Create audit_log table if it doesn't exist
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS {DatabaseConstants.AUDIT_LOG_TABLE} (
+                    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                    action TEXT NOT NULL CHECK (action IN ('add', 'edit', 'delete')),
+                    target_table TEXT NOT NULL,
+                    target_id UUID,
+                    changed_by TEXT NOT NULL,
+                    old_values JSONB,
+                    new_values JSONB,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+            """)
+
             # Check if pay_rate_type column exists, add if not
             cursor.execute(f"""
                 SELECT column_name

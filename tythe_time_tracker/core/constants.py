@@ -44,6 +44,7 @@ class DatabaseConstants:
     # Table names
     TIME_ENTRIES_TABLE: Final[str] = "time_entries"
     USERS_TABLE: Final[str] = "users"
+    AUDIT_LOG_TABLE: Final[str] = "audit_log"
     
     # Column names
     ID_COLUMN: Final[str] = "id"
