@@ -38,12 +38,54 @@ def init_database() -> Tuple[bool, Optional[str]]:
                     {DatabaseConstants.USERNAME_COLUMN} TEXT UNIQUE NOT NULL,
                     {DatabaseConstants.PASSWORD_HASH_COLUMN} TEXT NOT NULL,
                     {DatabaseConstants.ROLE_COLUMN} TEXT NOT NULL DEFAULT 'employee'
-                        CHECK ({DatabaseConstants.ROLE_COLUMN} IN ('employee', 'manager')),
+                        CHECK ({DatabaseConstants.ROLE_COLUMN} IN ('employee', 'manager', 'admin')),
                     {DatabaseConstants.DISPLAY_NAME_COLUMN} TEXT NOT NULL,
                     {DatabaseConstants.ACTIVE_COLUMN} BOOLEAN DEFAULT true,
                     {DatabaseConstants.CREATED_AT_COLUMN} TIMESTAMPTZ DEFAULT NOW()
                 );
             """)
+
+            # Ensure legacy users.role CHECK constraint allows 'admin'
+            cursor.execute(
+                """
+                SELECT c.conname, pg_get_constraintdef(c.oid)
+                FROM pg_constraint c
+                JOIN pg_class t ON t.oid = c.conrelid
+                WHERE t.relname = %s
+                  AND c.contype = 'c'
+                """,
+                (DatabaseConstants.USERS_TABLE,),
+            )
+            role_check_found = False
+            for constraint_name, constraint_def in cursor.fetchall():
+                definition = str(constraint_def or "")
+                if DatabaseConstants.ROLE_COLUMN not in definition:
+                    continue
+                role_check_found = True
+                if "'admin'" in definition:
+                    break
+                safe_name = str(constraint_name).replace('"', '""')
+                cursor.execute(
+                    f'ALTER TABLE {DatabaseConstants.USERS_TABLE} DROP CONSTRAINT "{safe_name}"'
+                )
+                cursor.execute(
+                    f"""
+                    ALTER TABLE {DatabaseConstants.USERS_TABLE}
+                    ADD CONSTRAINT {DatabaseConstants.USERS_TABLE}_{DatabaseConstants.ROLE_COLUMN}_check
+                    CHECK ({DatabaseConstants.ROLE_COLUMN} IN ('employee', 'manager', 'admin'))
+                    """
+                )
+                logger.info("Database updated users.role CHECK to allow admin")
+                break
+            if not role_check_found:
+                cursor.execute(
+                    f"""
+                    ALTER TABLE {DatabaseConstants.USERS_TABLE}
+                    ADD CONSTRAINT {DatabaseConstants.USERS_TABLE}_{DatabaseConstants.ROLE_COLUMN}_check
+                    CHECK ({DatabaseConstants.ROLE_COLUMN} IN ('employee', 'manager', 'admin'))
+                    """
+                )
+                logger.info("Database added users.role CHECK constraint with admin support")
 
             # Create time_entries table if it doesn't exist
             cursor.execute(f"""
@@ -253,4 +295,4 @@ def bootstrap_seed_manager() -> Tuple[bool, str]:
     except Exception as e:
         return False, str(e)
     finally:
-        conn.close() 
+        conn.close()

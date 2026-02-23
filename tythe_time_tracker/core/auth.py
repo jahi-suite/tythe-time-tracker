@@ -2,13 +2,15 @@
 
 import logging
 from decimal import Decimal
-from typing import Optional, List, Tuple
+from typing import Any, Dict, Optional, List, Tuple
 
 import bcrypt
 
 from .constants import DatabaseConstants
 
 logger = logging.getLogger(__name__)
+
+ALLOWED_USER_ROLES = ("employee", "manager", "admin")
 
 
 def hash_password(plain: str) -> str:
@@ -76,8 +78,8 @@ def create_user(username: str, password: str, display_name: str, role: str) -> t
 
     if not username.strip() or not password or not display_name.strip():
         return False, "Username, password, and display name are required."
-    if role not in ("employee", "manager"):
-        return False, "Role must be 'employee' or 'manager'."
+    if role not in ALLOWED_USER_ROLES:
+        return False, "Role must be 'employee', 'manager', or 'admin'."
 
     conn, err = get_db_connection()
     if err or not conn:
@@ -293,8 +295,8 @@ def update_user(
         return False, "You cannot edit your own account here."
     if not username.strip() or not display_name.strip():
         return False, "Username and display name are required."
-    if role not in ("employee", "manager"):
-        return False, "Role must be 'employee' or 'manager'."
+    if role not in ALLOWED_USER_ROLES:
+        return False, "Role must be 'employee', 'manager', or 'admin'."
 
     conn, err = get_db_connection()
     if err or not conn:
@@ -365,5 +367,228 @@ def delete_user(user_id: str, current_user_id: Optional[str] = None) -> tuple[bo
     except Exception as e:
         logger.error("delete_user: error: %s", e)
         return False, f"Failed to delete user: {e}"
+    finally:
+        conn.close()
+
+
+def is_admin_or_manager(user: Optional[Dict[str, Any]]) -> bool:
+    """Return True when the session/auth user has manager-equivalent access."""
+    if not isinstance(user, dict):
+        return False
+    return str(user.get("role") or "") in ("manager", "admin")
+
+
+def count_admins() -> int:
+    """Return the number of admin users."""
+    from ..database.connection import DatabaseConnection, get_db_connection
+
+    conn, err = get_db_connection()
+    if err or not conn:
+        logger.error("count_admins: DB connection failed: %s", err)
+        return 0
+
+    try:
+        db = DatabaseConnection(conn)
+        with db.get_cursor() as cursor:
+            cursor.execute(
+                f"""
+                SELECT COUNT(*)
+                FROM {DatabaseConstants.USERS_TABLE}
+                WHERE role = 'admin'
+                """
+            )
+            return int(cursor.fetchone()[0])
+    except Exception as e:
+        logger.error("count_admins: error: %s", e)
+        return 0
+    finally:
+        conn.close()
+
+
+def _get_user_for_auth(cursor, user_id: str) -> Optional[Dict[str, Any]]:
+    """Load a user row needed for auth/authorization decisions."""
+    cursor.execute(
+        f"""
+        SELECT id, username, password_hash, role, display_name, active
+        FROM {DatabaseConstants.USERS_TABLE}
+        WHERE id = %s
+        """,
+        (user_id,),
+    )
+    row = cursor.fetchone()
+    if row is None:
+        return None
+    return {
+        "id": str(row[0]),
+        "username": row[1],
+        "password_hash": row[2],
+        "role": row[3],
+        "display_name": row[4],
+        "active": row[5],
+    }
+
+
+def change_password_self(user_id: str, current_password: str, new_password: str) -> Tuple[bool, str]:
+    """Change the current user's password after verifying the current password."""
+    from ..database.connection import DatabaseConnection, get_db_connection
+
+    if not str(user_id).strip():
+        return False, "User ID is required."
+    if not current_password:
+        return False, "Current password is required."
+    if not new_password:
+        return False, "New password is required."
+
+    conn, err = get_db_connection()
+    if err or not conn:
+        logger.error("change_password_self: DB connection failed: %s", err)
+        return False, "Database connection failed."
+
+    try:
+        db = DatabaseConnection(conn)
+        with db.get_cursor() as cursor:
+            user = _get_user_for_auth(cursor, str(user_id))
+            if user is None:
+                return False, "User not found."
+            if not bool(user.get("active")):
+                return False, "User account is inactive."
+            if not verify_password(current_password, str(user["password_hash"])):
+                return False, "Current password is incorrect."
+            cursor.execute(
+                f"""
+                UPDATE {DatabaseConstants.USERS_TABLE}
+                SET password_hash = %s
+                WHERE id = %s
+                """,
+                (hash_password(new_password), str(user_id)),
+            )
+        return True, "Password changed successfully."
+    except Exception as e:
+        logger.error("change_password_self: error: %s", e)
+        return False, f"Failed to change password: {e}"
+    finally:
+        conn.close()
+
+
+def change_password_for_user(actor: Dict[str, Any], target_user_id: str, new_password: str) -> Tuple[bool, str]:
+    """Reset a user's password subject to manager/admin role rules."""
+    from ..database.connection import DatabaseConnection, get_db_connection
+
+    if not isinstance(actor, dict):
+        return False, "Actor context is required."
+    actor_id = str(actor.get("id") or "").strip()
+    actor_role = str(actor.get("role") or "").strip()
+    if not actor_id:
+        return False, "Actor ID is required."
+    if not target_user_id:
+        return False, "Target user is required."
+    if not new_password:
+        return False, "New password is required."
+    if actor_role not in ("manager", "admin"):
+        return False, "Only managers or admins can reset passwords."
+
+    conn, err = get_db_connection()
+    if err or not conn:
+        logger.error("change_password_for_user: DB connection failed: %s", err)
+        return False, "Database connection failed."
+
+    try:
+        db = DatabaseConnection(conn)
+        with db.get_cursor() as cursor:
+            target = _get_user_for_auth(cursor, str(target_user_id))
+            if target is None:
+                return False, "User not found."
+            target_role = str(target.get("role") or "")
+
+            if actor_role == "manager":
+                if target_role != "employee":
+                    return False, "Managers can only reset employee passwords."
+            elif actor_role == "admin":
+                pass
+            else:
+                return False, "Only managers or admins can reset passwords."
+
+            cursor.execute(
+                f"""
+                UPDATE {DatabaseConstants.USERS_TABLE}
+                SET password_hash = %s
+                WHERE id = %s
+                """,
+                (hash_password(new_password), str(target_user_id)),
+            )
+        return True, "Password reset successfully."
+    except Exception as e:
+        logger.error("change_password_for_user: error: %s", e)
+        return False, f"Failed to reset password: {e}"
+    finally:
+        conn.close()
+
+
+def promote_to_admin(actor: Dict[str, Any], target_user_id: str) -> Tuple[bool, str]:
+    """Promote a manager to admin with bootstrap rules for the first admin."""
+    from ..database.connection import DatabaseConnection, get_db_connection
+
+    if not isinstance(actor, dict):
+        return False, "Actor context is required."
+    actor_id = str(actor.get("id") or "").strip()
+    actor_role = str(actor.get("role") or "").strip()
+    target_id = str(target_user_id or "").strip()
+
+    if not actor_id:
+        return False, "Actor ID is required."
+    if not target_id:
+        return False, "Target user is required."
+
+    conn, err = get_db_connection()
+    if err or not conn:
+        logger.error("promote_to_admin: DB connection failed: %s", err)
+        return False, "Database connection failed."
+
+    try:
+        db = DatabaseConnection(conn)
+        with db.get_cursor() as cursor:
+            target = _get_user_for_auth(cursor, target_id)
+            if target is None:
+                return False, "User not found."
+            target_role = str(target.get("role") or "")
+            if target_role == "admin":
+                return False, "User is already an admin."
+            if target_role != "manager":
+                return False, "Only managers can be promoted to admin."
+
+            cursor.execute(
+                f"""
+                SELECT COUNT(*)
+                FROM {DatabaseConstants.USERS_TABLE}
+                WHERE role = 'admin'
+                """
+            )
+            admin_count = int(cursor.fetchone()[0])
+
+            allowed = False
+            if actor_role == "admin":
+                allowed = True
+            elif admin_count == 0 and actor_role == "manager" and actor_id == target_id:
+                allowed = True
+            elif admin_count == 0 and actor_role == "manager" and actor_id != target_id:
+                return False, "When no admins exist, a manager may only promote themselves."
+
+            if not allowed:
+                return False, "Only admins can promote a user to admin."
+
+            cursor.execute(
+                f"""
+                UPDATE {DatabaseConstants.USERS_TABLE}
+                SET role = 'admin'
+                WHERE id = %s
+                """,
+                (target_id,),
+            )
+            if cursor.rowcount == 0:
+                return False, "User not found."
+        return True, "User promoted to admin successfully."
+    except Exception as e:
+        logger.error("promote_to_admin: error: %s", e)
+        return False, f"Failed to promote user: {e}"
     finally:
         conn.close()

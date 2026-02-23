@@ -14,6 +14,7 @@ from ...core.auth import (
     create_user,
     delete_user,
     get_all_users,
+    is_admin_or_manager,
     set_user_active,
     set_user_pay_rates,
     update_user,
@@ -29,10 +30,10 @@ from export_functions import (
 
 
 def check_manager_role() -> bool:
-    """Return True if the current user has the manager role, else show an error."""
+    """Return True if the current user has manager-equivalent access, else show an error."""
     user = st.session_state.get("current_user")
-    if not user or user.get("role") != "manager":
-        st.error("⛔ Access denied. Manager role required.")
+    if not is_admin_or_manager(user):
+        st.error("⛔ Access denied. Manager or admin role required.")
         return False
     return True
 

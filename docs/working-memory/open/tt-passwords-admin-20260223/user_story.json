@@ -6,7 +6,7 @@
       "id": "passwords-01",
       "title": "DB + Auth: admin role, change password, promote",
       "acceptance_criteria": "Add 'admin' to role CHECK in users table. Auth: change_password_self(user_id, current, new), change_password_for_user(actor, target, new) with rules: self=own with current pass; manager=employees only; admin=anyone. promote_to_admin(actor, target): only if actor is admin OR (no admins and actor is manager and target is self). count_admins(), is_admin_or_manager(). Manager dashboard access for admin.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "passwords-02",
