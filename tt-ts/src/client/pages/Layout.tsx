@@ -104,19 +104,25 @@ export function Layout() {
           </p>
         </details>
         <hr />
-        <label>
-          Choose a page:
-          <select
-            value={location.pathname}
-            onChange={(e) => navigate(e.target.value)}
-          >
-            {pages.map((p) => (
-              <option key={p.path} value={p.path}>
-                {p.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="sidebar-nav-section">
+          <p className="sidebar-nav-label">Navigation</p>
+          <div className="sidebar-nav-list" role="navigation" aria-label="Primary">
+            {pages.map((p) => {
+              const isActive = location.pathname === p.path
+              return (
+                <button
+                  key={p.path}
+                  type="button"
+                  className={`sidebar-nav-link${isActive ? ' active' : ''}`}
+                  aria-current={isActive ? 'page' : undefined}
+                  onClick={() => navigate(p.path)}
+                >
+                  {p.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
       </nav>
       <main>
         <Outlet />
