@@ -1,0 +1,116 @@
+import React, { useState } from 'react'
+import { Outlet, useNavigate, useLocation } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import { auth } from '../api'
+
+export function Layout() {
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordSuccess, setPasswordSuccess] = useState('')
+
+  const isManager = user?.role === 'manager' || user?.role === 'admin'
+  const pages = [
+    { path: '/clock', label: 'Employee Clock In/Out' },
+    { path: '/timesheet', label: 'Personal Timesheet' },
+    { path: '/export', label: 'Export Timesheet' },
+    ...(isManager ? [{ path: '/manager', label: 'Manager Dashboard' }] : []),
+  ]
+
+  const handleLogout = async () => {
+    await logout()
+    navigate('/')
+  }
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setPasswordError('')
+    setPasswordSuccess('')
+    if (newPassword !== confirmPassword) {
+      setPasswordError('New password and confirmation do not match')
+      return
+    }
+    try {
+      await auth.changePassword(currentPassword, newPassword)
+      setPasswordSuccess('Password changed successfully')
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch (err) {
+      setPasswordError(err instanceof Error ? err.message : 'Failed to change password')
+    }
+  }
+
+  return (
+    <div className="app-layout">
+      <header>
+        <h1>Employee Portal — The Tythe Barn</h1>
+        <details className="pay-rate-info">
+          <summary>Pay Rate Information</summary>
+          <p><strong>Pay Rate Rules:</strong> Standard (4AM–7PM), Enhanced (7PM–4AM), Supervisor (when selected).</p>
+        </details>
+      </header>
+      <nav className="sidebar">
+        <p className="user-info">
+          <strong>Logged in as:</strong> {user?.display_name} ({user?.role})
+        </p>
+        <button onClick={handleLogout} className="btn-secondary">
+          Logout
+        </button>
+        <hr />
+        <details>
+          <summary>Change my password</summary>
+          <form onSubmit={handleChangePassword}>
+            <input
+              type="password"
+              placeholder="Current password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="New password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="Confirm new password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+            {passwordError && <p className="error">{passwordError}</p>}
+            {passwordSuccess && <p className="success">{passwordSuccess}</p>}
+            <button type="submit">Change password</button>
+          </form>
+        </details>
+        <hr />
+        <label>
+          Choose a page:
+          <select
+            value={location.pathname}
+            onChange={(e) => navigate(e.target.value)}
+          >
+            {pages.map((p) => (
+              <option key={p.path} value={p.path}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </nav>
+      <main>
+        <Outlet />
+      </main>
+      <footer className="footer">
+        <hr />
+        <span><img src="/kari-logo.png" alt="Kari" width={14} height={14} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Powered by Kari Suite</span>
+        <p className="footer-note">Mobile: use Chrome or Safari 16.6+ (older Safari may fail to load).</p>
+      </footer>
+    </div>
+  )
+}

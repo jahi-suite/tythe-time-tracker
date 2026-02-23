@@ -7,3 +7,145 @@ body {
   font-family: system-ui, -apple-system, sans-serif;
   color: #1e2a36;
 }
+
+:root {
+  --tt-primary: #1f4e79;
+  --tt-primary-dark: #163a5c;
+  --tt-text: #1e2a36;
+  --tt-text-muted: #5f6f82;
+  --tt-border: #d6dee8;
+}
+
+.app-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100vh;
+}
+
+.app-layout header {
+  grid-column: 1 / -1;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(180deg, #f7f9fc 0%, #eef3f8 100%);
+  border-bottom: 1px solid var(--tt-border);
+}
+
+.app-layout header h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--tt-primary);
+}
+
+.app-layout nav.sidebar {
+  padding: 1rem;
+  background: #f7f9fc;
+  border-right: 1px solid var(--tt-border);
+}
+
+.app-layout main {
+  padding: 1.5rem;
+  max-width: 1100px;
+}
+
+.app-layout footer {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 1rem;
+  color: var(--tt-text-muted);
+  font-size: 0.75rem;
+  border-top: 1px solid var(--tt-border);
+}
+
+.login-page {
+  max-width: 400px;
+  margin: 2rem auto;
+  padding: 1rem;
+}
+
+.login-hero {
+  background: linear-gradient(180deg, #fdfcfb 0%, #f5f2ed 100%);
+  border: 1px solid #d4cfc4;
+  border-radius: 14px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.login-eyebrow {
+  color: #5c6b4a;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0 0 0.35rem 0;
+}
+
+.login-title {
+  color: #2d2a26;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.login-subtitle {
+  color: #5a5349;
+  font-size: 0.95rem;
+  margin: 0.35rem 0 0 0;
+}
+
+.login-form input {
+  display: block;
+  width: 100%;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid #c9c2b5;
+  border-radius: 8px;
+}
+
+.login-form button {
+  width: 100%;
+  padding: 0.6rem;
+  background: #5c6b4a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.caption { color: var(--tt-text-muted); font-size: 0.9rem; }
+.error { color: #c00; }
+.success { color: #0a0; }
+.info { color: var(--tt-primary); }
+
+.card {
+  border: 1px solid var(--tt-border);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: #fff;
+}
+
+.page h2 { margin-top: 0; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.btn-row { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+.btn-primary { background: var(--tt-primary); color: white; padding: 0.5rem 1rem; border: none; border-radius: 8px; cursor: pointer; }
+.btn-secondary { background: #f0f4f8; color: var(--tt-primary); padding: 0.5rem 1rem; border: 2px solid var(--tt-primary); border-radius: 8px; cursor: pointer; }
+
+label { display: block; margin-bottom: 0.5rem; }
+label input, label select { margin-left: 0.5rem; }
+
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 0.5rem; text-align: left; border-bottom: 1px solid var(--tt-border); }
+th { background: #f4f7fb; }
+
+.tabs { display: flex; gap: 0.25rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.tabs button { padding: 0.5rem 1rem; border: 1px solid var(--tt-border); background: #fff; cursor: pointer; border-radius: 6px; }
+.tabs button.active { background: var(--tt-primary); color: white; border-color: var(--tt-primary); }
+
+.loading { padding: 2rem; text-align: center; }
+.footer-note { font-size: 0.7rem; margin-top: 0.25rem; }
