@@ -24,7 +24,7 @@
       "id": "polish-04",
       "title": "Logo positioning and dual branding",
       "acceptance_criteria": "Tythe logo (bigger) and Kari logo (smaller) display together on login page and footer. Logos are well-positioned, centered, with appropriate spacing. Tythe is primary (larger), Kari is secondary (smaller). Layout works on mobile.",
-      "passes": false
+      "passes": true
     }
   ]
 }

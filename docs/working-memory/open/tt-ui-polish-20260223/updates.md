@@ -10,3 +10,4 @@
 - `polish-03`: Grouped the export page workflow into bordered section containers (access, employee selection, date range, export options, preview/export actions, direct export) to improve spacing and visual hierarchy without changing behavior.
 - `polish-03`: Added bordered card-style containers to the employee clock in/out and personal timesheet pages to improve spacing, section hierarchy, and table/readout presentation (visual-only, no behavior changes).
 - `polish-03`: Added bordered card-style containers across the manager dashboard (header state, add/edit/delete shift flows, user management, and change log sections) to improve spacing and visual hierarchy without changing behavior.
+- `polish-04`: Reworked the shared dual-logo component (`tythe_time_tracker/ui/components/logos.py`) to use centered, responsive HTML/CSS logo rendering so Tythe (primary, larger) and Kari (secondary, smaller) remain well-spaced and mobile-friendly on both login and footer.
