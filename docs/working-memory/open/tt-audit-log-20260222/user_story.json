@@ -6,7 +6,7 @@
       "id": "audit-01",
       "title": "Create audit_log table in Supabase",
       "acceptance_criteria": "audit_log table exists with columns: id (UUID PK), action (TEXT with CHECK), target_table (TEXT), target_id (UUID), changed_by (TEXT), old_values (JSONB), new_values (JSONB), created_at (TIMESTAMPTZ). DDL added to init.py and executes without error.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "audit-02",
