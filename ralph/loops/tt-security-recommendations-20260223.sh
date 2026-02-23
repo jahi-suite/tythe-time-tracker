@@ -13,7 +13,7 @@ TASK_DIR="docs/working-memory/open/$TASK_ID"
 PROMPT_FILE="$REPO_ROOT/ralph/prompts/$TASK_ID.md"
 
 export RALPH_BACKEND="${RALPH_BACKEND:-codex-cli}"
-MAX_ITERATIONS="${RALPH_MAX_ITERATIONS:-15}"
+MAX_ITERATIONS="${RALPH_MAX_ITERATIONS:-30}"
 SLEEP="${RALPH_SLEEP:-3}"
 
 verify() {

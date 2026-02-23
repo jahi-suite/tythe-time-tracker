@@ -12,17 +12,34 @@ import { ManagerPage } from './pages/ManagerPage'
 function AppRoutes() {
   const { user, loading } = useAuth()
   const [needsSetup, setNeedsSetup] = React.useState<boolean | null>(null)
+  const [apiReachable, setApiReachable] = React.useState<boolean | null>(null)
 
   React.useEffect(() => {
     if (loading) return
     if (user) return
     fetch('/api/auth/first-setup', { credentials: 'include' })
-      .then((r) => r.json())
+      .then((r) => {
+        setApiReachable(true)
+        return r.json()
+      })
       .then((d) => setNeedsSetup(d.needsSetup))
-      .catch(() => setNeedsSetup(false))
+      .catch(() => {
+        setApiReachable(false)
+        setNeedsSetup(false)
+      })
   }, [user, loading])
 
   if (loading) return <div className="loading">Loading...</div>
+  if (apiReachable === false) {
+    return (
+      <div className="connection-error">
+        <h2>Cannot connect to API</h2>
+        <p>Make sure the server is running. In a terminal:</p>
+        <pre>cd tt-ts && npm run dev</pre>
+        <p>Then open <a href="http://localhost:5173">http://localhost:5173</a></p>
+      </div>
+    )
+  }
   if (user) {
     return (
       <Routes>

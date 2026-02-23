@@ -148,6 +148,23 @@ th { background: #f4f7fb; }
 .tabs button.active { background: var(--tt-primary); color: white; border-color: var(--tt-primary); }
 
 .loading { padding: 2rem; text-align: center; }
+
+.connection-error {
+  max-width: 500px;
+  margin: 3rem auto;
+  padding: 2rem;
+  background: #fbeff0;
+  border: 1px solid #bb6670;
+  border-radius: 10px;
+  text-align: center;
+}
+.connection-error pre {
+  background: #fff;
+  padding: 0.75rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  text-align: left;
+}
 .footer-note { font-size: 0.7rem; margin-top: 0.25rem; }
 .pay-rate-info { margin-top: 0.5rem; font-size: 0.9rem; color: var(--tt-text-muted); }
 
