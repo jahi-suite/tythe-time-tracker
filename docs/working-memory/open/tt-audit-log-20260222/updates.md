@@ -40,3 +40,11 @@
 python3 -c "import json; d=json.load(open('docs/working-memory/open/tt-audit-log-20260222/user_story.json')); print(len([s for s in d['stories'] if not s.get('passes')]))"
 # Prints 1 (audit-04 remains)
 ```
+
+**2026-02-23** — audit-04 complete.
+- Added a new `🧾 Change Log` tab to the manager dashboard in `tythe_time_tracker/ui/pages/manager_dashboard.py`.
+- The changelog loads audit rows from the existing repository (`get_audit_logs`) and shows a table with timestamp, action, employee affected, changed by, and a summary of changes.
+- Added filters for date range, employee name, and action type.
+- Edit audit entries now render before/after diffs of changed fields in expandable sections.
+- Syntax check passed for `tythe_time_tracker/ui/pages/manager_dashboard.py`.
+- Story id: `audit-04`

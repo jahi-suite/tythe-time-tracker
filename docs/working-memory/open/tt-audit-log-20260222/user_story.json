@@ -24,7 +24,7 @@
       "id": "audit-04",
       "title": "Manager changelog view tab",
       "acceptance_criteria": "Manager dashboard has a 'Change Log' tab showing audit entries with: timestamp, action, employee affected, changed by, change summary. Filterable by date range, employee name, and action type. Edit entries show before/after diff.",
-      "passes": false
+      "passes": true
     }
   ]
 }

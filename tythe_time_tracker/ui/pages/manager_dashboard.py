@@ -5,12 +5,15 @@ Manager dashboard page for administrative functions.
 import streamlit as st
 import os
 from datetime import datetime, date, time
-from typing import Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from collections import defaultdict
 
 from ...core.services import TimeTrackingService
 from ...core.models import TimeEntry
 from ...core.auth import create_user, get_all_users, set_user_active
+from ...core.constants import DatabaseConstants
+from ...database.connection import DatabaseConnection, get_db_connection
+from ...database.repository import TimeEntryRepository
 from ...utils.time_utils import TimeUtils
 from ..components.footer import render_footer
 from export_functions import (
@@ -345,6 +348,179 @@ def show_manage_users_tab() -> None:
                         st.error(msg)
 
 
+def _safe_audit_dict(payload: Any) -> Dict[str, Any]:
+    """Return a dict payload for audit JSON values."""
+    return payload if isinstance(payload, dict) else {}
+
+
+def _audit_employee_name(log: Dict[str, Any]) -> str:
+    """Extract the employee name affected by an audit log row."""
+    new_values = _safe_audit_dict(log.get("new_values"))
+    old_values = _safe_audit_dict(log.get("old_values"))
+    return str(new_values.get("employee") or old_values.get("employee") or "Unknown")
+
+
+def _format_audit_value(value: Any) -> str:
+    """Format a single audit value for UI display."""
+    if value is None:
+        return "None"
+    if isinstance(value, bool):
+        return "Yes" if value else "No"
+    return str(value)
+
+
+def _get_changed_fields(log: Dict[str, Any]) -> List[Dict[str, str]]:
+    """Build before/after rows for changed fields on edit actions."""
+    old_values = _safe_audit_dict(log.get("old_values"))
+    new_values = _safe_audit_dict(log.get("new_values"))
+    changed_rows: List[Dict[str, str]] = []
+
+    for field in sorted(set(old_values.keys()) | set(new_values.keys())):
+        old_value = old_values.get(field)
+        new_value = new_values.get(field)
+        if old_value != new_value:
+            changed_rows.append(
+                {
+                    "Field": field,
+                    "Before": _format_audit_value(old_value),
+                    "After": _format_audit_value(new_value),
+                }
+            )
+    return changed_rows
+
+
+def _audit_change_summary(log: Dict[str, Any]) -> str:
+    """Create a compact one-line summary for an audit row."""
+    action = log.get("action")
+    employee = _audit_employee_name(log)
+    if action == "add":
+        return f"Added shift for {employee}"
+    if action == "delete":
+        return f"Deleted shift for {employee}"
+    if action == "edit":
+        changed_fields = _get_changed_fields(log)
+        if not changed_fields:
+            return f"Edited shift for {employee}"
+        field_names = ", ".join(row["Field"] for row in changed_fields[:4])
+        suffix = "..." if len(changed_fields) > 4 else ""
+        return f"Edited {employee}: {field_names}{suffix}"
+    return f"{str(action).title()} change for {employee}"
+
+
+def _load_audit_logs(start_date: date, end_date: date, action_filter: Optional[str]) -> List[Dict[str, Any]]:
+    """Load audit logs for the dashboard changelog tab."""
+    conn, error = get_db_connection()
+    if error or not conn:
+        raise ValueError(error or "Could not establish database connection")
+
+    try:
+        repo = TimeEntryRepository(DatabaseConnection(conn))
+        filters: Dict[str, Any] = {
+            "target_table": DatabaseConstants.TIME_ENTRIES_TABLE,
+            "start_date": datetime.combine(start_date, time.min),
+            "end_date": datetime.combine(end_date, time.max),
+            "limit": 500,
+        }
+        if action_filter:
+            filters["action"] = action_filter
+        return repo.get_audit_logs(filters)
+    finally:
+        conn.close()
+
+
+def show_change_log_tab() -> None:
+    """Show the manager audit changelog view."""
+    st.subheader("🧾 Change Log")
+
+    today = date.today()
+    default_start = today.replace(day=1)
+    date_range = st.date_input(
+        "Date range",
+        value=(default_start, today),
+        key="audit_log_date_range",
+    )
+    if not isinstance(date_range, (tuple, list)) or len(date_range) != 2:
+        st.info("Select a start and end date to view audit logs.")
+        return
+
+    start_date, end_date = date_range
+    if start_date > end_date:
+        st.warning("Start date must be on or before end date.")
+        return
+
+    action_choice = st.selectbox(
+        "Action type",
+        options=["All", "add", "edit", "delete"],
+        key="audit_log_action_filter",
+    )
+    action_filter = None if action_choice == "All" else action_choice
+
+    try:
+        logs = _load_audit_logs(start_date, end_date, action_filter)
+    except Exception as e:
+        st.error(f"Failed to load audit logs: {e}")
+        return
+
+    employee_names = sorted(
+        {
+            name
+            for name in (_audit_employee_name(log) for log in logs)
+            if name and name != "Unknown"
+        }
+    )
+    employee_choice = st.selectbox(
+        "Employee name",
+        options=["All Employees"] + employee_names,
+        key="audit_log_employee_filter",
+    )
+
+    if employee_choice != "All Employees":
+        logs = [log for log in logs if _audit_employee_name(log) == employee_choice]
+
+    if not logs:
+        st.info("No audit log entries found for the selected filters.")
+        return
+
+    table_rows: List[Dict[str, str]] = []
+    for log in logs:
+        created_at = log.get("created_at")
+        if isinstance(created_at, datetime):
+            display_ts = TimeUtils.convert_to_bst(created_at).strftime("%Y-%m-%d %H:%M:%S")
+        else:
+            display_ts = str(created_at)
+        table_rows.append(
+            {
+                "Timestamp": display_ts,
+                "Action": str(log.get("action", "")).upper(),
+                "Employee Affected": _audit_employee_name(log),
+                "Changed By": str(log.get("changed_by", "")),
+                "Summary of Changes": _audit_change_summary(log),
+            }
+        )
+
+    st.dataframe(table_rows, use_container_width=True)
+
+    edit_logs = [log for log in logs if log.get("action") == "edit"]
+    if not edit_logs:
+        return
+
+    st.markdown("### Edit Diffs")
+    for log in edit_logs:
+        changed_fields = _get_changed_fields(log)
+        if not changed_fields:
+            continue
+
+        created_at = log.get("created_at")
+        if isinstance(created_at, datetime):
+            display_ts = TimeUtils.convert_to_bst(created_at).strftime("%Y-%m-%d %H:%M:%S")
+        else:
+            display_ts = str(created_at)
+
+        label = f"{display_ts} | {_audit_employee_name(log)} | {log.get('changed_by', '')}"
+        with st.expander(label, expanded=False):
+            st.dataframe(changed_fields, use_container_width=True)
+
+
 def show() -> None:
     """Display the manager dashboard."""
     # Require manager role
@@ -355,7 +531,14 @@ def show() -> None:
     show_manager_header()
     
     # Manager controls tabs
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 View All Entries", "➕ Add Shift", "✏️ Edit Shift", "🗑️ Delete Entry", "👤 Manage Users"])
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+        "📊 View All Entries",
+        "➕ Add Shift",
+        "✏️ Edit Shift",
+        "🗑️ Delete Entry",
+        "👤 Manage Users",
+        "🧾 Change Log",
+    ])
 
     with tab1:
         show_all_entries_tab()
@@ -371,5 +554,8 @@ def show() -> None:
 
     with tab5:
         show_manage_users_tab()
+
+    with tab6:
+        show_change_log_tab()
 
     render_footer()
