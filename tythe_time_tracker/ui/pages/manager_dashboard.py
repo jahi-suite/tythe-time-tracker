@@ -11,10 +11,13 @@ from collections import defaultdict
 from ...core.services import TimeTrackingService
 from ...core.models import TimeEntry
 from ...core.auth import (
+    change_password_for_user,
+    count_admins,
     create_user,
     delete_user,
     get_all_users,
     is_admin_or_manager,
+    promote_to_admin,
     set_user_active,
     set_user_pay_rates,
     update_user,
@@ -298,6 +301,11 @@ def show_delete_entry_tab() -> None:
 
 def show_manage_users_tab() -> None:
     """Show the 'Manage Users' tab for creating and managing user accounts."""
+    current_user = st.session_state.current_user
+    current_user_id = current_user.get("id")
+    current_user_role = str(current_user.get("role") or "")
+    admin_count = count_admins()
+
     with st.container(border=True):
         st.subheader("Create New User")
 
@@ -308,7 +316,10 @@ def show_manage_users_tab() -> None:
                 new_display_name = st.text_input("Display Name", key="new_display_name")
             with col2:
                 new_password = st.text_input("Password", type="password", key="new_password")
-                new_role = st.selectbox("Role", ["employee", "manager"], key="new_role")
+                create_role_options = ["employee", "manager"]
+                if current_user_role == "admin":
+                    create_role_options.append("admin")
+                new_role = st.selectbox("Role", create_role_options, key="new_role")
             submitted = st.form_submit_button("Create User", type="primary")
 
     if submitted:
@@ -327,12 +338,13 @@ def show_manage_users_tab() -> None:
             st.info("No users found.")
             return
 
-        current_user_id = st.session_state.current_user.get("id")
         for user in users:
             uid = user["id"]
+            user_role = str(user.get("role") or "")
             is_self = uid == current_user_id
             edit_open_key = f"edit_user_open_{uid}"
             delete_confirm_key = f"delete_user_confirm_{uid}"
+            reset_open_key = f"reset_password_open_{uid}"
 
             col1, col2, col3, col4, col5, col6 = st.columns([2, 2, 1, 1, 1, 1])
             with col1:
@@ -389,10 +401,13 @@ def show_manage_users_tab() -> None:
                                 key=f"edit_display_name_{uid}",
                             )
                         with c2:
+                            edit_role_options = ["employee", "manager"]
+                            if user_role == "admin":
+                                edit_role_options.append("admin")
                             edit_role = st.selectbox(
                                 "Role",
-                                ["employee", "manager"],
-                                index=0 if user["role"] == "employee" else 1,
+                                edit_role_options,
+                                index=edit_role_options.index(user_role) if user_role in edit_role_options else 0,
                                 key=f"edit_role_{uid}",
                             )
                             edit_password = st.text_input(
@@ -427,6 +442,73 @@ def show_manage_users_tab() -> None:
                             st.rerun()
                         else:
                             st.error(msg)
+
+            can_reset_password = (
+                current_user_role == "admin"
+                or (current_user_role == "manager" and user_role == "employee")
+            )
+            can_promote = False
+            if user_role == "manager":
+                if current_user_role == "admin" and admin_count > 0:
+                    can_promote = True
+                elif current_user_role == "manager" and admin_count == 0 and is_self:
+                    can_promote = True
+
+            if can_reset_password or can_promote:
+                action_cols = st.columns([1, 1, 4])
+                with action_cols[0]:
+                    if can_reset_password and st.button("Reset Password", key=f"reset_toggle_{uid}"):
+                        st.session_state[reset_open_key] = not st.session_state.get(reset_open_key, False)
+                        if st.session_state[reset_open_key]:
+                            st.session_state[edit_open_key] = False
+                            st.session_state[delete_confirm_key] = False
+                with action_cols[1]:
+                    if can_promote and st.button("Promote to admin", key=f"promote_{uid}"):
+                        ok, msg = promote_to_admin(current_user, uid)
+                        if ok:
+                            if is_self and isinstance(st.session_state.get("current_user"), dict):
+                                st.session_state.current_user["role"] = "admin"
+                            st.success(msg)
+                            st.rerun()
+                        else:
+                            st.error(msg)
+                with action_cols[2]:
+                    if can_promote and current_user_role == "manager" and admin_count == 0 and is_self:
+                        st.caption("No admins exist yet. You may promote yourself to bootstrap the first admin.")
+
+            if st.session_state.get(reset_open_key, False):
+                with st.container(border=True):
+                    st.markdown(f"**Reset password:** {user['display_name']}")
+                    with st.form(f"reset_password_form_{uid}", clear_on_submit=True):
+                        reset_password = st.text_input("New password", type="password", key=f"reset_password_{uid}")
+                        reset_password_confirm = st.text_input(
+                            "Confirm new password",
+                            type="password",
+                            key=f"reset_password_confirm_{uid}",
+                        )
+                        r1, r2 = st.columns([1, 1])
+                        with r1:
+                            submit_reset = st.form_submit_button("Save password", type="primary")
+                        with r2:
+                            cancel_reset = st.form_submit_button("Cancel")
+
+                    if cancel_reset:
+                        st.session_state[reset_open_key] = False
+                        st.rerun()
+
+                    if submit_reset:
+                        if not reset_password or not reset_password_confirm:
+                            st.error("Both password fields are required.")
+                        elif reset_password != reset_password_confirm:
+                            st.error("Password confirmation does not match.")
+                        else:
+                            ok, msg = change_password_for_user(current_user, uid, reset_password)
+                            if ok:
+                                st.session_state[reset_open_key] = False
+                                st.success(msg)
+                                st.rerun()
+                            else:
+                                st.error(msg)
 
             if not is_self and st.session_state.get(delete_confirm_key, False):
                 with st.container(border=True):

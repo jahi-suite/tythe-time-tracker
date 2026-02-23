@@ -8,6 +8,7 @@ import streamlit as st
 from typing import Optional
 
 from ..config.settings import get_app_config
+from ..core.auth import change_password_self
 from ..database.init import ensure_database_ready
 from .pages import (
     employee_interface,
@@ -263,6 +264,25 @@ def show_navigation() -> str:
     if st.sidebar.button("Logout", key="sidebar_logout"):
         del st.session_state["current_user"]
         st.rerun()
+    st.sidebar.markdown("---")
+    with st.sidebar.expander("Change my password", expanded=False):
+        with st.form("sidebar_change_password_form", clear_on_submit=True):
+            current_password = st.text_input("Current password", type="password")
+            new_password = st.text_input("New password", type="password")
+            confirm_password = st.text_input("Confirm new password", type="password")
+            change_password_submitted = st.form_submit_button("Change password", type="primary")
+
+        if change_password_submitted:
+            if not current_password or not new_password or not confirm_password:
+                st.error("All password fields are required.")
+            elif new_password != confirm_password:
+                st.error("New password and confirmation do not match.")
+            else:
+                ok, message = change_password_self(str(user.get("id") or ""), current_password, new_password)
+                if ok:
+                    st.success(message)
+                else:
+                    st.error(message)
     st.sidebar.markdown("---")
     return st.sidebar.selectbox(
         "Choose a page:",

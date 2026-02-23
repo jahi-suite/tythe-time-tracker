@@ -12,7 +12,7 @@
       "id": "passwords-02",
       "title": "UI: Change password, Reset password, Promote to admin",
       "acceptance_criteria": "Sidebar: 'Change my password' for all users (current, new, confirm). Manage Users: 'Reset password' per user — managers see it for employees only; admins see it for everyone. 'Promote to admin' — manager sees for self when no admins; admin sees for managers when admins exist.",
-      "passes": false
+      "passes": true
     }
   ]
 }
