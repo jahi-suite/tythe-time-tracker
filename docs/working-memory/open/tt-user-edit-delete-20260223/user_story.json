@@ -1,0 +1,18 @@
+{
+  "initiative": "tt-user-edit-delete-20260223",
+  "updated": "2026-02-23",
+  "stories": [
+    {
+      "id": "user-edit-delete-01",
+      "title": "Auth: update_user and delete_user",
+      "acceptance_criteria": "Add update_user(user_id, username, display_name, role, password=None) and delete_user(user_id). delete_user must not allow deleting the current user (self). Returns (True, msg) or (False, msg).",
+      "passes": false
+    },
+    {
+      "id": "user-edit-delete-02",
+      "title": "Manage Users UI: Edit and Delete",
+      "acceptance_criteria": "Per-user Edit button opens form (username, display_name, role, optional new password). Delete button with confirmation. Cannot edit or delete self.",
+      "passes": false
+    }
+  ]
+}
