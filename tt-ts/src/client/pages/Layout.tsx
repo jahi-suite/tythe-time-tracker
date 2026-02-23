@@ -47,12 +47,20 @@ export function Layout() {
 
   return (
     <div className="app-layout">
-      <header>
-        <h1>Employee Portal — The Tythe Barn</h1>
-        <details className="pay-rate-info">
-          <summary>Pay Rate Information</summary>
-          <p><strong>Pay Rate Rules:</strong> Standard (4AM–7PM), Enhanced (7PM–4AM), Supervisor (when selected).</p>
-        </details>
+      <header className="app-header">
+        <div className="app-header-brand">
+          <img
+            src="/tythe-logo.png"
+            alt="Tythe Barn"
+            className="app-header-logo"
+            width={48}
+            height={48}
+          />
+          <div>
+            <p className="app-header-kicker">Tythe Barn</p>
+            <h1>Employee Portal — The Tythe Barn</h1>
+          </div>
+        </div>
       </header>
       <nav className="sidebar">
         <p className="user-info">
@@ -87,6 +95,13 @@ export function Layout() {
             {passwordSuccess && <p className="success">{passwordSuccess}</p>}
             <button type="submit">Change password</button>
           </form>
+        </details>
+        <hr />
+        <details className="pay-rate-info">
+          <summary>Pay Rate Information</summary>
+          <p>
+            <strong>Pay Rate Rules:</strong> Standard (4AM–7PM), Enhanced (7PM–4AM), Supervisor (when selected).
+          </p>
         </details>
         <hr />
         <label>
