@@ -12,6 +12,12 @@ type AddShiftFormState = {
   payRateOverride: '' | 'Standard' | 'Enhanced' | 'Supervisor'
 }
 type EditShiftFormState = AddShiftFormState
+type CreateUserFormState = {
+  username: string
+  displayName: string
+  password: string
+  role: 'employee' | 'manager' | 'admin'
+}
 
 const DEFAULT_ADD_SHIFT_FORM: AddShiftFormState = {
   employeeName: '',
@@ -30,6 +36,12 @@ const DEFAULT_EDIT_SHIFT_FORM: EditShiftFormState = {
   clockOutTime: '',
   isSupervisor: false,
   payRateOverride: '',
+}
+const DEFAULT_CREATE_USER_FORM: CreateUserFormState = {
+  username: '',
+  displayName: '',
+  password: '',
+  role: 'employee',
 }
 
 export function ManagerPage() {
@@ -55,6 +67,10 @@ export function ManagerPage() {
   const [deleteShiftError, setDeleteShiftError] = useState('')
   const [deleteShiftSuccess, setDeleteShiftSuccess] = useState('')
   const [deleteShiftSubmitting, setDeleteShiftSubmitting] = useState(false)
+  const [createUserForm, setCreateUserForm] = useState<CreateUserFormState>(DEFAULT_CREATE_USER_FORM)
+  const [createUserError, setCreateUserError] = useState('')
+  const [createUserSuccess, setCreateUserSuccess] = useState('')
+  const [createUserSubmitting, setCreateUserSubmitting] = useState(false)
 
   useEffect(() => {
     timesheet.getAll().then((d) => setEntries(d.entries)).catch(() => setEntries([]))
@@ -253,6 +269,47 @@ export function ManagerPage() {
     }
   }
 
+  async function handleCreateUserSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setCreateUserError('')
+    setCreateUserSuccess('')
+
+    const username = createUserForm.username.trim()
+    const displayName = createUserForm.displayName.trim()
+    const password = createUserForm.password
+    const role =
+      user?.role === 'admin'
+        ? createUserForm.role
+        : createUserForm.role === 'admin'
+          ? 'manager'
+          : createUserForm.role
+
+    if (!username) {
+      setCreateUserError('Username is required.')
+      return
+    }
+    if (!displayName) {
+      setCreateUserError('Display name is required.')
+      return
+    }
+    if (!password) {
+      setCreateUserError('Password is required.')
+      return
+    }
+
+    setCreateUserSubmitting(true)
+    try {
+      await users.create({ username, password, displayName, role })
+      setCreateUserSuccess(`Created user ${displayName}.`)
+      setCreateUserForm(DEFAULT_CREATE_USER_FORM)
+      users.list().then((d) => setUserList(d.users)).catch(() => setUserList([]))
+    } catch (err) {
+      setCreateUserError(err instanceof Error ? err.message : 'Failed to create user.')
+    } finally {
+      setCreateUserSubmitting(false)
+    }
+  }
+
   return (
     <div className="page">
       <h2>Manager Dashboard</h2>
@@ -392,6 +449,65 @@ export function ManagerPage() {
       )}
       {tab === 'users' && (
         <div className="card">
+          <h3>Create New User</h3>
+          <form onSubmit={handleCreateUserSubmit}>
+            <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+              <label>
+                Username:
+                <input
+                  type="text"
+                  value={createUserForm.username}
+                  onChange={(e) => setCreateUserForm((prev) => ({ ...prev, username: e.target.value }))}
+                  placeholder="Username"
+                  autoComplete="off"
+                />
+              </label>
+              <label>
+                Display Name:
+                <input
+                  type="text"
+                  value={createUserForm.displayName}
+                  onChange={(e) => setCreateUserForm((prev) => ({ ...prev, displayName: e.target.value }))}
+                  placeholder="Display name"
+                  autoComplete="off"
+                />
+              </label>
+              <label>
+                Password:
+                <input
+                  type="password"
+                  value={createUserForm.password}
+                  onChange={(e) => setCreateUserForm((prev) => ({ ...prev, password: e.target.value }))}
+                  placeholder="Password"
+                  autoComplete="new-password"
+                />
+              </label>
+              <label>
+                Role:
+                <select
+                  value={createUserForm.role}
+                  onChange={(e) =>
+                    setCreateUserForm((prev) => ({
+                      ...prev,
+                      role: e.target.value as CreateUserFormState['role'],
+                    }))
+                  }
+                >
+                  <option value="employee">employee</option>
+                  <option value="manager">manager</option>
+                  {user?.role === 'admin' && <option value="admin">admin</option>}
+                </select>
+              </label>
+            </div>
+            {createUserError && <p className="error">{createUserError}</p>}
+            {createUserSuccess && <p className="success">{createUserSuccess}</p>}
+            <div className="btn-row">
+              <button type="submit" className="btn-primary" disabled={createUserSubmitting}>
+                {createUserSubmitting ? 'Creating...' : 'Create User'}
+              </button>
+            </div>
+          </form>
+
           <h3>All Users</h3>
           <ul>
             {userList.map((u) => (
