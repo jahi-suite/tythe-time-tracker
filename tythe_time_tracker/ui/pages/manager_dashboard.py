@@ -33,7 +33,7 @@ def check_manager_role() -> bool:
 def show_manager_header() -> None:
     """Show manager dashboard header."""
     user = st.session_state.current_user
-    st.header("👨‍💼 Manager Dashboard")
+    st.header("Manager Dashboard")
     st.success(f"✅ Logged in as {user['display_name']}")
 
 
@@ -52,24 +52,24 @@ def show_all_entries_tab() -> None:
     st.markdown("### Quick Export")
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("📊 Export All to Excel", key="quick_excel_grouped"):
+        if st.button("Export All to Excel", key="quick_excel_grouped"):
             filename = f"all_timesheets_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
             export_to_excel(entries, filename, None, None)
             with open(filename, "rb") as f:
                 st.download_button(
-                    label="📥 Download Excel File",
+                    label="Download Excel File",
                     data=f.read(),
                     file_name=filename,
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 )
             os.remove(filename)
     with col2:
-        if st.button("📄 Export All to PDF", key="quick_pdf_grouped"):
+        if st.button("Export All to PDF", key="quick_pdf_grouped"):
             filename = f"all_timesheets_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
             export_to_pdf(entries, filename)
             with open(filename, "rb") as f:
                 st.download_button(
-                    label="📥 Download PDF File",
+                    label="Download PDF File",
                     data=f.read(),
                     file_name=filename,
                     mime="application/pdf"
@@ -127,17 +127,17 @@ def show_all_entries_tab() -> None:
                 with col4:
                     st.markdown(rate_display)
                 with col5:
-                    if st.button("✏️", key=f"edit_{entry.id}"):
+                    if st.button("Edit", key=f"edit_{entry.id}"):
                         st.session_state['edit_entry_id'] = str(entry.id)
                         st.session_state['__active_tab__'] = 2
-                    if st.button("🗑️", key=f"delete_{entry.id}"):
+                    if st.button("Delete", key=f"delete_{entry.id}"):
                         st.session_state['delete_entry_id'] = str(entry.id)
                         st.session_state['__active_tab__'] = 3
 
 
 def show_add_shift_tab() -> None:
     """Show the 'Add Shift' tab."""
-    st.subheader("➕ Add Shift Manually")
+    st.subheader("Add Shift Manually")
     
     col1, col2 = st.columns(2)
     
@@ -145,7 +145,7 @@ def show_add_shift_tab() -> None:
         employee_name = st.text_input("Employee Name:", key="add_employee")
         clock_in_date = st.date_input("Clock-In Date:", key="add_clock_in_date")
         clock_in_time = st.time_input("Clock-In Time:", key="add_clock_in_time")
-        is_supervisor = st.checkbox("👑 Supervisor Role", key="add_supervisor")
+        is_supervisor = st.checkbox("Supervisor Role", key="add_supervisor")
     
     with col2:
         clock_out_date = st.date_input("Clock-Out Date (optional):", key="add_clock_out_date")
@@ -160,7 +160,7 @@ def show_add_shift_tab() -> None:
         if pay_rate_override == "Auto-calculate":
             pay_rate_override = None
     
-    if st.button("➕ Add Shift", type="primary"):
+    if st.button("Add Shift", type="primary"):
         if employee_name.strip():
             service = TimeTrackingService()
             success, message = service.add_shift_manually(
@@ -183,7 +183,7 @@ def show_add_shift_tab() -> None:
 
 def show_edit_shift_tab() -> None:
     """Show the 'Edit Shift' tab."""
-    st.subheader("✏️ Edit Shift")
+    st.subheader("Edit Shift")
     
     # Show instructions first
     st.info("💡 **Instructions:** Copy an Entry ID from the 'View All Entries' tab above, then paste it here to edit that shift.")
@@ -206,7 +206,7 @@ def show_edit_shift_tab() -> None:
     st.success(f"✅ Found shift for {shift.employee}")
     
     # Debug info (can be removed later)
-    with st.expander("🔍 Debug Info", expanded=False):
+    with st.expander("Debug Info", expanded=False):
         st.write(f"Entry ID: {shift.id}")
         st.write(f"Employee: {shift.employee}")
         st.write(f"Clock In: {shift.clock_in}")
@@ -224,7 +224,7 @@ def show_edit_shift_tab() -> None:
         employee_name = st.text_input("Employee Name:", value=shift.employee, key="edit_employee")
         clock_in_date = st.date_input("Clock-In Date:", value=clock_in_uk.date(), key="edit_clock_in_date")
         clock_in_time = st.time_input("Clock-In Time:", value=clock_in_uk.time(), key="edit_clock_in_time")
-        is_supervisor = st.checkbox("👑 Supervisor Role", value=shift.pay_rate_type == "Supervisor", key="edit_supervisor")
+        is_supervisor = st.checkbox("Supervisor Role", value=shift.pay_rate_type == "Supervisor", key="edit_supervisor")
     
     with col2:
         # Handle None clock_out values properly; show in UK local time
@@ -249,7 +249,7 @@ def show_edit_shift_tab() -> None:
         if pay_rate_override == "Auto-calculate":
             pay_rate_override = None
     
-    if st.button("✏️ Update Shift", type="primary"):
+    if st.button("Update Shift", type="primary"):
         if employee_name.strip():
             success, message = service.edit_shift(
                 entry_id,
@@ -272,9 +272,9 @@ def show_edit_shift_tab() -> None:
 
 def show_delete_entry_tab() -> None:
     """Show the 'Delete Entry' tab."""
-    st.subheader("🗑️ Delete Entry")
+    st.subheader("Delete Entry")
     entry_to_delete = st.text_input("Enter Entry ID to delete:", key="delete_entry_id")
-    if st.button("🗑️ Delete Entry", type="secondary"):
+    if st.button("Delete Entry", type="secondary"):
         if entry_to_delete:
             service = TimeTrackingService()
             success, message = service.delete_entry(entry_to_delete)
@@ -289,7 +289,7 @@ def show_delete_entry_tab() -> None:
 
 def show_manage_users_tab() -> None:
     """Show the 'Manage Users' tab for creating and toggling user accounts."""
-    st.subheader("👤 Create New User")
+    st.subheader("Create New User")
 
     with st.form("create_user_form"):
         col1, col2 = st.columns(2)
@@ -299,7 +299,7 @@ def show_manage_users_tab() -> None:
         with col2:
             new_password = st.text_input("Password", type="password", key="new_password")
             new_role = st.selectbox("Role", ["employee", "manager"], key="new_role")
-        submitted = st.form_submit_button("➕ Create User", type="primary")
+        submitted = st.form_submit_button("Create User", type="primary")
 
     if submitted:
         success, message = create_user(new_username, new_password, new_display_name, new_role)
@@ -310,7 +310,7 @@ def show_manage_users_tab() -> None:
             st.error(message)
 
     st.markdown("---")
-    st.subheader("👥 All Users")
+    st.subheader("All Users")
 
     users = get_all_users()
     if not users:
@@ -430,7 +430,7 @@ def _load_audit_logs(start_date: date, end_date: date, action_filter: Optional[s
 
 def show_change_log_tab() -> None:
     """Show the manager audit changelog view."""
-    st.subheader("🧾 Change Log")
+    st.subheader("Change Log")
 
     today = date.today()
     default_start = today.replace(day=1)
@@ -532,12 +532,12 @@ def show() -> None:
     
     # Manager controls tabs
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-        "📊 View All Entries",
-        "➕ Add Shift",
-        "✏️ Edit Shift",
-        "🗑️ Delete Entry",
-        "👤 Manage Users",
-        "🧾 Change Log",
+        "View All Entries",
+        "Add Shift",
+        "Edit Shift",
+        "Delete Entry",
+        "Manage Users",
+        "Change Log",
     ])
 
     with tab1:

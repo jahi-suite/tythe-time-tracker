@@ -21,10 +21,10 @@ def show_export_access_info() -> None:
     is_manager = st.session_state.get('manager_authenticated', False)
     
     if is_manager:
-        st.success("👨‍💼 Manager Export Access")
+        st.success("Manager Export Access")
         st.info("You can export timesheets for any employee or the entire team.")
     else:
-        st.info("👤 Employee Export Access")
+        st.info("Employee Export Access")
         st.info("You can only export your own timesheet.")
 
 
@@ -45,7 +45,7 @@ def get_employee_selection() -> Optional[str]:
             if export_type == "Individual Employee":
                 return st.text_input("Employee Name:", key="export_employee_name")
             else:
-                st.info("📊 Bulk export will include all staff members")
+                st.info("Bulk export will include all staff members")
                 return None
     else:
         return st.text_input("Enter your name:", key="export_employee_name")
@@ -53,7 +53,7 @@ def get_employee_selection() -> Optional[str]:
 
 def get_date_range_selection() -> tuple[date, date]:
     """Get date range selection from user."""
-    st.subheader("📅 Date Range Selection")
+    st.subheader("Date Range Selection")
     
     col1, col2 = st.columns(2)
     
@@ -91,7 +91,7 @@ def get_date_range_selection() -> tuple[date, date]:
 
 def get_export_options() -> tuple[str, str]:
     """Get export format and role filter options."""
-    st.subheader("📋 Export Options")
+    st.subheader("Export Options")
     
     col1, col2 = st.columns(2)
     
@@ -138,7 +138,7 @@ def show_preview_data(entries: list, start_date: date, end_date: date) -> None:
         st.metric("Unique Employees", f"{summary['unique_employees']}")
     
     # Preview staff summary data
-    st.subheader("📊 Staff Hours Summary")
+    st.subheader("Staff Hours Summary")
     if staff_summary:
         preview_data = []
         for employee, data in staff_summary.items():
@@ -154,7 +154,7 @@ def show_preview_data(entries: list, start_date: date, end_date: date) -> None:
         st.dataframe(preview_data, use_container_width=True)
         
         # Show detailed shifts in expander
-        with st.expander("📋 View Individual Shifts", expanded=False):
+        with st.expander("View Individual Shifts", expanded=False):
             detailed_data = []
             for entry in entries[:20]:  # Show first 20 entries
                 entry_id, emp, clock_in, clock_out, pay_rate_type, created_at = entry
@@ -196,7 +196,7 @@ def handle_export(entries: list, export_format: str, start_date: date, end_date:
         
         with open(filename, "rb") as f:
             st.download_button(
-                label="📥 Download Excel File",
+                label="Download Excel File",
                 data=f.read(),
                 file_name=filename,
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -208,7 +208,7 @@ def handle_export(entries: list, export_format: str, start_date: date, end_date:
         
         with open(filename, "rb") as f:
             st.download_button(
-                label="📥 Download PDF File",
+                label="Download PDF File",
                 data=f.read(),
                 file_name=filename,
                 mime="application/pdf"
@@ -218,7 +218,7 @@ def handle_export(entries: list, export_format: str, start_date: date, end_date:
 
 def show() -> None:
     """Display the export interface."""
-    st.header("📤 Export Timesheet")
+    st.header("Export Timesheet")
     
     # Show access info
     show_export_access_info()
@@ -240,7 +240,7 @@ def show() -> None:
     st.markdown("---")
     
     # Preview and export
-    if st.button("👁️ Preview Data", type="secondary"):
+    if st.button("Preview Data", type="secondary"):
         is_manager = st.session_state.get('manager_authenticated', False)
         
         if not employee_name and not is_manager:
@@ -260,24 +260,24 @@ def show() -> None:
             
             # Export buttons
             st.markdown("---")
-            st.subheader("📤 Export")
+            st.subheader("Export")
             
             col1, col2 = st.columns(2)
             
             with col1:
                 if export_format == "Excel (.xlsx)":
-                    if st.button("📊 Export to Excel", type="primary"):
+                    if st.button("Export to Excel", type="primary"):
                         handle_export(entries, export_format, start_date, end_date)
                 else:
-                    if st.button("📄 Export to PDF", type="primary"):
+                    if st.button("Export to PDF", type="primary"):
                         handle_export(entries, export_format, start_date, end_date)
             
             with col2:
-                st.info("💡 **Export includes:**\n- Staff name & role\n- Clock-in/out times\n- Total hours worked\n- Applied pay rate\n- Supervisor flag\n- Summary totals")
+                st.info("**Export includes:**\n- Staff name & role\n- Clock-in/out times\n- Total hours worked\n- Applied pay rate\n- Supervisor flag\n- Summary totals")
     
     # Direct export without preview
     st.markdown("---")
-    if st.button("🚀 Export Directly", type="primary"):
+    if st.button("Export Directly", type="primary"):
         is_manager = st.session_state.get('manager_authenticated', False)
 
         if not employee_name and not is_manager:

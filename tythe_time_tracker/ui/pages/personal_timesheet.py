@@ -48,7 +48,7 @@ def format_timesheet_data(entries: List[TimeEntry]) -> List[dict]:
 
 def show() -> None:
     """Display the personal timesheet interface."""
-    st.header("📊 Personal Timesheet")
+    st.header("Personal Timesheet")
 
     employee_name = st.session_state.current_user["display_name"]
     st.write(f"Showing timesheet for: **{employee_name}**")

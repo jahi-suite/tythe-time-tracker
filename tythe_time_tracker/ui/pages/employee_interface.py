@@ -41,7 +41,7 @@ def handle_clock_out(employee_name: str) -> Tuple[bool, str]:
 
 def show() -> None:
     """Display the employee clock in/out interface."""
-    st.header("👤 Employee Clock In/Out")
+    st.header("Employee Clock In/Out")
 
     employee_name = st.session_state.current_user["display_name"]
     st.write(f"Clocking in/out as: **{employee_name}**")
@@ -52,12 +52,12 @@ def show() -> None:
         st.subheader("Clock In/Out")
 
         # Supervisor tick box
-        is_supervisor = st.checkbox("👑 Supervisor Role", key="supervisor_checkbox")
+        is_supervisor = st.checkbox("Supervisor Role", key="supervisor_checkbox")
 
         col_in, col_out = st.columns(2)
 
         with col_in:
-            if st.button("🟢 Clock In", type="primary", use_container_width=True):
+            if st.button("Clock In", type="primary", use_container_width=True):
                 success, message = handle_clock_in(employee_name, is_supervisor)
                 if success:
                     st.success(message)
@@ -65,7 +65,7 @@ def show() -> None:
                     st.error(message)
 
         with col_out:
-            if st.button("🔴 Clock Out", type="secondary", use_container_width=True):
+            if st.button("Clock Out", type="secondary", use_container_width=True):
                 success, message = handle_clock_out(employee_name)
                 if success:
                     st.success(message)

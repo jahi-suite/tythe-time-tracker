@@ -12,7 +12,7 @@
       "id": "polish-02",
       "title": "Clean headers and labels",
       "acceptance_criteria": "All pages (employee_interface, personal_timesheet, export_interface, manager_dashboard, login): headers and button labels use professional text, not emoji-heavy labels. E.g. 'Employee Clock In/Out' not '👤 Employee Clock In/Out', 'Clock In' not '🟢 Clock In'. Functionality unchanged.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "polish-03",
