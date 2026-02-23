@@ -21,3 +21,16 @@ export function requireManager(req: Request, res: Response, next: NextFunction):
   }
   next()
 }
+
+export function requireAdmin(req: Request, res: Response, next: NextFunction): void {
+  const user = req.session?.user
+  if (!user) {
+    res.status(401).json({ error: 'Unauthorized' })
+    return
+  }
+  if (user.role !== 'admin') {
+    res.status(403).json({ error: 'Admin role required' })
+    return
+  }
+  next()
+}

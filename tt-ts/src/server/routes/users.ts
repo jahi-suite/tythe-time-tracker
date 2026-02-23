@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import * as auth from '../auth/index.js'
 import { logChange } from '../audit.js'
-import { requireManager } from '../middleware/auth.js'
+import { requireAdmin, requireManager } from '../middleware/auth.js'
 import { createIpRateLimit } from '../middleware/rateLimit.js'
 import type { User } from '../../shared/types.js'
 import { DB } from '../../shared/constants.js'
@@ -67,11 +67,19 @@ async function writeUserAuditLog(
   }
 }
 
+function stripPayRatesFromUser(user: User): User {
+  const { standard_rate: _standardRate, enhanced_rate: _enhancedRate, supervisor_rate: _supervisorRate, ...rest } = user
+  return rest
+}
+
 router.use(requireManager)
 
-router.get('/', async (_req, res) => {
+router.get('/', async (req, res) => {
   const users = await auth.getAllUsers()
-  res.json({ users })
+  const actor = req.session!.user!
+  res.json({
+    users: actor.role === 'admin' ? users : users.map(stripPayRatesFromUser),
+  })
 })
 
 router.post('/', async (req, res) => {
@@ -159,7 +167,7 @@ router.post('/:id/deactivate', async (req, res) => {
   res.json({ ok: true, message: msg })
 })
 
-router.post('/:id/pay-rates', async (req, res) => {
+router.post('/:id/pay-rates', requireAdmin, async (req, res) => {
   const actor = req.session!.user!
   const before = await getUserAuditSnapshotById(req.params.id)
   const { standard, enhanced, supervisor } = req.body ?? {}
