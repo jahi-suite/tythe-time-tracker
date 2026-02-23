@@ -75,6 +75,7 @@ export function ManagerPage() {
   const [editShiftSuccess, setEditShiftSuccess] = useState('')
   const [editShiftLoading, setEditShiftLoading] = useState(false)
   const [editShiftSubmitting, setEditShiftSubmitting] = useState(false)
+  const [editShiftAutoLoadPending, setEditShiftAutoLoadPending] = useState(false)
   const [deleteShiftEntryId, setDeleteShiftEntryId] = useState('')
   const [deleteShiftError, setDeleteShiftError] = useState('')
   const [deleteShiftSuccess, setDeleteShiftSuccess] = useState('')
@@ -97,6 +98,19 @@ export function ManagerPage() {
     audit.list().then((d) => setAuditLogs(d.logs)).catch(() => setAuditLogs([]))
     users.list().then((d) => setUserList(d.users)).catch(() => setUserList([]))
   }, [])
+
+  useEffect(() => {
+    if (tab !== 'edit' || !editShiftAutoLoadPending) return
+    const entryId = editShiftEntryId.trim()
+    if (!entryId) {
+      setEditShiftAutoLoadPending(false)
+      return
+    }
+
+    void loadShiftForEdit(entryId).finally(() => {
+      setEditShiftAutoLoadPending(false)
+    })
+  }, [tab, editShiftAutoLoadPending, editShiftEntryId])
 
   const staffGroups = entries.reduce<Record<string, typeof entries>>((acc, e) => {
     const key = e.employee.trim()
@@ -491,10 +505,10 @@ export function ManagerPage() {
                     {s.clock_out ? new Date(s.clock_out).toLocaleString('en-GB', { timeZone: 'Europe/London' }) : 'In Progress'} — {s.pay_rate_type}{' '}
                     <button
                       type="button"
-                      onClick={async () => {
+                      onClick={() => {
                         setTab('edit')
                         setEditShiftEntryId(s.id)
-                        await loadShiftForEdit(s.id)
+                        setEditShiftAutoLoadPending(true)
                       }}
                     >
                       Edit
