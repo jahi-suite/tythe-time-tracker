@@ -335,7 +335,7 @@ def export_to_pdf(entries, filename="timesheet_export.pdf"):
         spaceAfter=30,
         alignment=1  # Center
     )
-    title = Paragraph("The Tythe Barn - Staff Hours & Shifts", title_style)
+    title = Paragraph("Employee Portal — The Tythe Barn: Staff Hours & Shifts", title_style)
     story.append(title)
     story.append(Spacer(1, 20))
     

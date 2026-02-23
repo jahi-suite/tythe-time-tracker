@@ -89,7 +89,7 @@ def show() -> None:
         </style>
         <div class="tt-login-hero">
             <p class="tt-login-eyebrow">Secure Access</p>
-            <p class="tt-login-title">The Tythe Barn Time Tracker</p>
+            <p class="tt-login-title">Employee Portal — The Tythe Barn</p>
             <p class="tt-login-subtitle">
                 Employee and manager timekeeping for daily operations.
             </p>

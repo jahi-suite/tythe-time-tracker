@@ -69,7 +69,7 @@ class UIConstants:
     """UI-related constants."""
     
     # Page titles
-    APP_TITLE: Final[str] = "🕒 The Tythe Barn - Time Tracker"
+    APP_TITLE: Final[str] = "Employee Portal — The Tythe Barn"
     
     # Navigation options
     EMPLOYEE_CLOCK_PAGE: Final[str] = "Employee Clock In/Out"

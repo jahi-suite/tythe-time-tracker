@@ -21,7 +21,7 @@ from .pages import (
 def setup_page_config() -> None:
     """Configure Streamlit page settings."""
     st.set_page_config(
-        page_title="The Tythe Barn - Time Tracker",
+        page_title="Employee Portal - The Tythe Barn",
         page_icon="⏱",
         initial_sidebar_state="collapsed",
     )
@@ -305,7 +305,7 @@ def main() -> None:
         return
 
     # Main title
-    st.title("The Tythe Barn — Time Tracker")
+    st.title("Employee Portal — The Tythe Barn")
     st.markdown("---")
     
     # Show pay rate information
