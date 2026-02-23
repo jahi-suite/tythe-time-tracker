@@ -43,6 +43,8 @@ npm start
 
 Serves the API and static client on port 3000.
 `SESSION_SECRET` must be set in production (`NODE_ENV=production`) or the server will fail to start.
+Session storage defaults to `memory` in development and `pg` in production (`SESSION_STORE=memory|pg|redis`).
+`SESSION_STORE=pg` requires `connect-pg-simple`; `SESSION_STORE=redis` requires `redis` + `connect-redis` and `REDIS_URL`.
 
 ## Browser Support
 
