@@ -11,8 +11,18 @@ type AddShiftFormState = {
   isSupervisor: boolean
   payRateOverride: '' | 'Standard' | 'Enhanced' | 'Supervisor'
 }
+type EditShiftFormState = AddShiftFormState
 
 const DEFAULT_ADD_SHIFT_FORM: AddShiftFormState = {
+  employeeName: '',
+  clockInDate: '',
+  clockInTime: '',
+  clockOutDate: '',
+  clockOutTime: '',
+  isSupervisor: false,
+  payRateOverride: '',
+}
+const DEFAULT_EDIT_SHIFT_FORM: EditShiftFormState = {
   employeeName: '',
   clockInDate: '',
   clockInTime: '',
@@ -32,6 +42,15 @@ export function ManagerPage() {
   const [addShiftError, setAddShiftError] = useState('')
   const [addShiftSuccess, setAddShiftSuccess] = useState('')
   const [addShiftSubmitting, setAddShiftSubmitting] = useState(false)
+  const [editShiftEntryId, setEditShiftEntryId] = useState('')
+  const [editShiftForm, setEditShiftForm] = useState<EditShiftFormState>(DEFAULT_EDIT_SHIFT_FORM)
+  const [editShiftLoadedId, setEditShiftLoadedId] = useState<string | null>(null)
+  const [editShiftLookupError, setEditShiftLookupError] = useState('')
+  const [editShiftLookupSuccess, setEditShiftLookupSuccess] = useState('')
+  const [editShiftError, setEditShiftError] = useState('')
+  const [editShiftSuccess, setEditShiftSuccess] = useState('')
+  const [editShiftLoading, setEditShiftLoading] = useState(false)
+  const [editShiftSubmitting, setEditShiftSubmitting] = useState(false)
 
   useEffect(() => {
     timesheet.getAll().then((d) => setEntries(d.entries)).catch(() => setEntries([]))
@@ -48,6 +67,29 @@ export function ManagerPage() {
 
   const toIsoDateString = (dateValue: string) => `${dateValue}T00:00:00.000Z`
   const toIsoTimeString = (timeValue: string) => `1970-01-01T${timeValue}:00.000Z`
+  const toDateInputValueInLondon = (isoValue: string) => {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/London',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).formatToParts(new Date(isoValue))
+    const year = parts.find((part) => part.type === 'year')?.value ?? ''
+    const month = parts.find((part) => part.type === 'month')?.value ?? ''
+    const day = parts.find((part) => part.type === 'day')?.value ?? ''
+    return `${year}-${month}-${day}`
+  }
+  const toTimeInputValueInLondon = (isoValue: string) => {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/London',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).formatToParts(new Date(isoValue))
+    const hour = parts.find((part) => part.type === 'hour')?.value ?? ''
+    const minute = parts.find((part) => part.type === 'minute')?.value ?? ''
+    return `${hour}:${minute}`
+  }
 
   async function handleAddShiftSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -89,6 +131,93 @@ export function ManagerPage() {
       setAddShiftError(err instanceof Error ? err.message : 'Failed to add shift.')
     } finally {
       setAddShiftSubmitting(false)
+    }
+  }
+
+  async function handleEditShiftLoad(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setEditShiftLookupError('')
+    setEditShiftLookupSuccess('')
+    setEditShiftError('')
+    setEditShiftSuccess('')
+
+    const entryId = editShiftEntryId.trim()
+    if (!entryId) {
+      setEditShiftLookupError('Please enter an Entry ID to edit a shift.')
+      setEditShiftLoadedId(null)
+      return
+    }
+
+    setEditShiftLoading(true)
+    try {
+      const shift = await shifts.get(entryId)
+      setEditShiftForm({
+        employeeName: shift.employee ?? '',
+        clockInDate: toDateInputValueInLondon(shift.clock_in),
+        clockInTime: toTimeInputValueInLondon(shift.clock_in),
+        clockOutDate: shift.clock_out ? toDateInputValueInLondon(shift.clock_out) : '',
+        clockOutTime: shift.clock_out ? toTimeInputValueInLondon(shift.clock_out) : '',
+        isSupervisor: shift.pay_rate_type === 'Supervisor',
+        payRateOverride:
+          shift.pay_rate_type === 'Standard' || shift.pay_rate_type === 'Enhanced' || shift.pay_rate_type === 'Supervisor'
+            ? shift.pay_rate_type
+            : '',
+      })
+      setEditShiftLoadedId(shift.id)
+      setEditShiftLookupSuccess(`Found shift for ${shift.employee}.`)
+    } catch (err) {
+      setEditShiftLoadedId(null)
+      setEditShiftForm(DEFAULT_EDIT_SHIFT_FORM)
+      setEditShiftLookupError(err instanceof Error ? err.message : 'Failed to load shift.')
+    } finally {
+      setEditShiftLoading(false)
+    }
+  }
+
+  async function handleEditShiftSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setEditShiftError('')
+    setEditShiftSuccess('')
+
+    if (!editShiftLoadedId) {
+      setEditShiftError('Load a shift before updating it.')
+      return
+    }
+
+    const employeeName = editShiftForm.employeeName.trim()
+    if (!employeeName) {
+      setEditShiftError('Please enter an employee name.')
+      return
+    }
+    if (!editShiftForm.clockInDate || !editShiftForm.clockInTime) {
+      setEditShiftError('Clock-in date and time are required.')
+      return
+    }
+
+    const hasClockOutDate = Boolean(editShiftForm.clockOutDate)
+    const hasClockOutTime = Boolean(editShiftForm.clockOutTime)
+    if (hasClockOutDate !== hasClockOutTime) {
+      setEditShiftError('Provide both clock-out date and clock-out time, or leave both blank.')
+      return
+    }
+
+    setEditShiftSubmitting(true)
+    try {
+      await shifts.edit(editShiftLoadedId, {
+        employeeName,
+        clockInDate: toIsoDateString(editShiftForm.clockInDate),
+        clockInTime: toIsoTimeString(editShiftForm.clockInTime),
+        clockOutDate: hasClockOutDate ? toIsoDateString(editShiftForm.clockOutDate) : undefined,
+        clockOutTime: hasClockOutTime ? toIsoTimeString(editShiftForm.clockOutTime) : undefined,
+        isSupervisor: editShiftForm.isSupervisor,
+        payRateOverride: editShiftForm.payRateOverride || undefined,
+      })
+      setEditShiftSuccess(`Shift updated for ${employeeName}.`)
+      timesheet.getAll().then((d) => setEntries(d.entries)).catch(() => setEntries([]))
+    } catch (err) {
+      setEditShiftError(err instanceof Error ? err.message : 'Failed to update shift.')
+    } finally {
+      setEditShiftSubmitting(false)
     }
   }
 
@@ -253,9 +382,118 @@ export function ManagerPage() {
           </ul>
         </div>
       )}
-      {(tab === 'edit' || tab === 'delete') && (
+      {tab === 'edit' && (
         <div className="card">
-          <p className="info">{tab === 'edit' ? 'Edit Shift form coming in the next parity story.' : 'Delete Entry form coming in the next parity story.'}</p>
+          <h3>Edit Shift</h3>
+          <p className="info">
+            Copy an Entry ID from the View All Entries tab, then load it here to edit that shift.
+          </p>
+          <form onSubmit={handleEditShiftLoad}>
+            <label>
+              Enter Entry ID to edit:
+              <input
+                type="text"
+                value={editShiftEntryId}
+                onChange={(e) => setEditShiftEntryId(e.target.value)}
+                placeholder="Paste Entry ID here..."
+              />
+            </label>
+            {editShiftLookupError && <p className="error">{editShiftLookupError}</p>}
+            {editShiftLookupSuccess && <p className="success">{editShiftLookupSuccess}</p>}
+            <div className="btn-row">
+              <button type="submit" className="btn-secondary" disabled={editShiftLoading}>
+                {editShiftLoading ? 'Loading...' : 'Load Shift'}
+              </button>
+            </div>
+          </form>
+          {editShiftLoadedId && (
+            <form onSubmit={handleEditShiftSubmit}>
+              <h4>Edit Shift Details</h4>
+              <label>
+                Employee Name:
+                <input
+                  type="text"
+                  value={editShiftForm.employeeName}
+                  onChange={(e) => setEditShiftForm((prev) => ({ ...prev, employeeName: e.target.value }))}
+                  placeholder="Employee name"
+                />
+              </label>
+              <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+                <label>
+                  Clock-In Date:
+                  <input
+                    type="date"
+                    value={editShiftForm.clockInDate}
+                    onChange={(e) => setEditShiftForm((prev) => ({ ...prev, clockInDate: e.target.value }))}
+                    required
+                  />
+                </label>
+                <label>
+                  Clock-In Time:
+                  <input
+                    type="time"
+                    value={editShiftForm.clockInTime}
+                    onChange={(e) => setEditShiftForm((prev) => ({ ...prev, clockInTime: e.target.value }))}
+                    required
+                  />
+                </label>
+                <label>
+                  Clock-Out Date (optional):
+                  <input
+                    type="date"
+                    value={editShiftForm.clockOutDate}
+                    onChange={(e) => setEditShiftForm((prev) => ({ ...prev, clockOutDate: e.target.value }))}
+                  />
+                </label>
+                <label>
+                  Clock-Out Time (optional):
+                  <input
+                    type="time"
+                    value={editShiftForm.clockOutTime}
+                    onChange={(e) => setEditShiftForm((prev) => ({ ...prev, clockOutTime: e.target.value }))}
+                  />
+                </label>
+              </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.75rem' }}>
+                <input
+                  type="checkbox"
+                  checked={editShiftForm.isSupervisor}
+                  onChange={(e) => setEditShiftForm((prev) => ({ ...prev, isSupervisor: e.target.checked }))}
+                  style={{ width: 'auto' }}
+                />
+                Supervisor Role
+              </label>
+              <label>
+                Pay Rate Override:
+                <select
+                  value={editShiftForm.payRateOverride}
+                  onChange={(e) =>
+                    setEditShiftForm((prev) => ({
+                      ...prev,
+                      payRateOverride: e.target.value as EditShiftFormState['payRateOverride'],
+                    }))
+                  }
+                >
+                <option value="">Auto-calculate</option>
+                <option value="Standard">Standard</option>
+                <option value="Enhanced">Enhanced</option>
+                <option value="Supervisor">Supervisor</option>
+              </select>
+            </label>
+              {editShiftError && <p className="error">{editShiftError}</p>}
+              {editShiftSuccess && <p className="success">{editShiftSuccess}</p>}
+              <div className="btn-row">
+                <button type="submit" className="btn-primary" disabled={editShiftSubmitting}>
+                  {editShiftSubmitting ? 'Updating...' : 'Update Shift'}
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      )}
+      {tab === 'delete' && (
+        <div className="card">
+          <p className="info">Delete Entry form coming in the next parity story.</p>
         </div>
       )}
     </div>
