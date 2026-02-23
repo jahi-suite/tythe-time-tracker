@@ -1,30 +1,68 @@
-# Tythe Time Tracker — TypeScript
+# Employee Portal — The Tythe Barn (TypeScript)
 
-TypeScript + React migration of the Employee Portal. Uses the same Supabase database as the Python/Streamlit app. Feature parity with the Streamlit version.
+TypeScript + React version of the Employee Portal. Uses the same Supabase PostgreSQL database as the Python/Streamlit app. Feature parity with the Streamlit version.
 
 ## Features
 
-- **Auth:** Login, first-admin setup, change password, roles (employee/manager/admin)
-- **Employee:** Clock in/out, supervisor role, personal timesheet, export (Excel/PDF)
-- **Manager:** View all entries, add/edit/delete shifts, manage users, audit log, bulk export
+### Employee
+- **Clock In/Out** — Log shifts with optional supervisor role
+- **Pay Rates** — Standard (day), Enhanced (night 7PM–4AM BST), Supervisor
+- **Personal Timesheet** — View your own entries with dates, times, pay breakdown, estimated pay
+- **Export** — Export your timesheet to Excel or PDF
 
-## Setup
+### Manager / Admin
+- **View All Entries** — See time entries from all staff, grouped by employee
+- **Add / Edit / Delete Shifts** — Add shifts manually, edit entries, remove incorrect data
+- **Manage Users** — Create, edit, delete, activate/deactivate; set pay rates; reset password; promote to admin
+- **Export** — Individual or bulk export (Excel/PDF) with pay amounts when rates are set
+- **Audit Log** — View change history for manager actions
+- **Quick Export** — One-click export all from the dashboard
+
+### Auth
+- Login, first-admin setup, change own password
+- Roles: employee, manager, admin
+- Session-based auth with optional CSRF protection
+
+## Quick Start
+
+### 1. Get Supabase Credentials
+
+1. Open your [Supabase](https://supabase.com) project
+2. Go to **Settings → Database**
+3. Under **Connection string**, choose **Session pooler** (not direct)
+4. Copy the URI or note: host, database, user, password, port
+
+### 2. Configure Environment
 
 ```bash
 cp .env.example .env
-# Edit .env with your Supabase credentials (same as Python app)
-
-npm install
 ```
 
-## Development
+Edit `.env` with your Supabase values:
+
+```env
+SUPABASE_HOST=aws-0-eu-west-1.pooler.supabase.com
+SUPABASE_DATABASE=postgres
+SUPABASE_USER=postgres.xxx
+SUPABASE_PASSWORD=your-password
+SUPABASE_PORT=5432
+
+SESSION_SECRET=your-long-random-string
+```
+
+Optional: `SEED_MANAGER_USERNAME` and `SEED_MANAGER_PASSWORD` to auto-create the first admin when the users table is empty.
+
+### 3. Install and Run
 
 ```bash
+npm install
 npm run dev
 ```
 
-- Client: http://localhost:5173 (Vite dev server with API proxy)
-- API: http://localhost:3000
+- **Client:** http://localhost:5173 (Vite dev server, proxies `/api` to server)
+- **API:** http://localhost:3000
+
+Open http://localhost:5173 in your browser. If no users exist, you’ll see the first-admin setup form.
 
 ## Build
 
@@ -32,7 +70,7 @@ npm run dev
 npm run build
 ```
 
-Builds both client (Vite) and server (TypeScript).
+Builds the React client (Vite) and Express server (TypeScript → `dist-server/`).
 
 ## Production
 
@@ -42,13 +80,61 @@ npm start
 ```
 
 Serves the API and static client on port 3000.
-`SESSION_SECRET` must be set in production (`NODE_ENV=production`) or the server will fail to start.
-Session storage defaults to `memory` in development and `pg` in production (`SESSION_STORE=memory|pg|redis`).
-`SESSION_STORE=pg` requires `connect-pg-simple`; `SESSION_STORE=redis` requires `redis` + `connect-redis` and `REDIS_URL`.
-Database SSL certificate validation defaults to `rejectUnauthorized: false` for Supabase pooler compatibility.
-Set `DB_SSL_REJECT_UNAUTHORIZED=true` when using a trusted CA/certificate chain and a compatible Postgres endpoint.
-Optionally set `FIRST_SETUP_TOKEN` to require a one-time shared token for `POST /api/auth/first-setup` while the users table is empty.
+
+**Required in production:**
+- `SESSION_SECRET` — long random string; server will not start without it when `NODE_ENV=production`
+- `SUPABASE_*` — database connection
+
+**Optional:**
+- `SESSION_STORE=memory|pg|redis` — defaults: dev=memory, prod=pg
+- `DB_SSL_REJECT_UNAUTHORIZED=true` — for trusted CA/certificate chains
+- `FIRST_SETUP_TOKEN` — require a one-time token for first-admin setup
+- `SEED_MANAGER_USERNAME` / `SEED_MANAGER_PASSWORD` — seed first admin when users table is empty
+
+## Project Structure
+
+```
+tt-ts/
+├── src/
+│   ├── client/          # React frontend
+│   │   ├── pages/       # LoginPage, Layout, ManagerPage, etc.
+│   │   ├── App.tsx
+│   │   └── index.css
+│   ├── server/          # Express backend
+│   │   ├── auth/        # bcrypt, user auth
+│   │   ├── db/          # Connection, repository
+│   │   ├── middleware/  # auth, csrf, rateLimit
+│   │   ├── routes/      # auth, clock, timesheet, users, export, shifts, audit
+│   │   ├── services/    # timeTracking, exportService, exportUtils
+│   │   └── index.ts
+│   └── shared/          # Types, constants
+├── public/              # Static assets (logos)
+├── tests/               # Security / auth tests
+├── .env.example
+└── package.json
+```
+
+## Tech Stack
+
+- **Frontend:** React 18, TypeScript, Vite, React Router
+- **Backend:** Node.js, Express, TypeScript
+- **Database:** Supabase (PostgreSQL) — same schema as Python app
+- **Auth:** bcrypt, express-session, cookie-based
+- **Export:** exceljs (Excel), pdfkit (PDF)
 
 ## Browser Support
 
-Mobile: use Chrome or Safari 16.6+ (older Safari may fail to load).
+- **Desktop:** Chrome, Firefox, Safari, Edge
+- **Mobile:** Chrome or Safari 16.6+ (older Safari may fail to load)
+
+## Tests
+
+```bash
+npm run test:security
+```
+
+Runs authorization and auth-related tests.
+
+---
+
+**Employee Portal — The Tythe Barn** · Powered by Kari Suite
