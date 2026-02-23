@@ -1,0 +1,18 @@
+{
+  "initiative": "tt-mobile-safari-regex-20260223",
+  "updated": "2026-02-23",
+  "stories": [
+    {
+      "id": "safari-regex-01",
+      "title": "Pin Streamlit to latest, check for Safari fix",
+      "acceptance_criteria": "Update requirements.txt to streamlit>=1.39.0 (or latest stable). Verify app still runs. No regression.",
+      "passes": false
+    },
+    {
+      "id": "safari-regex-02",
+      "title": "Document supported browsers",
+      "acceptance_criteria": "README and/or footer note: for mobile, use Chrome or Safari 16.6+. Older Safari may show regex error.",
+      "passes": false
+    }
+  ]
+}
