@@ -22,7 +22,7 @@ def setup_page_config() -> None:
     """Configure Streamlit page settings."""
     st.set_page_config(
         page_title="The Tythe Barn - Time Tracker",
-        page_icon="🕒",
+        page_icon="⏱",
         initial_sidebar_state="collapsed",
     )
     st.markdown(
@@ -31,6 +31,122 @@ def setup_page_config() -> None:
     )
     st.markdown(
         """<style>
+/* Corporate theme palette and typography */
+:root {
+    --tt-primary: #1f4e79;
+    --tt-primary-dark: #163a5c;
+    --tt-accent: #2c6ea3;
+    --tt-surface: #ffffff;
+    --tt-surface-muted: #f4f7fb;
+    --tt-border: #d6dee8;
+    --tt-text: #1e2a36;
+    --tt-text-muted: #5f6f82;
+    --tt-success-bg: #edf7f2;
+    --tt-success-border: #6ea889;
+    --tt-error-bg: #fbeff0;
+    --tt-error-border: #bb6670;
+    --tt-info-bg: #eef5fc;
+    --tt-info-border: #6d94bd;
+}
+
+html, body, [class*="css"] {
+    color: var(--tt-text);
+}
+
+.stApp {
+    background: linear-gradient(180deg, #f7f9fc 0%, #eef3f8 100%);
+}
+
+.block-container {
+    max-width: 1100px;
+    padding-top: 1.5rem;
+}
+
+h1, h2, h3, h4 {
+    color: #142434;
+    letter-spacing: -0.01em;
+}
+
+p, li, label, .stMarkdown, .stCaption {
+    color: var(--tt-text);
+}
+
+[data-testid="stSidebar"] {
+    background: #f7f9fc;
+    border-right: 1px solid var(--tt-border);
+}
+
+[data-testid="stSidebar"] * {
+    color: var(--tt-text);
+}
+
+.stButton > button {
+    background: linear-gradient(180deg, var(--tt-primary) 0%, var(--tt-primary-dark) 100%);
+    color: #fff;
+    border: 1px solid var(--tt-primary-dark);
+    border-radius: 8px;
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.stButton > button:hover {
+    border-color: var(--tt-primary-dark);
+    background: linear-gradient(180deg, #235886 0%, #173d60 100%);
+}
+
+.stButton > button:focus {
+    box-shadow: 0 0 0 3px rgba(44, 110, 163, 0.2);
+}
+
+.stTextInput > div > div,
+.stSelectbox > div > div,
+.stDateInput > div > div,
+.stTimeInput > div > div,
+.stNumberInput > div > div,
+.stTextArea > div > div {
+    border-radius: 8px;
+}
+
+div[data-testid="stAlert"] {
+    border-radius: 10px;
+    border: 1px solid var(--tt-border);
+    box-shadow: 0 1px 2px rgba(12, 22, 34, 0.06);
+}
+
+div[data-testid="stAlert"][kind="success"] {
+    background: var(--tt-success-bg);
+    border-color: var(--tt-success-border);
+}
+
+div[data-testid="stAlert"][kind="error"] {
+    background: var(--tt-error-bg);
+    border-color: var(--tt-error-border);
+}
+
+div[data-testid="stAlert"][kind="info"] {
+    background: var(--tt-info-bg);
+    border-color: var(--tt-info-border);
+}
+
+.stExpander {
+    border: 1px solid var(--tt-border);
+    border-radius: 10px;
+    background: var(--tt-surface);
+}
+
+[data-testid="stDataFrame"],
+.stTable {
+    border: 1px solid var(--tt-border);
+    border-radius: 10px;
+    background: var(--tt-surface);
+}
+
+hr {
+    border: none;
+    border-top: 1px solid var(--tt-border);
+    margin: 0.5rem 0 1rem;
+}
+
 @media (max-width: 768px) {
     .block-container {
         padding-left: 1rem !important;
@@ -158,4 +274,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main() 
+    main()

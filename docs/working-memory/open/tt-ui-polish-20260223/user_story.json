@@ -6,7 +6,7 @@
       "id": "polish-01",
       "title": "Professional theme and color scheme",
       "acceptance_criteria": "app.py: page_icon is professional (not casual emoji). Global CSS adds a corporate color palette (blues/grays). Typography and message styling feel professional. Mobile responsiveness preserved.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "polish-02",
