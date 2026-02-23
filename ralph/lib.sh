@@ -42,7 +42,7 @@ spawn_agent() {
   else
     local -a cmd=(cursor agent --print --force --workspace "$repo_root")
     local model="${RALPH_MODEL:-}"
-    [ "${RALPH_BACKEND:-claude}" = "codex" ] && model="${model:-gpt-5.3-codex}"
+    [ "${RALPH_BACKEND:-claude}" = "codex" ] && model="${model:-gpt-5.3-codex-fast}"
     [ -n "$model" ] && cmd+=(--model "$model")
     "${cmd[@]}" "$prompt_content" || true
   fi
