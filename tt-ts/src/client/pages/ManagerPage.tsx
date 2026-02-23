@@ -18,6 +18,12 @@ type CreateUserFormState = {
   password: string
   role: 'employee' | 'manager' | 'admin'
 }
+type EditUserFormState = {
+  username: string
+  displayName: string
+  password: string
+  role: 'employee' | 'manager' | 'admin'
+}
 
 const DEFAULT_ADD_SHIFT_FORM: AddShiftFormState = {
   employeeName: '',
@@ -38,6 +44,12 @@ const DEFAULT_EDIT_SHIFT_FORM: EditShiftFormState = {
   payRateOverride: '',
 }
 const DEFAULT_CREATE_USER_FORM: CreateUserFormState = {
+  username: '',
+  displayName: '',
+  password: '',
+  role: 'employee',
+}
+const DEFAULT_EDIT_USER_FORM: EditUserFormState = {
   username: '',
   displayName: '',
   password: '',
@@ -71,6 +83,11 @@ export function ManagerPage() {
   const [createUserError, setCreateUserError] = useState('')
   const [createUserSuccess, setCreateUserSuccess] = useState('')
   const [createUserSubmitting, setCreateUserSubmitting] = useState(false)
+  const [editUserId, setEditUserId] = useState<string | null>(null)
+  const [editUserForm, setEditUserForm] = useState<EditUserFormState>(DEFAULT_EDIT_USER_FORM)
+  const [editUserError, setEditUserError] = useState('')
+  const [editUserSuccess, setEditUserSuccess] = useState('')
+  const [editUserSubmitting, setEditUserSubmitting] = useState(false)
 
   useEffect(() => {
     timesheet.getAll().then((d) => setEntries(d.entries)).catch(() => setEntries([]))
@@ -310,6 +327,85 @@ export function ManagerPage() {
     }
   }
 
+  function openEditUserForm(targetUser: { id: string; username: string; display_name: string; role: string }) {
+    if (user?.id && targetUser.id === user.id) {
+      setEditUserError('You cannot edit your own user here.')
+      setEditUserSuccess('')
+      return
+    }
+
+    setEditUserId(targetUser.id)
+    setEditUserError('')
+    setEditUserSuccess('')
+    setEditUserForm({
+      username: targetUser.username,
+      displayName: targetUser.display_name,
+      password: '',
+      role:
+        targetUser.role === 'admin' || targetUser.role === 'manager' || targetUser.role === 'employee'
+          ? targetUser.role
+          : 'employee',
+    })
+  }
+
+  function cancelEditUserForm() {
+    setEditUserId(null)
+    setEditUserForm(DEFAULT_EDIT_USER_FORM)
+    setEditUserError('')
+    setEditUserSuccess('')
+  }
+
+  async function handleEditUserSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setEditUserError('')
+    setEditUserSuccess('')
+
+    if (!editUserId) {
+      setEditUserError('Select a user to edit first.')
+      return
+    }
+    if (user?.id && editUserId === user.id) {
+      setEditUserError('You cannot edit your own user here.')
+      return
+    }
+
+    const username = editUserForm.username.trim()
+    const displayName = editUserForm.displayName.trim()
+    const password = editUserForm.password.trim()
+    const role =
+      user?.role === 'admin'
+        ? editUserForm.role
+        : editUserForm.role === 'admin'
+          ? 'manager'
+          : editUserForm.role
+
+    if (!username) {
+      setEditUserError('Username is required.')
+      return
+    }
+    if (!displayName) {
+      setEditUserError('Display name is required.')
+      return
+    }
+
+    setEditUserSubmitting(true)
+    try {
+      await users.update(editUserId, {
+        username,
+        displayName,
+        role,
+        password: password || undefined,
+      })
+      setEditUserSuccess(`Updated user ${displayName}.`)
+      setEditUserForm((prev) => ({ ...prev, password: '' }))
+      users.list().then((d) => setUserList(d.users)).catch(() => setUserList([]))
+    } catch (err) {
+      setEditUserError(err instanceof Error ? err.message : 'Failed to update user.')
+    } finally {
+      setEditUserSubmitting(false)
+    }
+  }
+
   return (
     <div className="page">
       <h2>Manager Dashboard</h2>
@@ -511,8 +607,82 @@ export function ManagerPage() {
           <h3>All Users</h3>
           <ul>
             {userList.map((u) => (
-              <li key={u.id}>
-                {u.display_name} ({u.username}) — {u.role} — {u.active ? 'Active' : 'Inactive'}
+              <li key={u.id} style={{ marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <span>
+                    {u.display_name} ({u.username}) — {u.role} — {u.active ? 'Active' : 'Inactive'}
+                    {user?.id === u.id ? ' (you)' : ''}
+                  </span>
+                  {user?.id === u.id ? (
+                    <button type="button" disabled title="Cannot edit your own user here">
+                      Edit
+                    </button>
+                  ) : (
+                    <button type="button" onClick={() => openEditUserForm(u)}>
+                      {editUserId === u.id ? 'Editing' : 'Edit'}
+                    </button>
+                  )}
+                </div>
+                {editUserId === u.id && (
+                  <form onSubmit={handleEditUserSubmit} style={{ marginTop: '0.75rem' }}>
+                    <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+                      <label>
+                        Username:
+                        <input
+                          type="text"
+                          value={editUserForm.username}
+                          onChange={(e) => setEditUserForm((prev) => ({ ...prev, username: e.target.value }))}
+                          autoComplete="off"
+                        />
+                      </label>
+                      <label>
+                        Display Name:
+                        <input
+                          type="text"
+                          value={editUserForm.displayName}
+                          onChange={(e) => setEditUserForm((prev) => ({ ...prev, displayName: e.target.value }))}
+                          autoComplete="off"
+                        />
+                      </label>
+                      <label>
+                        Role:
+                        <select
+                          value={editUserForm.role}
+                          onChange={(e) =>
+                            setEditUserForm((prev) => ({
+                              ...prev,
+                              role: e.target.value as EditUserFormState['role'],
+                            }))
+                          }
+                        >
+                          <option value="employee">employee</option>
+                          <option value="manager">manager</option>
+                          {user?.role === 'admin' && <option value="admin">admin</option>}
+                        </select>
+                      </label>
+                      <label>
+                        New Password (optional):
+                        <input
+                          type="password"
+                          value={editUserForm.password}
+                          onChange={(e) => setEditUserForm((prev) => ({ ...prev, password: e.target.value }))}
+                          placeholder="Leave blank to keep current password"
+                          autoComplete="new-password"
+                        />
+                      </label>
+                    </div>
+                    {editUserError && <p className="error">{editUserError}</p>}
+                    {editUserSuccess && <p className="success">{editUserSuccess}</p>}
+                    <div className="btn-row">
+                      <button type="submit" className="btn-primary" disabled={editUserSubmitting}>
+                        {editUserSubmitting ? 'Saving...' : 'Save Changes'}
+                      </button>
+                      <button type="button" className="btn-secondary" onClick={cancelEditUserForm} disabled={editUserSubmitting}>
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                )}
               </li>
             ))}
           </ul>
