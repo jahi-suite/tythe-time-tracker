@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { timesheet, shifts, users, audit, exportExcelUrl, exportPdfUrl } from '../api'
+import { timesheet, shifts, users, audit, exportExcelUrl, exportPdfUrl, type User as ApiUser } from '../api'
 
 type AddShiftFormState = {
   employeeName: string
@@ -23,6 +23,11 @@ type EditUserFormState = {
   displayName: string
   password: string
   role: 'employee' | 'manager' | 'admin'
+}
+type UserPayRatesFormState = {
+  standard: string
+  enhanced: string
+  supervisor: string
 }
 
 const DEFAULT_ADD_SHIFT_FORM: AddShiftFormState = {
@@ -60,7 +65,7 @@ export function ManagerPage() {
   const { user } = useAuth()
   const [entries, setEntries] = useState<Array<{ id: string; employee: string; clock_in: string; clock_out: string | null; pay_rate_type: string }>>([])
   const [auditLogs, setAuditLogs] = useState<Array<{ id: string; action: string; changed_by: string; created_at: string }>>([])
-  const [userList, setUserList] = useState<Array<{ id: string; username: string; display_name: string; role: string; active: boolean }>>([])
+  const [userList, setUserList] = useState<ApiUser[]>([])
   const [tab, setTab] = useState<'entries' | 'add' | 'edit' | 'delete' | 'users' | 'audit'>('entries')
   const [addShiftForm, setAddShiftForm] = useState<AddShiftFormState>(DEFAULT_ADD_SHIFT_FORM)
   const [addShiftError, setAddShiftError] = useState('')
@@ -92,6 +97,10 @@ export function ManagerPage() {
   const [userStatusError, setUserStatusError] = useState('')
   const [userStatusSuccess, setUserStatusSuccess] = useState('')
   const [userStatusSubmittingId, setUserStatusSubmittingId] = useState<string | null>(null)
+  const [userPayRatesForms, setUserPayRatesForms] = useState<Record<string, UserPayRatesFormState>>({})
+  const [userPayRatesError, setUserPayRatesError] = useState<Record<string, string>>({})
+  const [userPayRatesSuccess, setUserPayRatesSuccess] = useState<Record<string, string>>({})
+  const [userPayRatesSubmittingId, setUserPayRatesSubmittingId] = useState<string | null>(null)
 
   useEffect(() => {
     timesheet.getAll().then((d) => setEntries(d.entries)).catch(() => setEntries([]))
@@ -111,6 +120,21 @@ export function ManagerPage() {
       setEditShiftAutoLoadPending(false)
     })
   }, [tab, editShiftAutoLoadPending, editShiftEntryId])
+
+  useEffect(() => {
+    setUserPayRatesForms(
+      Object.fromEntries(
+        userList.map((u) => [
+          u.id,
+          {
+            standard: u.standard_rate == null ? '' : String(u.standard_rate),
+            enhanced: u.enhanced_rate == null ? '' : String(u.enhanced_rate),
+            supervisor: u.supervisor_rate == null ? '' : String(u.supervisor_rate),
+          },
+        ]),
+      ),
+    )
+  }, [userList])
 
   const staffGroups = entries.reduce<Record<string, typeof entries>>((acc, e) => {
     const key = e.employee.trim()
@@ -458,6 +482,49 @@ export function ManagerPage() {
     }
   }
 
+  async function handleUserPayRatesSave(targetUser: ApiUser) {
+    setUserPayRatesError((prev) => ({ ...prev, [targetUser.id]: '' }))
+    setUserPayRatesSuccess((prev) => ({ ...prev, [targetUser.id]: '' }))
+
+    const form = userPayRatesForms[targetUser.id] ?? { standard: '', enhanced: '', supervisor: '' }
+    const standard = form.standard.trim()
+    const enhanced = form.enhanced.trim()
+    const supervisor = form.supervisor.trim()
+
+    const values = [
+      ['Standard', standard],
+      ['Enhanced', enhanced],
+      ['Supervisor', supervisor],
+    ] as const
+
+    for (const [label, value] of values) {
+      if (!value) continue
+      const parsed = Number(value)
+      if (!Number.isFinite(parsed) || parsed < 0) {
+        setUserPayRatesError((prev) => ({ ...prev, [targetUser.id]: `${label} rate must be a number greater than or equal to 0.` }))
+        return
+      }
+    }
+
+    setUserPayRatesSubmittingId(targetUser.id)
+    try {
+      await users.setPayRates(targetUser.id, {
+        standard: standard ? Number(standard) : undefined,
+        enhanced: enhanced ? Number(enhanced) : undefined,
+        supervisor: supervisor ? Number(supervisor) : undefined,
+      })
+      setUserPayRatesSuccess((prev) => ({ ...prev, [targetUser.id]: `Saved pay rates for ${targetUser.display_name}.` }))
+      users.list().then((d) => setUserList(d.users)).catch(() => setUserList([]))
+    } catch (err) {
+      setUserPayRatesError((prev) => ({
+        ...prev,
+        [targetUser.id]: err instanceof Error ? err.message : `Failed to save pay rates for ${targetUser.display_name}.`,
+      }))
+    } finally {
+      setUserPayRatesSubmittingId(null)
+    }
+  }
+
   return (
     <div className="page">
       <h2>Manager Dashboard</h2>
@@ -764,6 +831,89 @@ export function ManagerPage() {
                     </div>
                   </form>
                 )}
+                <details style={{ marginTop: '0.75rem' }}>
+                  <summary>Pay rates — {u.display_name}</summary>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      void handleUserPayRatesSave(u)
+                    }}
+                    style={{ marginTop: '0.75rem' }}
+                  >
+                    <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+                      <label>
+                        Standard £/hr:
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={userPayRatesForms[u.id]?.standard ?? ''}
+                          onChange={(e) => {
+                            const value = e.target.value
+                            setUserPayRatesForms((prev) => ({
+                              ...prev,
+                              [u.id]: {
+                                ...(prev[u.id] ?? { standard: '', enhanced: '', supervisor: '' }),
+                                standard: value,
+                              },
+                            }))
+                            setUserPayRatesError((prev) => ({ ...prev, [u.id]: '' }))
+                            setUserPayRatesSuccess((prev) => ({ ...prev, [u.id]: '' }))
+                          }}
+                        />
+                      </label>
+                      <label>
+                        Enhanced £/hr:
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={userPayRatesForms[u.id]?.enhanced ?? ''}
+                          onChange={(e) => {
+                            const value = e.target.value
+                            setUserPayRatesForms((prev) => ({
+                              ...prev,
+                              [u.id]: {
+                                ...(prev[u.id] ?? { standard: '', enhanced: '', supervisor: '' }),
+                                enhanced: value,
+                              },
+                            }))
+                            setUserPayRatesError((prev) => ({ ...prev, [u.id]: '' }))
+                            setUserPayRatesSuccess((prev) => ({ ...prev, [u.id]: '' }))
+                          }}
+                        />
+                      </label>
+                      <label>
+                        Supervisor £/hr:
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={userPayRatesForms[u.id]?.supervisor ?? ''}
+                          onChange={(e) => {
+                            const value = e.target.value
+                            setUserPayRatesForms((prev) => ({
+                              ...prev,
+                              [u.id]: {
+                                ...(prev[u.id] ?? { standard: '', enhanced: '', supervisor: '' }),
+                                supervisor: value,
+                              },
+                            }))
+                            setUserPayRatesError((prev) => ({ ...prev, [u.id]: '' }))
+                            setUserPayRatesSuccess((prev) => ({ ...prev, [u.id]: '' }))
+                          }}
+                        />
+                      </label>
+                    </div>
+                    {userPayRatesError[u.id] && <p className="error">{userPayRatesError[u.id]}</p>}
+                    {userPayRatesSuccess[u.id] && <p className="success">{userPayRatesSuccess[u.id]}</p>}
+                    <div className="btn-row">
+                      <button type="submit" className="btn-secondary" disabled={Boolean(userPayRatesSubmittingId)}>
+                        {userPayRatesSubmittingId === u.id ? 'Saving...' : 'Save Pay Rates'}
+                      </button>
+                    </div>
+                  </form>
+                </details>
               </li>
             ))}
           </ul>
