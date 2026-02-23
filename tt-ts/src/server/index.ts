@@ -12,6 +12,7 @@ import shiftsRoutes from './routes/shifts.js'
 import usersRoutes from './routes/users.js'
 import auditRoutes from './routes/audit.js'
 import exportRoutes from './routes/export.js'
+import { requireSameOriginForMutations } from './middleware/csrf.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -43,6 +44,8 @@ app.use(
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', message: 'Tythe Time Tracker API' })
 })
+
+app.use('/api', requireSameOriginForMutations)
 
 app.use('/api/auth', authRoutes)
 app.use('/api/clock', clockRoutes)
