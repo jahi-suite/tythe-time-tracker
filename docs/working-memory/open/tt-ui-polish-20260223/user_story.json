@@ -18,7 +18,7 @@
       "id": "polish-03",
       "title": "Layout and trust signals",
       "acceptance_criteria": "Subtle card-style containers or dividers where appropriate. Improved spacing and visual hierarchy. Tables and forms have clean borders and readable layout. Overall appearance feels corporate and trustworthy.",
-      "passes": false
+      "passes": true
     }
   ]
 }
