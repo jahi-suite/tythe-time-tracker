@@ -6,7 +6,7 @@
       "id": "safari-regex-01",
       "title": "Pin Streamlit to latest, check for Safari fix",
       "acceptance_criteria": "Update requirements.txt to streamlit>=1.39.0 (or latest stable). Verify app still runs. No regression.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "safari-regex-02",
