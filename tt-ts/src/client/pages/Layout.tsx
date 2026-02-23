@@ -129,7 +129,10 @@ export function Layout() {
       </main>
       <footer className="footer">
         <hr />
-        <span><img src="/kari-logo.png" alt="Kari" width={14} height={14} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Powered by Kari Suite</span>
+        <div className="footer-brand">
+          <img src="/kari-logo.png" alt="Kari" width={14} height={14} className="footer-brand-logo" />
+          <span>Powered by Kari Suite</span>
+        </div>
         <p className="footer-note">Mobile: Safari 14+ or Chrome. Legacy build for older Safari.</p>
       </footer>
     </div>
