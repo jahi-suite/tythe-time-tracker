@@ -17,12 +17,18 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const app = express()
 const PORT = process.env.PORT || 3000
+const isProduction = process.env.NODE_ENV === 'production'
+const sessionSecret = process.env.SESSION_SECRET?.trim()
+
+if (isProduction && !sessionSecret) {
+  throw new Error('SESSION_SECRET is required when NODE_ENV=production')
+}
 
 app.use(cookieParser())
 app.use(express.json())
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || 'tythe-dev-secret-change-in-production',
+    secret: sessionSecret || 'tythe-dev-secret-change-in-production',
     resave: false,
     saveUninitialized: false,
     cookie: { secure: process.env.NODE_ENV === 'production', httpOnly: true, maxAge: 24 * 60 * 60 * 1000 },

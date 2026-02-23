@@ -42,6 +42,7 @@ npm start
 ```
 
 Serves the API and static client on port 3000.
+`SESSION_SECRET` must be set in production (`NODE_ENV=production`) or the server will fail to start.
 
 ## Browser Support
 
