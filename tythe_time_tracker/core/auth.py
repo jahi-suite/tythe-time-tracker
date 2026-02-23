@@ -1,7 +1,8 @@
 """Password hashing and verification using bcrypt."""
 
 import logging
-from typing import Optional, List
+from decimal import Decimal
+from typing import Optional, List, Tuple
 
 import bcrypt
 
@@ -107,7 +108,7 @@ def create_user(username: str, password: str, display_name: str, role: str) -> t
 
 
 def get_all_users() -> List[dict]:
-    """Return all users as a list of dicts (id, username, role, display_name, active)."""
+    """Return all users as a list of dicts (id, username, role, display_name, active, standard_rate, enhanced_rate, supervisor_rate)."""
     from ..database.connection import DatabaseConnection, get_db_connection
 
     conn, err = get_db_connection()
@@ -120,7 +121,10 @@ def get_all_users() -> List[dict]:
         with db.get_cursor() as cursor:
             cursor.execute(
                 f"""
-                SELECT id, username, role, display_name, active
+                SELECT id, username, role, display_name, active,
+                       {DatabaseConstants.STANDARD_RATE_COLUMN},
+                       {DatabaseConstants.ENHANCED_RATE_COLUMN},
+                       {DatabaseConstants.SUPERVISOR_RATE_COLUMN}
                 FROM {DatabaseConstants.USERS_TABLE}
                 ORDER BY role, display_name
                 """
@@ -133,12 +137,105 @@ def get_all_users() -> List[dict]:
                 "role": row[2],
                 "display_name": row[3],
                 "active": row[4],
+                "standard_rate": float(row[5]) if row[5] is not None else None,
+                "enhanced_rate": float(row[6]) if row[6] is not None else None,
+                "supervisor_rate": float(row[7]) if row[7] is not None else None,
             }
             for row in rows
         ]
     except Exception as e:
         logger.error("get_all_users: error: %s", e)
         return []
+    finally:
+        conn.close()
+
+
+def get_user_pay_rates(display_name: str) -> Optional[dict]:
+    """Get pay rates for a user by display_name (case-insensitive, trimmed).
+
+    Returns dict with standard_rate, enhanced_rate, supervisor_rate (float or None),
+    or None if user not found.
+    """
+    from ..database.connection import DatabaseConnection, get_db_connection
+
+    name = display_name.strip() if display_name else ""
+    if not name:
+        return None
+
+    conn, err = get_db_connection()
+    if err or not conn:
+        logger.error("get_user_pay_rates: DB connection failed: %s", err)
+        return None
+
+    try:
+        db = DatabaseConnection(conn)
+        with db.get_cursor() as cursor:
+            cursor.execute(
+                f"""
+                SELECT {DatabaseConstants.STANDARD_RATE_COLUMN},
+                       {DatabaseConstants.ENHANCED_RATE_COLUMN},
+                       {DatabaseConstants.SUPERVISOR_RATE_COLUMN}
+                FROM {DatabaseConstants.USERS_TABLE}
+                WHERE LOWER(TRIM({DatabaseConstants.DISPLAY_NAME_COLUMN})) = LOWER(%s)
+                """,
+                (name,),
+            )
+            row = cursor.fetchone()
+        if row is None:
+            return None
+        return {
+            "standard_rate": float(row[0]) if row[0] is not None else None,
+            "enhanced_rate": float(row[1]) if row[1] is not None else None,
+            "supervisor_rate": float(row[2]) if row[2] is not None else None,
+        }
+    except Exception as e:
+        logger.error("get_user_pay_rates: error: %s", e)
+        return None
+    finally:
+        conn.close()
+
+
+def set_user_pay_rates(
+    user_id: str,
+    standard: Optional[float],
+    enhanced: Optional[float],
+    supervisor: Optional[float],
+) -> Tuple[bool, str]:
+    """Set pay rates for a user. Values can be None to clear.
+
+    Returns (True, success_message) or (False, error_message).
+    """
+    from ..database.connection import DatabaseConnection, get_db_connection
+
+    conn, err = get_db_connection()
+    if err or not conn:
+        logger.error("set_user_pay_rates: DB connection failed: %s", err)
+        return False, "Database connection failed."
+
+    try:
+        db = DatabaseConnection(conn)
+        with db.get_cursor() as cursor:
+            cursor.execute(
+                f"""
+                UPDATE {DatabaseConstants.USERS_TABLE}
+                SET {DatabaseConstants.STANDARD_RATE_COLUMN} = %s,
+                    {DatabaseConstants.ENHANCED_RATE_COLUMN} = %s,
+                    {DatabaseConstants.SUPERVISOR_RATE_COLUMN} = %s
+                WHERE id = %s
+                """,
+                (
+                    Decimal(str(standard)) if standard is not None else None,
+                    Decimal(str(enhanced)) if enhanced is not None else None,
+                    Decimal(str(supervisor)) if supervisor is not None else None,
+                    user_id,
+                ),
+            )
+            if cursor.rowcount == 0:
+                return False, "User not found."
+        return True, "Pay rates updated successfully."
+    except Exception as e:
+        logger.error("set_user_pay_rates: error: %s", e)
+        return False, f"Failed to update pay rates: {e}"
     finally:
         conn.close()
 

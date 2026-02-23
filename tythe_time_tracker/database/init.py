@@ -86,6 +86,25 @@ def init_database() -> Tuple[bool, Optional[str]]:
                 """)
                 logger.info("Database updated with pay rate functionality")
 
+            # Add pay rate columns to users table if they don't exist
+            for col in (
+                DatabaseConstants.STANDARD_RATE_COLUMN,
+                DatabaseConstants.ENHANCED_RATE_COLUMN,
+                DatabaseConstants.SUPERVISOR_RATE_COLUMN,
+            ):
+                cursor.execute(f"""
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name = '{DatabaseConstants.USERS_TABLE}'
+                    AND column_name = '{col}'
+                """)
+                if not cursor.fetchone():
+                    cursor.execute(f"""
+                        ALTER TABLE {DatabaseConstants.USERS_TABLE}
+                        ADD COLUMN {col} DECIMAL(10,2) NULL
+                    """)
+                    logger.info("Database updated with %s column", col)
+
         _seed_manager_if_empty(conn)
 
         logger.info("Database initialization completed successfully")

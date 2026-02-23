@@ -10,7 +10,7 @@ from collections import defaultdict
 
 from ...core.services import TimeTrackingService
 from ...core.models import TimeEntry
-from ...core.auth import create_user, get_all_users, set_user_active
+from ...core.auth import create_user, get_all_users, set_user_active, set_user_pay_rates
 from ...core.constants import DatabaseConstants
 from ...database.connection import DatabaseConnection, get_db_connection
 from ...database.repository import TimeEntryRepository
@@ -348,6 +348,49 @@ def show_manage_users_tab() -> None:
                             st.rerun()
                         else:
                             st.error(msg)
+
+            with st.expander(f"Pay rates — {user['display_name']}", expanded=False):
+                uid = user["id"]
+                std = user.get("standard_rate")
+                enh = user.get("enhanced_rate")
+                sup = user.get("supervisor_rate")
+                c1, c2, c3 = st.columns(3)
+                with c1:
+                    new_std = st.number_input(
+                        "Standard £/hr",
+                        min_value=0.0,
+                        value=float(std) if std is not None else 0.0,
+                        step=0.01,
+                        key=f"rate_std_{uid}",
+                    )
+                with c2:
+                    new_enh = st.number_input(
+                        "Enhanced £/hr",
+                        min_value=0.0,
+                        value=float(enh) if enh is not None else 0.0,
+                        step=0.01,
+                        key=f"rate_enh_{uid}",
+                    )
+                with c3:
+                    new_sup = st.number_input(
+                        "Supervisor £/hr",
+                        min_value=0.0,
+                        value=float(sup) if sup is not None else 0.0,
+                        step=0.01,
+                        key=f"rate_sup_{uid}",
+                    )
+                if st.button("Save pay rates", key=f"save_rates_{uid}"):
+                    ok, msg = set_user_pay_rates(
+                        uid,
+                        new_std if new_std > 0 else None,
+                        new_enh if new_enh > 0 else None,
+                        new_sup if new_sup > 0 else None,
+                    )
+                    if ok:
+                        st.success(msg)
+                        st.rerun()
+                    else:
+                        st.error(msg)
 
 
 def _safe_audit_dict(payload: Any) -> Dict[str, Any]:

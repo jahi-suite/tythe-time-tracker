@@ -8,7 +8,7 @@ from typing import List
 from ...core.services import TimeTrackingService
 from ...core.models import TimeEntry
 from ...utils.time_utils import TimeUtils
-from export_functions import split_shift_by_rate
+from export_functions import split_shift_by_rate, calculate_staff_summary, _get_user_rates_map
 from ..components.footer import render_footer
 
 
@@ -64,6 +64,14 @@ def show() -> None:
             # Format and display data
             timesheet_data = format_timesheet_data(entries)
             st.dataframe(timesheet_data, use_container_width=True)
+
+            # Estimated pay when rates are set
+            user_rates_map = _get_user_rates_map()
+            staff_summary = calculate_staff_summary(entries, user_rates_map)
+            emp_data = next((d for d in staff_summary.values() if d.get("total_pay") is not None), None)
+            if emp_data:
+                st.markdown("---")
+                st.metric("Estimated pay (this period)", f"£{emp_data['total_pay']:.2f}")
     else:
         with st.container(border=True):
             st.info(f"No time entries found for {employee_name}")

@@ -60,6 +60,9 @@ class DatabaseConstants:
     ROLE_COLUMN: Final[str] = "role"
     DISPLAY_NAME_COLUMN: Final[str] = "display_name"
     ACTIVE_COLUMN: Final[str] = "active"
+    STANDARD_RATE_COLUMN: Final[str] = "standard_rate"
+    ENHANCED_RATE_COLUMN: Final[str] = "enhanced_rate"
+    SUPERVISOR_RATE_COLUMN: Final[str] = "supervisor_rate"
 
     # Default pay rate
     DEFAULT_PAY_RATE: Final[str] = PayRateType.STANDARD

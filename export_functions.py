@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone, time as dtime
 from reportlab.lib import colors
 
 from tythe_time_tracker.utils.time_utils import TimeUtils
+from tythe_time_tracker.core.auth import get_all_users
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -148,41 +149,88 @@ def split_shift_by_rate(clock_in, clock_out, is_supervisor):
         'Supervisor': 0
     }
 
-def calculate_staff_summary(entries):
-    """Calculate summary by staff member with hours per pay rate type"""
+def _get_user_rates_map():
+    """Build map of display_name (lower) -> {standard_rate, enhanced_rate, supervisor_rate}."""
+    users = get_all_users()
+    return {
+        u["display_name"].strip().lower(): {
+            "standard_rate": u.get("standard_rate"),
+            "enhanced_rate": u.get("enhanced_rate"),
+            "supervisor_rate": u.get("supervisor_rate"),
+        }
+        for u in users
+    }
+
+
+def _format_pay(amount):
+    """Format pay amount as £X.XX or — if None/zero."""
+    if amount is None or amount == 0:
+        return "—"
+    return f"£{amount:.2f}"
+
+
+def calculate_staff_summary(entries, user_rates_map=None):
+    """Calculate summary by staff member with hours per pay rate type.
+    If user_rates_map is provided, adds standard_pay, enhanced_pay, supervisor_pay, total_pay.
+    """
     staff_summary = {}
-    
+
     for entry in entries:
         # Handle both TimeEntry objects and tuples for backward compatibility
-        if hasattr(entry, 'employee'):
-            # TimeEntry object
+        if hasattr(entry, "employee"):
             employee = entry.employee
             clock_in = entry.clock_in
             clock_out = entry.clock_out
-            pay_rate_type = entry.pay_rate_type.value if hasattr(entry.pay_rate_type, 'value') else entry.pay_rate_type
+            pay_rate_type = (
+                entry.pay_rate_type.value
+                if hasattr(entry.pay_rate_type, "value")
+                else entry.pay_rate_type
+            )
         else:
-            # Tuple format (backward compatibility)
             entry_id, employee, clock_in, clock_out, pay_rate_type, created_at = entry
-        
-        is_supervisor = (pay_rate_type == 'Supervisor')
+
+        is_supervisor = pay_rate_type == "Supervisor"
         split = split_shift_by_rate(clock_in, clock_out, is_supervisor)
-        
+
         if employee not in staff_summary:
             staff_summary[employee] = {
-                'Standard': 0,
-                'Enhanced': 0,
-                'Supervisor': 0,
-                'total_hours': 0,
-                'total_shifts': 0
+                "Standard": 0,
+                "Enhanced": 0,
+                "Supervisor": 0,
+                "total_hours": 0,
+                "total_shifts": 0,
             }
-        
-        # Add hours to the appropriate pay rate type
-        staff_summary[employee]['Standard'] += split['Standard']
-        staff_summary[employee]['Enhanced'] += split['Enhanced']
-        staff_summary[employee]['Supervisor'] += split['Supervisor']
-        staff_summary[employee]['total_hours'] += sum(split.values())
-        staff_summary[employee]['total_shifts'] += 1
-    
+
+        staff_summary[employee]["Standard"] += split["Standard"]
+        staff_summary[employee]["Enhanced"] += split["Enhanced"]
+        staff_summary[employee]["Supervisor"] += split["Supervisor"]
+        staff_summary[employee]["total_hours"] += sum(split.values())
+        staff_summary[employee]["total_shifts"] += 1
+
+    # Enrich with pay amounts if rates available
+    if user_rates_map:
+        for emp, data in staff_summary.items():
+            rates = user_rates_map.get(emp.strip().lower(), {})
+            std_r = rates.get("standard_rate")
+            enh_r = rates.get("enhanced_rate")
+            sup_r = rates.get("supervisor_rate")
+            data["standard_pay"] = (
+                round(data["Standard"] * std_r, 2) if std_r is not None else None
+            )
+            data["enhanced_pay"] = (
+                round(data["Enhanced"] * enh_r, 2) if enh_r is not None else None
+            )
+            data["supervisor_pay"] = (
+                round(data["Supervisor"] * sup_r, 2) if sup_r is not None else None
+            )
+            total = 0.0
+            has_any = False
+            for p in (data.get("standard_pay"), data.get("enhanced_pay"), data.get("supervisor_pay")):
+                if p is not None:
+                    total += p
+                    has_any = True
+            data["total_pay"] = round(total, 2) if has_any else None
+
     return staff_summary
 
 def calculate_summary(entries):
@@ -204,9 +252,9 @@ def export_to_excel(entries, filename="timesheet_export.xlsx", start_date=None, 
     """Export timesheet data to Excel with staff summaries and individual shifts"""
     if not entries:
         return None
-    
-    # Calculate staff summary
-    staff_summary = calculate_staff_summary(entries)
+
+    user_rates_map = _get_user_rates_map()
+    staff_summary = calculate_staff_summary(entries, user_rates_map)
     
     # Sort entries by employee (case-insensitive, trimmed) and clock_in
     # Handle both TimeEntry objects and tuples for backward compatibility
@@ -219,23 +267,35 @@ def export_to_excel(entries, filename="timesheet_export.xlsx", start_date=None, 
     
     # Prepare hierarchical data for Excel
     hierarchical_data = []
-    
+
+    def _pay_cols(d):
+        if d is None:
+            return {"Standard Pay": "—", "Enhanced Pay": "—", "Supervisor Pay": "—", "Total Pay": "—"}
+        return {
+            "Standard Pay": _format_pay(d.get("standard_pay")),
+            "Enhanced Pay": _format_pay(d.get("enhanced_pay")),
+            "Supervisor Pay": _format_pay(d.get("supervisor_pay")),
+            "Total Pay": _format_pay(d.get("total_pay")),
+        }
+
     for employee, data in staff_summary.items():
         # Add staff summary row
-        hierarchical_data.append({
-            'Staff Name': f"📊 {employee} - TOTALS",
-            'Date': '',
-            'Clock-In': '',
-            'Clock-Out': '',
-            'Standard Hours': data['Standard'],
-            'Enhanced Hours': data['Enhanced'],
-            'Supervisor Hours': data['Supervisor'],
-            'Total Hours': data['total_hours'],
-            'Total Shifts': data['total_shifts'],
-            'Pay Rate Type': '',
-            'Supervisor Flag': ''
-        })
-        
+        row = {
+            "Staff Name": f"📊 {employee} - TOTALS",
+            "Date": "",
+            "Clock-In": "",
+            "Clock-Out": "",
+            "Standard Hours": data["Standard"],
+            "Enhanced Hours": data["Enhanced"],
+            "Supervisor Hours": data["Supervisor"],
+            "Total Hours": data["total_hours"],
+            "Total Shifts": data["total_shifts"],
+            "Pay Rate Type": "",
+            "Supervisor Flag": "",
+        }
+        row.update(_pay_cols(data))
+        hierarchical_data.append(row)
+
         # Add individual shifts for this staff member
         for entry in entries_sorted:
             # Handle both TimeEntry objects and tuples for backward compatibility
@@ -263,34 +323,38 @@ def export_to_excel(entries, filename="timesheet_export.xlsx", start_date=None, 
                 else:
                     shift_display = f"Standard ({split['Standard']}h)"
                 
-                hierarchical_data.append({
-                    'Staff Name': f"  └─ {employee}",
-                    'Date': get_bst_time(clock_in).strftime('%Y-%m-%d'),
-                    'Clock-In': get_bst_time(clock_in).strftime('%H:%M:%S'),
-                    'Clock-Out': get_bst_time(clock_out).strftime('%H:%M:%S') if clock_out else 'In Progress',
-                    'Standard Hours': split['Standard'],
-                    'Enhanced Hours': split['Enhanced'],
-                    'Supervisor Hours': split['Supervisor'],
-                    'Total Hours': sum(split.values()),
-                    'Total Shifts': '',
-                    'Pay Rate Type': shift_display,
-                    'Supervisor Flag': 'Yes' if pay_rate_type == "Supervisor" else 'No'
-                })
-        
+                shift_row = {
+                    "Staff Name": f"  └─ {employee}",
+                    "Date": get_bst_time(clock_in).strftime("%Y-%m-%d"),
+                    "Clock-In": get_bst_time(clock_in).strftime("%H:%M:%S"),
+                    "Clock-Out": get_bst_time(clock_out).strftime("%H:%M:%S") if clock_out else "In Progress",
+                    "Standard Hours": split["Standard"],
+                    "Enhanced Hours": split["Enhanced"],
+                    "Supervisor Hours": split["Supervisor"],
+                    "Total Hours": sum(split.values()),
+                    "Total Shifts": "",
+                    "Pay Rate Type": shift_display,
+                    "Supervisor Flag": "Yes" if pay_rate_type == "Supervisor" else "No",
+                }
+                shift_row.update(_pay_cols(None))
+                hierarchical_data.append(shift_row)
+
         # Add blank row between staff members
-        hierarchical_data.append({
-            'Staff Name': '',
-            'Date': '',
-            'Clock-In': '',
-            'Clock-Out': '',
-            'Standard Hours': '',
-            'Enhanced Hours': '',
-            'Supervisor Hours': '',
-            'Total Hours': '',
-            'Total Shifts': '',
-            'Pay Rate Type': '',
-            'Supervisor Flag': ''
-        })
+        blank_row = {
+            "Staff Name": "",
+            "Date": "",
+            "Clock-In": "",
+            "Clock-Out": "",
+            "Standard Hours": "",
+            "Enhanced Hours": "",
+            "Supervisor Hours": "",
+            "Total Hours": "",
+            "Total Shifts": "",
+            "Pay Rate Type": "",
+            "Supervisor Flag": "",
+        }
+        blank_row.update(_pay_cols(None))
+        hierarchical_data.append(blank_row)
     
     # Create DataFrame
     df_hierarchical = pd.DataFrame(hierarchical_data)
@@ -321,26 +385,9 @@ def export_to_pdf(entries, filename="timesheet_export.pdf"):
     """Export timesheet data to PDF with staff summaries and individual shifts grouped under each staff member"""
     if not entries:
         return None
-    
-    # Create PDF document
-    doc = SimpleDocTemplate(filename, pagesize=A4)
-    story = []
-    styles = getSampleStyleSheet()
-    
-    # Title
-    title_style = ParagraphStyle(
-        'CustomTitle',
-        parent=styles['Heading1'],
-        fontSize=16,
-        spaceAfter=30,
-        alignment=1  # Center
-    )
-    title = Paragraph("Employee Portal — The Tythe Barn: Staff Hours & Shifts", title_style)
-    story.append(title)
-    story.append(Spacer(1, 20))
-    
-    # Calculate summaries
-    staff_summary = calculate_staff_summary(entries)
+
+    user_rates_map = _get_user_rates_map()
+    staff_summary = calculate_staff_summary(entries, user_rates_map)
     overall_summary = calculate_summary(entries)
     
     # Overall summary section
@@ -366,10 +413,25 @@ def export_to_pdf(entries, filename="timesheet_export.pdf"):
     # For each staff member, show totals and then their shifts
     for employee, data in staff_summary.items():
         # Staff summary row
-        staff_title = Paragraph(f"<b>{employee} - TOTALS</b>", styles['Heading3'])
+        staff_title = Paragraph(f"<b>{employee} - TOTALS</b>", styles["Heading3"])
         story.append(staff_title)
-        staff_table = Table([["Standard Hours", "Enhanced Hours", "Supervisor Hours", "Total Hours", "Total Shifts"],
-                             [str(data['Standard']), str(data['Enhanced']), str(data['Supervisor']), str(data['total_hours']), str(data['total_shifts'])]])
+        headers = ["Standard Hours", "Enhanced Hours", "Supervisor Hours", "Total Hours", "Total Shifts"]
+        values = [
+            str(data["Standard"]),
+            str(data["Enhanced"]),
+            str(data["Supervisor"]),
+            str(data["total_hours"]),
+            str(data["total_shifts"]),
+        ]
+        if "total_pay" in data:
+            headers.extend(["Standard Pay", "Enhanced Pay", "Supervisor Pay", "Total Pay"])
+            values.extend([
+                _format_pay(data.get("standard_pay")),
+                _format_pay(data.get("enhanced_pay")),
+                _format_pay(data.get("supervisor_pay")),
+                _format_pay(data.get("total_pay")),
+            ])
+        staff_table = Table([headers, values])
         staff_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
