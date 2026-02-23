@@ -51,6 +51,10 @@ export function ManagerPage() {
   const [editShiftSuccess, setEditShiftSuccess] = useState('')
   const [editShiftLoading, setEditShiftLoading] = useState(false)
   const [editShiftSubmitting, setEditShiftSubmitting] = useState(false)
+  const [deleteShiftEntryId, setDeleteShiftEntryId] = useState('')
+  const [deleteShiftError, setDeleteShiftError] = useState('')
+  const [deleteShiftSuccess, setDeleteShiftSuccess] = useState('')
+  const [deleteShiftSubmitting, setDeleteShiftSubmitting] = useState(false)
 
   useEffect(() => {
     timesheet.getAll().then((d) => setEntries(d.entries)).catch(() => setEntries([]))
@@ -218,6 +222,34 @@ export function ManagerPage() {
       setEditShiftError(err instanceof Error ? err.message : 'Failed to update shift.')
     } finally {
       setEditShiftSubmitting(false)
+    }
+  }
+
+  async function handleDeleteShiftSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setDeleteShiftError('')
+    setDeleteShiftSuccess('')
+
+    const entryId = deleteShiftEntryId.trim()
+    if (!entryId) {
+      setDeleteShiftError('Please enter an Entry ID to delete.')
+      return
+    }
+
+    if (!window.confirm(`Delete entry ${entryId}? This cannot be undone.`)) {
+      return
+    }
+
+    setDeleteShiftSubmitting(true)
+    try {
+      await shifts.delete(entryId)
+      setDeleteShiftSuccess(`Deleted entry ${entryId}.`)
+      setDeleteShiftEntryId('')
+      timesheet.getAll().then((d) => setEntries(d.entries)).catch(() => setEntries([]))
+    } catch (err) {
+      setDeleteShiftError(err instanceof Error ? err.message : 'Failed to delete shift.')
+    } finally {
+      setDeleteShiftSubmitting(false)
     }
   }
 
@@ -493,7 +525,26 @@ export function ManagerPage() {
       )}
       {tab === 'delete' && (
         <div className="card">
-          <p className="info">Delete Entry form coming in the next parity story.</p>
+          <h3>Delete Entry</h3>
+          <p className="info">Copy an Entry ID from the View All Entries tab, then delete it here.</p>
+          <form onSubmit={handleDeleteShiftSubmit}>
+            <label>
+              Enter Entry ID to delete:
+              <input
+                type="text"
+                value={deleteShiftEntryId}
+                onChange={(e) => setDeleteShiftEntryId(e.target.value)}
+                placeholder="Paste Entry ID here..."
+              />
+            </label>
+            {deleteShiftError && <p className="error">{deleteShiftError}</p>}
+            {deleteShiftSuccess && <p className="success">{deleteShiftSuccess}</p>}
+            <div className="btn-row">
+              <button type="submit" className="btn-secondary" disabled={deleteShiftSubmitting}>
+                {deleteShiftSubmitting ? 'Deleting...' : 'Delete Entry'}
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>
