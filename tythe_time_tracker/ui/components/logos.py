@@ -18,6 +18,15 @@ def _image_data_uri(path: Path) -> str:
     return f"data:{mime_type};base64,{encoded}"
 
 
+def render_tythe_only(width: int = 200) -> None:
+    """Render only the Tythe logo (e.g. for login page top)."""
+    if not _TYTHE_PATH.exists():
+        return
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.image(str(_TYTHE_PATH), width=width)
+
+
 def render_logos(tythe_width: int = 200, kari_width: int = 80, layout: str = "stacked") -> None:
     """
     Render Tythe (bigger) and Kari (smaller) logos.

@@ -5,7 +5,7 @@ import streamlit as st
 from ...core.auth import authenticate_user
 from ...database.init import bootstrap_seed_manager, run_seed_if_empty
 from ..components.footer import render_footer
-from ..components.logos import render_logos
+from ..components.logos import render_tythe_only
 
 
 def show() -> None:
@@ -14,22 +14,26 @@ def show() -> None:
     if run_seed_if_empty():
         st.rerun()
 
-    render_logos(tythe_width=220, kari_width=90, layout="stacked")
+    render_tythe_only(width=200)
     st.markdown("<br>", unsafe_allow_html=True)
 
     st.markdown(
         """
         <style>
+        /* Tythe Barn palette: warm creams, sage, earthy - not stark white */
+        [data-testid="stAppViewContainer"] {
+            background: linear-gradient(180deg, #f8f6f3 0%, #f0ebe5 100%) !important;
+        }
         .tt-login-hero {
-            background: linear-gradient(180deg, #ffffff 0%, #f6f9fc 100%);
-            border: 1px solid #d6dee8;
+            background: linear-gradient(180deg, #fdfcfb 0%, #f5f2ed 100%);
+            border: 1px solid #d4cfc4;
             border-radius: 14px;
             padding: 1.1rem 1.2rem;
-            box-shadow: 0 2px 8px rgba(15, 30, 45, 0.04);
+            box-shadow: 0 2px 8px rgba(45, 42, 38, 0.06);
             margin-bottom: 1rem;
         }
         .tt-login-eyebrow {
-            color: #1f4e79;
+            color: #5c6b4a;
             font-size: 0.8rem;
             font-weight: 700;
             letter-spacing: 0.08em;
@@ -37,22 +41,47 @@ def show() -> None:
             margin: 0 0 0.35rem 0;
         }
         .tt-login-title {
-            color: #142434;
+            color: #2d2a26;
             font-size: 1.55rem;
             font-weight: 700;
             margin: 0;
         }
         .tt-login-subtitle {
-            color: #5f6f82;
+            color: #5a5349;
             font-size: 0.95rem;
             margin: 0.35rem 0 0 0;
         }
+        /* Login form: visible inputs with light bg and clear border */
         div[data-testid="stForm"] {
-            border: 1px solid #d6dee8;
+            border: 1px solid #d4cfc4;
             border-radius: 12px;
-            background: #ffffff;
+            background: #fdfcfb;
             padding: 1rem 1rem 0.5rem 1rem;
-            box-shadow: 0 1px 4px rgba(15, 30, 45, 0.03);
+            box-shadow: 0 1px 4px rgba(45, 42, 38, 0.04);
+        }
+        /* Login inputs: light bg, clear border, readable */
+        div[data-testid="stForm"] .stTextInput input,
+        div[data-testid="stForm"] input {
+            background: #ffffff !important;
+            border: 2px solid #c9c2b5 !important;
+            border-radius: 8px !important;
+            color: #2d2a26 !important;
+        }
+        div[data-testid="stForm"] .stTextInput input:focus,
+        div[data-testid="stForm"] input:focus {
+            border-color: #5c6b4a !important;
+            box-shadow: 0 0 0 2px rgba(92, 107, 74, 0.2) !important;
+        }
+        /* Login button: readable, Tythe sage green */
+        div[data-testid="stForm"] .stButton > button {
+            background: #5c6b4a !important;
+            color: #ffffff !important;
+            border: none !important;
+            font-weight: 600;
+        }
+        div[data-testid="stForm"] .stButton > button:hover {
+            background: #4a5a3a !important;
+            color: #ffffff !important;
         }
         div[data-testid="stExpander"] {
             border-radius: 12px;

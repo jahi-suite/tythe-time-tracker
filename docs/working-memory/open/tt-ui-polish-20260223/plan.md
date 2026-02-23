@@ -17,7 +17,8 @@
 - Pages: employee_interface.py, personal_timesheet.py, export_interface.py, manager_dashboard.py, login.py.
 - Custom CSS is injected via `st.markdown(unsafe_allow_html=True)` in app.py and components.
 - Logos: `tythe_time_tracker/ui/components/logos.py` — Tythe (bigger) + Kari (smaller).
-- Run stories in order: polish-01 through polish-04.
+- Run stories in order: polish-01 through polish-05.
+- Tythe Barn palette (thetythebarn.co.uk): warm creams (#f8f6f3, #f5f2ed), sage greens (#5c6b4a, #6b7c5c), earthy browns (#5a4a3a, #8b7355), warm dark text (#2d2a26). Avoid stark white.
 
 ## Verification command
 
@@ -33,6 +34,7 @@ grep -r "st\.header\|st\.subheader" tythe_time_tracker/ui/ | grep -c "👤\|👑
 2. **polish-02** — Clean headers and labels. Replace emoji-heavy headers and button labels across pages (employee_interface, personal_timesheet, export_interface, manager_dashboard, login). Use professional text: "Employee Clock In/Out" instead of "👤 Employee Clock In/Out", "Clock In" / "Clock Out" instead of "🟢 Clock In" / "🔴 Clock Out", etc. Keep functionality identical.
 3. **polish-03** — Layout and trust signals. Add subtle card-style containers or dividers where appropriate. Improve spacing and hierarchy. Ensure tables and forms have clean borders and readable layout. Add a subtle, professional header/branding block on the login page if it improves trust.
 4. **polish-04** — Logo positioning and dual branding. Tythe logo (bigger) and Kari logo (smaller) on login and footer. Well-positioned, centered, appropriate spacing. Mobile-friendly.
+5. **polish-05** — Login and footer polish. Login: input fields clearly visible (light bg, clear border). Login button readable. Warmer background (Tythe Barn palette). Footer: Kari logo tiny, inline next to "Powered by Kari Suite" only. Login top: Tythe logo only.
 
 ## Affected files
 

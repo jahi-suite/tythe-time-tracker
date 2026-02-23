@@ -25,6 +25,7 @@ Key files to understand before making changes:
 - `tythe_time_tracker/ui/pages/login.py` — login page
 - `tythe_time_tracker/ui/components/footer.py` — Kari Suite footer
 - `tythe_time_tracker/ui/components/logos.py` — Tythe + Kari logos (Tythe bigger, Kari smaller)
+- Tythe Barn palette: thetythebarn.co.uk uses warm creams (#f8f6f3), sage greens (#5c6b4a), earthy tones. Avoid stark white.
 
 ## Task
 
@@ -45,4 +46,5 @@ Key files to understand before making changes:
 - Aim for corporate, professional, trustworthy appearance.
 - Replace emoji-heavy labels with clean text where appropriate.
 - Preserve mobile responsiveness and existing Kari Suite branding.
+- polish-05: Login inputs must be clearly visible (light bg, clear border). Login button readable. Use Tythe Barn palette (warm, not stark white). Footer: Kari logo tiny, inline next to "Powered by Kari Suite" text only. Login top: Tythe logo only (no Kari).
 - Commit after every atomic change. Update updates.md. Mark story passed when acceptance criteria are met.
