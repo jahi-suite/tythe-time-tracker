@@ -4,7 +4,10 @@ import logging
 from datetime import datetime, timedelta, timezone, date, time
 from typing import List, Optional, Tuple
 
-from .constants import PayRateType, TimeConstants
+import streamlit as st
+
+from .audit import log_change
+from .constants import DatabaseConstants, PayRateType, TimeConstants
 from .models import (
     ClockInRequest, ClockOutRequest, ExportRequest, OverallSummary, 
     ShiftRequest, StaffSummary, TimeEntry, TimeSplit
@@ -14,6 +17,18 @@ from ..database.connection import get_db_connection, DatabaseConnection
 from ..utils.time_utils import TimeUtils
 
 logger = logging.getLogger(__name__)
+
+
+def _time_entry_to_audit_values(entry: TimeEntry) -> dict:
+    """Convert a TimeEntry to a dict suitable for audit logging."""
+    return {
+        "id": entry.id,
+        "employee": entry.employee,
+        "clock_in": entry.clock_in,
+        "clock_out": entry.clock_out,
+        "pay_rate_type": entry.pay_rate_type,
+        "created_at": entry.created_at,
+    }
 
 
 class TimeTrackingService:
@@ -33,6 +48,16 @@ class TimeTrackingService:
             self.repository = TimeEntryRepository(db_connection)
         else:
             self.repository = repository
+
+    def _get_audit_username(self) -> str:
+        """Return the authenticated username from Streamlit session state."""
+        current_user = st.session_state.get("current_user")
+        if not isinstance(current_user, dict):
+            raise ValueError("Authenticated user not found in session")
+        username = current_user.get("username")
+        if not isinstance(username, str) or not username.strip():
+            raise ValueError("Authenticated username not found in session")
+        return username.strip()
     
     def clock_in(self, employee_name: str, is_supervisor: bool) -> Tuple[bool, str]:
         """Clock in an employee (simplified interface for UI).
@@ -207,6 +232,7 @@ class TimeTrackingService:
             Tuple of (success, message).
         """
         try:
+            changed_by = self._get_audit_username()
             # Combine date and time for clock-in
             clock_in_datetime = datetime.combine(
                 request.clock_in_date.date(), 
@@ -237,6 +263,14 @@ class TimeTrackingService:
                 clock_in=clock_in_datetime,
                 clock_out=clock_out_datetime,
                 pay_rate_type=pay_rate_type
+            )
+
+            log_change(
+                action="add",
+                target_table=DatabaseConstants.TIME_ENTRIES_TABLE,
+                target_id=time_entry.id,
+                changed_by=changed_by,
+                new_values=_time_entry_to_audit_values(time_entry),
             )
             
             return True, f"Shift added for {request.employee_name} ({pay_rate_type.value} Rate)"
@@ -293,6 +327,11 @@ class TimeTrackingService:
             Tuple of (success, message).
         """
         try:
+            changed_by = self._get_audit_username()
+            existing_entry = self.repository.get_time_entry_by_id(entry_id)
+            if existing_entry is None:
+                return False, "Shift not found"
+
             # Combine date and time for clock-in
             clock_in_datetime = datetime.combine(
                 request.clock_in_date.date(), 
@@ -325,9 +364,15 @@ class TimeTrackingService:
                 clock_out=clock_out_datetime,
                 pay_rate_type=pay_rate_type
             )
-            
-            if not updated:
-                return False, "Shift not found"
+
+            log_change(
+                action="edit",
+                target_table=DatabaseConstants.TIME_ENTRIES_TABLE,
+                target_id=updated.id,
+                changed_by=changed_by,
+                old_values=_time_entry_to_audit_values(existing_entry),
+                new_values=_time_entry_to_audit_values(updated),
+            )
             
             return True, f"Shift updated for {request.employee_name} ({pay_rate_type.value} Rate)"
             
@@ -345,8 +390,20 @@ class TimeTrackingService:
             Tuple of (success, message).
         """
         try:
+            changed_by = self._get_audit_username()
+            existing_entry = self.repository.get_time_entry_by_id(entry_id)
+            if existing_entry is None:
+                return False, "Entry not found"
+
             deleted = self.repository.delete_time_entry(entry_id)
             if deleted:
+                log_change(
+                    action="delete",
+                    target_table=DatabaseConstants.TIME_ENTRIES_TABLE,
+                    target_id=existing_entry.id,
+                    changed_by=changed_by,
+                    old_values=_time_entry_to_audit_values(existing_entry),
+                )
                 return True, "Entry deleted successfully"
             else:
                 return False, "Entry not found"

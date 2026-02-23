@@ -18,7 +18,7 @@
       "id": "audit-03",
       "title": "Wire audit logging into add/edit/delete operations",
       "acceptance_criteria": "services.py calls log_change() on add_shift_manually (action='add', new_values captured), edit_shift (action='edit', old and new values captured), and delete_entry (action='delete', old_values captured). changed_by comes from session current_user.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "audit-04",

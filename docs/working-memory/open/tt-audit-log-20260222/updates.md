@@ -24,9 +24,19 @@
 - Syntax check passed for changed modules (`python3 -m py_compile tythe_time_tracker/database/repository.py tythe_time_tracker/core/audit.py`).
 - Story id: `audit-02`
 
+**2026-02-23** — audit-03 complete.
+- Wired audit logging into manager mutation service methods in `tythe_time_tracker/core/services.py`.
+- `add_shift_manually_with_request()` now logs `action='add'` with `new_values` from the created `TimeEntry`.
+- `edit_shift_with_request()` now loads the existing entry first and logs `action='edit'` with both `old_values` and `new_values`.
+- `delete_entry()` now loads the entry before deletion and logs `action='delete'` with `old_values`.
+- `changed_by` is sourced from `st.session_state.current_user['username']` via a new `_get_audit_username()` helper.
+- Added `TimeEntry` -> audit payload serialization helper for consistent structured JSON snapshots.
+- Syntax check passed for `tythe_time_tracker/core/services.py`.
+- Story id: `audit-03`
+
 ## Verification
 
 ```bash
 python3 -c "import json; d=json.load(open('docs/working-memory/open/tt-audit-log-20260222/user_story.json')); print(len([s for s in d['stories'] if not s.get('passes')]))"
-# Prints 2 (audit-03 through audit-04 remain)
+# Prints 1 (audit-04 remains)
 ```
