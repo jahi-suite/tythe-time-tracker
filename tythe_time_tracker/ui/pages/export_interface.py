@@ -17,9 +17,9 @@ from export_functions import (
 
 
 def _is_manager() -> bool:
-    """Return True if the current user has the manager role."""
+    """Return True if the current user has manager-level export access."""
     user = st.session_state.get("current_user") or {}
-    return user.get("role") == "manager"
+    return str(user.get("role") or "") in ("manager", "admin")
 
 
 def show_export_access_info() -> None:
