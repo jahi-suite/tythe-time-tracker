@@ -5,3 +5,5 @@
 - Task created. Stories: polish-01, polish-02, polish-03.
 - `polish-01`: Updated `tythe_time_tracker/ui/app.py` with a professional page icon and corporate global theme CSS (blues/grays, typography, alerts, and responsive-safe styling).
 - `polish-02`: Replaced emoji-heavy headers, button labels, tab labels, checkbox labels, expander labels, and download labels across the employee, personal timesheet, export, and manager dashboard pages with professional text-only UI copy (functionality unchanged).
+
+- `polish-03`: Added a professional trust/branding header and card-style visual treatment to the login page form/expander; switched login footer to the shared Kari Suite footer component (visual-only, no behavior changes).
