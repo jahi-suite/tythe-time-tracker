@@ -57,6 +57,11 @@ Implement the actionable mitigations from the PASTA threat model. Source: `docs/
 - Replace MemoryStore with Redis or connect-pg-simple (Postgres).
 - Configurable via env (SESSION_STORE=memory|redis|pg).
 
+**sec-12: Add authorization/security regression tests**
+- Add endpoint-level authorization tests for `/api/users`, `/api/export`, `/api/audit`, `/api/shifts`.
+- Include regression coverage that managers cannot call admin-only payroll actions (`POST /api/users/:id/pay-rates`).
+- Add a lightweight test harness/script in `tt-ts` (node:test acceptable) without changing runtime behavior.
+
 ### Medium term
 
 **sec-10: DB TLS certificate validation**
