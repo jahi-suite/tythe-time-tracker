@@ -2,8 +2,10 @@
 
 import logging
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID
+
+from psycopg2.extras import Json
 
 from ..core.constants import DatabaseConstants, PayRateType
 from ..core.models import TimeEntry
@@ -314,6 +316,104 @@ class TimeEntryRepository:
                 return cursor.rowcount > 0
         except Exception as e:
             logger.error(f"Failed to delete time entry: {e}")
+            raise
+
+    def insert_audit_log(
+        self,
+        action: str,
+        target_table: str,
+        target_id: Optional[UUID],
+        changed_by: str,
+        old_values: Optional[Dict[str, Any]] = None,
+        new_values: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Insert an audit log record and return key fields."""
+        try:
+            with self.db.get_cursor() as cursor:
+                cursor.execute(
+                    f"""
+                    INSERT INTO {DatabaseConstants.AUDIT_LOG_TABLE}
+                        (action, target_table, target_id, changed_by, old_values, new_values)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    RETURNING id, created_at
+                    """,
+                    (
+                        action,
+                        target_table,
+                        target_id,
+                        changed_by.strip(),
+                        Json(old_values) if old_values is not None else None,
+                        Json(new_values) if new_values is not None else None,
+                    ),
+                )
+                row = cursor.fetchone()
+                if row is None:
+                    raise RuntimeError("Failed to insert audit log")
+                audit_id, created_at = row
+                return {"id": audit_id, "created_at": created_at}
+        except Exception as e:
+            logger.error(f"Failed to insert audit log: {e}")
+            raise
+
+    def get_audit_logs(self, filters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+        """Query audit log records with optional filters.
+
+        Supported filters: action, target_table, target_id, changed_by,
+        start_date, end_date, limit.
+        """
+        filters = filters or {}
+        try:
+            with self.db.get_cursor() as cursor:
+                query = f"""
+                    SELECT id, action, target_table, target_id, changed_by,
+                           old_values, new_values, created_at
+                    FROM {DatabaseConstants.AUDIT_LOG_TABLE}
+                    WHERE 1=1
+                """
+                params: List[Any] = []
+
+                if filters.get("action"):
+                    query += " AND action = %s"
+                    params.append(filters["action"])
+                if filters.get("target_table"):
+                    query += " AND target_table = %s"
+                    params.append(filters["target_table"])
+                if filters.get("target_id"):
+                    query += " AND target_id = %s"
+                    params.append(filters["target_id"])
+                if filters.get("changed_by"):
+                    query += " AND changed_by = %s"
+                    params.append(filters["changed_by"])
+                if filters.get("start_date"):
+                    query += " AND created_at >= %s"
+                    params.append(filters["start_date"])
+                if filters.get("end_date"):
+                    query += " AND created_at <= %s"
+                    params.append(filters["end_date"])
+
+                query += " ORDER BY created_at DESC"
+                if filters.get("limit"):
+                    query += " LIMIT %s"
+                    params.append(int(filters["limit"]))
+
+                cursor.execute(query, params)
+                rows = cursor.fetchall()
+
+                return [
+                    {
+                        "id": row[0],
+                        "action": row[1],
+                        "target_table": row[2],
+                        "target_id": row[3],
+                        "changed_by": row[4],
+                        "old_values": row[5],
+                        "new_values": row[6],
+                        "created_at": row[7],
+                    }
+                    for row in rows
+                ]
+        except Exception as e:
+            logger.error(f"Failed to get audit logs: {e}")
             raise
     
     def _row_to_time_entry(self, row: tuple) -> TimeEntry:

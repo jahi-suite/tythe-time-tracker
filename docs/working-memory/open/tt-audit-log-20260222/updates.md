@@ -17,9 +17,16 @@
 - Commit: 4856fa6
 - Marked audit-01 passes: true.
 
+**2026-02-23** — audit-02 complete.
+- Added `tythe_time_tracker/core/audit.py` with `log_change()` helper that opens a DB connection, normalizes JSON payloads, and writes audit records via the repository.
+- Added `insert_audit_log()` and `get_audit_logs(filters)` to `tythe_time_tracker/database/repository.py` using psycopg2 and JSONB (`psycopg2.extras.Json`) for `old_values` / `new_values`.
+- `get_audit_logs()` supports common filters (`action`, `target_table`, `target_id`, `changed_by`, date range, limit`) and returns ordered audit rows.
+- Syntax check passed for changed modules (`python3 -m py_compile tythe_time_tracker/database/repository.py tythe_time_tracker/core/audit.py`).
+- Story id: `audit-02`
+
 ## Verification
 
 ```bash
 python3 -c "import json; d=json.load(open('docs/working-memory/open/tt-audit-log-20260222/user_story.json')); print(len([s for s in d['stories'] if not s.get('passes')]))"
-# Prints 3 (audit-02 through audit-04 remain)
+# Prints 2 (audit-03 through audit-04 remain)
 ```
