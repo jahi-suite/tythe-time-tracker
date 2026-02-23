@@ -10,10 +10,11 @@ router.get('/', async (req, res) => {
   const user = req.session!.user!
   const start = req.query.start ? new Date(req.query.start as string) : undefined
   const end = req.query.end ? new Date(req.query.end as string) : undefined
-  const entries = await timeTracking.getEmployeeTimesheet(user.display_name, start, end)
+  const entries = await timeTracking.getEmployeeTimesheet(user.display_name, start, end, user.id)
   res.json({
     entries: entries.map((e) => ({
       id: e.id,
+      user_id: e.user_id,
       employee: e.employee,
       clock_in: e.clock_in.toISOString(),
       clock_out: e.clock_out?.toISOString() ?? null,
@@ -30,6 +31,7 @@ router.get('/all', requireManager, async (req, res) => {
   res.json({
     entries: entries.map((e) => ({
       id: e.id,
+      user_id: e.user_id,
       employee: e.employee,
       clock_in: e.clock_in.toISOString(),
       clock_out: e.clock_out?.toISOString() ?? null,

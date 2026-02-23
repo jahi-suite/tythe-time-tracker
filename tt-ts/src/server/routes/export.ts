@@ -18,7 +18,7 @@ router.get('/excel', async (req, res) => {
       ? employeeName
         ? await timeTracking.getEmployeeTimesheet(employeeName, start, end)
         : await timeTracking.getAllTimesheets(start, end)
-      : await timeTracking.getEmployeeTimesheet(user.display_name, start, end)
+      : await timeTracking.getEmployeeTimesheet(user.display_name, start, end, user.id)
 
   const buf = await exportToExcel(entries, start, end)
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
@@ -40,7 +40,7 @@ router.get('/pdf', async (req, res) => {
       ? employeeName
         ? await timeTracking.getEmployeeTimesheet(employeeName, start, end)
         : await timeTracking.getAllTimesheets(start, end)
-      : await timeTracking.getEmployeeTimesheet(user.display_name, start, end)
+      : await timeTracking.getEmployeeTimesheet(user.display_name, start, end, user.id)
 
   const buf = await exportToPdf(entries)
   res.setHeader('Content-Type', 'application/pdf')

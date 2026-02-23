@@ -6,20 +6,23 @@ import {
   splitShiftByRate,
   calculateStaffSummary,
   formatPay,
+  getStaffSummaryKey,
   type UserRatesMap,
 } from './exportUtils.js'
 import { getAllUsers } from '../auth/index.js'
 
 async function getUserRatesMap(): Promise<UserRatesMap> {
   const users = await getAllUsers()
-  const map: UserRatesMap = {}
+  const map: UserRatesMap = { byUserId: {}, byDisplayName: {} }
   for (const u of users) {
-    const key = (u.display_name ?? '').trim().toLowerCase()
-    map[key] = {
+    const rates = {
       standard_rate: u.standard_rate ?? null,
       enhanced_rate: u.enhanced_rate ?? null,
       supervisor_rate: u.supervisor_rate ?? null,
     }
+    if (u.id) map.byUserId[u.id] = rates
+    const key = (u.display_name ?? '').trim().toLowerCase()
+    if (key) map.byDisplayName[key] = rates
   }
   return map
 }
@@ -66,7 +69,8 @@ export async function exportToExcel(
   ]
   ws.addRow(headers)
 
-  for (const [employee, data] of Object.entries(staffSummary)) {
+  for (const [summaryKey, data] of Object.entries(staffSummary)) {
+    const employee = data.employee_label
     ws.addRow([
       `📊 ${employee} - TOTALS`,
       '',
@@ -86,7 +90,7 @@ export async function exportToExcel(
     ])
 
     for (const entry of sortedEntries) {
-      if (entry.employee.trim().toLowerCase() !== employee.trim().toLowerCase()) continue
+      if (getStaffSummaryKey(entry) !== summaryKey) continue
       const isSupervisor = entry.pay_rate_type === 'Supervisor'
       const split = splitShiftByRate(entry.clock_in, entry.clock_out, isSupervisor)
       const bstIn = convertToBst(entry.clock_in)
@@ -177,7 +181,8 @@ export async function exportToPdf(entries: TimeEntry[]): Promise<Buffer> {
   doc.text(`Unique Employees: ${Object.keys(staffSummary).length}`, 50, 100)
   let y = 130
 
-  for (const [employee, data] of Object.entries(staffSummary)) {
+  for (const [summaryKey, data] of Object.entries(staffSummary)) {
+    const employee = data.employee_label
     doc.fontSize(12).text(`${employee} - TOTALS`, 50, y)
     y += 20
     doc.fontSize(9).text(
@@ -192,7 +197,7 @@ export async function exportToPdf(entries: TimeEntry[]): Promise<Buffer> {
     y += 25
 
     for (const entry of sortedEntries) {
-      if (entry.employee.trim().toLowerCase() !== employee.trim().toLowerCase()) continue
+      if (getStaffSummaryKey(entry) !== summaryKey) continue
       const isSupervisor = entry.pay_rate_type === 'Supervisor'
       const split = splitShiftByRate(entry.clock_in, entry.clock_out, isSupervisor)
       const bstIn = convertToBst(entry.clock_in)

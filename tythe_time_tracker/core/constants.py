@@ -48,6 +48,7 @@ class DatabaseConstants:
     
     # Column names
     ID_COLUMN: Final[str] = "id"
+    USER_ID_COLUMN: Final[str] = "user_id"
     EMPLOYEE_COLUMN: Final[str] = "employee"
     CLOCK_IN_COLUMN: Final[str] = "clock_in"
     CLOCK_OUT_COLUMN: Final[str] = "clock_out"

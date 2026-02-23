@@ -9,7 +9,7 @@ router.use(requireAuth)
 router.post('/in', async (req, res) => {
   const user = req.session!.user!
   const { isSupervisor } = req.body ?? {}
-  const [ok, msg] = await timeTracking.clockIn(user.display_name, isSupervisor === true)
+  const [ok, msg] = await timeTracking.clockIn(user.display_name, isSupervisor === true, user.id)
   if (!ok) {
     res.status(400).json({ error: msg })
     return
@@ -19,7 +19,7 @@ router.post('/in', async (req, res) => {
 
 router.post('/out', async (req, res) => {
   const user = req.session!.user!
-  const [ok, msg] = await timeTracking.clockOut(user.display_name)
+  const [ok, msg] = await timeTracking.clockOut(user.display_name, user.id)
   if (!ok) {
     res.status(400).json({ error: msg })
     return
@@ -29,7 +29,7 @@ router.post('/out', async (req, res) => {
 
 router.get('/open', async (req, res) => {
   const user = req.session!.user!
-  const shift = await timeTracking.getOpenShift(user.display_name)
+  const shift = await timeTracking.getOpenShift(user.display_name, user.id)
   if (!shift) {
     res.json({ shift: null })
     return
@@ -37,6 +37,7 @@ router.get('/open', async (req, res) => {
   res.json({
     shift: {
       id: shift.id,
+      user_id: shift.user_id,
       employee: shift.employee,
       clock_in: shift.clock_in.toISOString(),
       pay_rate_type: shift.pay_rate_type,

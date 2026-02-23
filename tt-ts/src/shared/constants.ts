@@ -7,6 +7,7 @@ export const DB = {
   USERS_TABLE: 'users',
   AUDIT_LOG_TABLE: 'audit_log',
   ID_COLUMN: 'id',
+  USER_ID_COLUMN: 'user_id',
   EMPLOYEE_COLUMN: 'employee',
   CLOCK_IN_COLUMN: 'clock_in',
   CLOCK_OUT_COLUMN: 'clock_out',

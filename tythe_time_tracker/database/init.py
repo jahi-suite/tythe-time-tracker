@@ -128,6 +128,64 @@ def init_database() -> Tuple[bool, Optional[str]]:
                 """)
                 logger.info("Database updated with pay rate functionality")
 
+            # Add user_id linkage to time_entries (best-effort backfill for legacy rows)
+            cursor.execute(f"""
+                SELECT column_name
+                FROM information_schema.columns
+                WHERE table_name = '{DatabaseConstants.TIME_ENTRIES_TABLE}'
+                AND column_name = '{DatabaseConstants.USER_ID_COLUMN}'
+            """)
+            if not cursor.fetchone():
+                cursor.execute(f"""
+                    ALTER TABLE {DatabaseConstants.TIME_ENTRIES_TABLE}
+                    ADD COLUMN {DatabaseConstants.USER_ID_COLUMN} UUID NULL
+                """)
+                logger.info("Database added time_entries.user_id column")
+
+            cursor.execute(f"""
+                CREATE INDEX IF NOT EXISTS idx_{DatabaseConstants.TIME_ENTRIES_TABLE}_{DatabaseConstants.USER_ID_COLUMN}
+                ON {DatabaseConstants.TIME_ENTRIES_TABLE} ({DatabaseConstants.USER_ID_COLUMN})
+            """)
+
+            cursor.execute(
+                """
+                SELECT 1
+                FROM pg_constraint c
+                JOIN pg_class t ON t.oid = c.conrelid
+                WHERE t.relname = %s
+                  AND c.contype = 'f'
+                  AND c.conname = %s
+                """,
+                (
+                    DatabaseConstants.TIME_ENTRIES_TABLE,
+                    f"{DatabaseConstants.TIME_ENTRIES_TABLE}_{DatabaseConstants.USER_ID_COLUMN}_fkey",
+                ),
+            )
+            if not cursor.fetchone():
+                cursor.execute(f"""
+                    ALTER TABLE {DatabaseConstants.TIME_ENTRIES_TABLE}
+                    ADD CONSTRAINT {DatabaseConstants.TIME_ENTRIES_TABLE}_{DatabaseConstants.USER_ID_COLUMN}_fkey
+                    FOREIGN KEY ({DatabaseConstants.USER_ID_COLUMN})
+                    REFERENCES {DatabaseConstants.USERS_TABLE} ({DatabaseConstants.ID_COLUMN})
+                    ON DELETE SET NULL
+                """)
+                logger.info("Database added time_entries.user_id foreign key")
+
+            cursor.execute(f"""
+                WITH unique_display_users AS (
+                    SELECT LOWER(TRIM({DatabaseConstants.DISPLAY_NAME_COLUMN})) AS display_key,
+                           MIN({DatabaseConstants.ID_COLUMN}) AS user_id
+                    FROM {DatabaseConstants.USERS_TABLE}
+                    GROUP BY LOWER(TRIM({DatabaseConstants.DISPLAY_NAME_COLUMN}))
+                    HAVING COUNT(*) = 1
+                )
+                UPDATE {DatabaseConstants.TIME_ENTRIES_TABLE} te
+                SET {DatabaseConstants.USER_ID_COLUMN} = u.user_id
+                FROM unique_display_users u
+                WHERE te.{DatabaseConstants.USER_ID_COLUMN} IS NULL
+                  AND LOWER(TRIM(te.{DatabaseConstants.EMPLOYEE_COLUMN})) = u.display_key
+            """)
+
             # Add pay rate columns to users table if they don't exist
             for col in (
                 DatabaseConstants.STANDARD_RATE_COLUMN,

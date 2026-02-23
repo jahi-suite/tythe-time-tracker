@@ -15,6 +15,7 @@ function determinePayRateType(isSupervisor: boolean, clockIn?: Date): PayRateTyp
 function timeEntryToAudit(entry: TimeEntry): Record<string, unknown> {
   return {
     id: entry.id,
+    user_id: entry.user_id,
     employee: entry.employee,
     clock_in: entry.clock_in.toISOString(),
     clock_out: entry.clock_out?.toISOString() ?? null,
@@ -25,31 +26,45 @@ function timeEntryToAudit(entry: TimeEntry): Record<string, unknown> {
 
 export async function clockIn(
   employeeName: string,
-  isSupervisor: boolean
+  isSupervisor: boolean,
+  userId?: string | null
 ): Promise<[boolean, string]> {
-  const existing = await repo.getOpenShift(employeeName)
+  const existing = userId
+    ? await repo.getOpenShiftByUserId(userId, employeeName)
+    : await repo.getOpenShift(employeeName)
   if (existing) return [false, `${employeeName} already has an open shift`]
   const payRateType = determinePayRateType(isSupervisor)
-  await repo.createTimeEntry(employeeName, new Date(), payRateType, null)
+  await repo.createTimeEntry(employeeName, new Date(), payRateType, null, userId)
   return [true, `${employeeName} clocked in successfully (${payRateType} Rate)`]
 }
 
-export async function clockOut(employeeName: string): Promise<[boolean, string]> {
-  const openShift = await repo.getOpenShift(employeeName)
+export async function clockOut(
+  employeeName: string,
+  userId?: string | null
+): Promise<[boolean, string]> {
+  const openShift = userId
+    ? await repo.getOpenShiftByUserId(userId, employeeName)
+    : await repo.getOpenShift(employeeName)
   if (!openShift) return [false, `No open shift found for ${employeeName}`]
   await repo.closeShift(openShift.id, new Date())
   return [true, `${employeeName} clocked out successfully`]
 }
 
-export async function getOpenShift(employeeName: string): Promise<TimeEntry | null> {
+export async function getOpenShift(
+  employeeName: string,
+  userId?: string | null
+): Promise<TimeEntry | null> {
+  if (userId) return repo.getOpenShiftByUserId(userId, employeeName)
   return repo.getOpenShift(employeeName)
 }
 
 export async function getEmployeeTimesheet(
   employee: string,
   startDate?: Date | null,
-  endDate?: Date | null
+  endDate?: Date | null,
+  userId?: string | null
 ): Promise<TimeEntry[]> {
+  if (userId) return repo.getEmployeeTimesheetByUserId(userId, employee, startDate, endDate)
   return repo.getEmployeeTimesheet(employee, startDate, endDate)
 }
 

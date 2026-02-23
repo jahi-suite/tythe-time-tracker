@@ -56,6 +56,7 @@ export function splitShiftByRate(
 }
 
 export interface StaffSummaryData {
+  employee_label: string
   Standard: number
   Enhanced: number
   Supervisor: number
@@ -68,11 +69,27 @@ export interface StaffSummaryData {
 }
 
 export interface UserRatesMap {
-  [displayName: string]: {
-    standard_rate: number | null
-    enhanced_rate: number | null
-    supervisor_rate: number | null
-  }
+  byUserId: Record<
+    string,
+    {
+      standard_rate: number | null
+      enhanced_rate: number | null
+      supervisor_rate: number | null
+    }
+  >
+  byDisplayName: Record<
+    string,
+    {
+      standard_rate: number | null
+      enhanced_rate: number | null
+      supervisor_rate: number | null
+    }
+  >
+}
+
+export function getStaffSummaryKey(entry: TimeEntry): string {
+  if (entry.user_id) return `user:${entry.user_id}`
+  return `name:${entry.employee.trim().toLowerCase()}`
 }
 
 export function calculateStaffSummary(
@@ -84,8 +101,10 @@ export function calculateStaffSummary(
     const isSupervisor = entry.pay_rate_type === 'Supervisor'
     const split = splitShiftByRate(entry.clock_in, entry.clock_out, isSupervisor)
     const emp = entry.employee
-    if (!staffSummary[emp]) {
-      staffSummary[emp] = {
+    const key = getStaffSummaryKey(entry)
+    if (!staffSummary[key]) {
+      staffSummary[key] = {
+        employee_label: emp,
         Standard: 0,
         Enhanced: 0,
         Supervisor: 0,
@@ -93,17 +112,20 @@ export function calculateStaffSummary(
         total_shifts: 0,
       }
     }
-    staffSummary[emp].Standard += split.Standard
-    staffSummary[emp].Enhanced += split.Enhanced
-    staffSummary[emp].Supervisor += split.Supervisor
-    staffSummary[emp].total_hours += split.Standard + split.Enhanced + split.Supervisor
-    staffSummary[emp].total_shifts += 1
+    staffSummary[key].Standard += split.Standard
+    staffSummary[key].Enhanced += split.Enhanced
+    staffSummary[key].Supervisor += split.Supervisor
+    staffSummary[key].total_hours += split.Standard + split.Enhanced + split.Supervisor
+    staffSummary[key].total_shifts += 1
   }
 
   if (userRatesMap) {
-    for (const emp of Object.keys(staffSummary)) {
-      const data = staffSummary[emp]
-      const rates = userRatesMap[emp.trim().toLowerCase()]
+    for (const entry of entries) {
+      const data = staffSummary[getStaffSummaryKey(entry)]
+      if (!data) continue
+      const rates =
+        (entry.user_id ? userRatesMap.byUserId[entry.user_id] : undefined) ??
+        userRatesMap.byDisplayName[entry.employee.trim().toLowerCase()]
       if (rates) {
         data.standard_pay =
           rates.standard_rate != null ? Math.round(data.Standard * rates.standard_rate * 100) / 100 : undefined

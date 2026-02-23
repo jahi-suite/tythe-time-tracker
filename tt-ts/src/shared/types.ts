@@ -7,6 +7,7 @@ export type UserRole = 'employee' | 'manager' | 'admin'
 
 export interface TimeEntry {
   id: string
+  user_id: string | null
   employee: string
   clock_in: Date
   clock_out: Date | null
