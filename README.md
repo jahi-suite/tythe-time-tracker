@@ -61,6 +61,12 @@ App runs at `http://localhost:8501`
 
 See `STREAMLIT_CLOUD_DATABASE.md` for step-by-step setup.
 
+## Browser Support (Mobile)
+
+- Streamlit officially supports **Safari 16.6+**
+- On older Safari versions (especially iPhone/iPad Safari 16.3 and below), the app may fail to load with a regex `SyntaxError`
+- If this happens, update Safari/iOS or use **Chrome** on mobile
+
 ## Usage
 
 ### Employees

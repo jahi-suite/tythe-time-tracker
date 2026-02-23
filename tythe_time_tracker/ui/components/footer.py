@@ -33,10 +33,16 @@ def render_footer() -> None:
             justify-content: center;
             gap: 4px;
         }}
+        .kari-footer-note {{
+            margin-top: 0.35rem;
+            font-size: 0.7rem;
+            color: #6f7f92;
+        }}
         </style>
         <div class="kari-footer">
             <hr>
             <span class="kari-footer-inline">{kari_data_uri}Powered by Kari Suite</span>
+            <div class="kari-footer-note">Mobile: use Chrome or Safari 16.6+ (older Safari may fail to load).</div>
         </div>
         """,
         unsafe_allow_html=True,

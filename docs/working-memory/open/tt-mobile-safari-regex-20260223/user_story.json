@@ -12,7 +12,7 @@
       "id": "safari-regex-02",
       "title": "Document supported browsers",
       "acceptance_criteria": "README and/or footer note: for mobile, use Chrome or Safari 16.6+. Older Safari may show regex error.",
-      "passes": false
+      "passes": true
     }
   ]
 }
