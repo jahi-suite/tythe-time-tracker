@@ -1,7 +1,10 @@
 import { Router } from 'express'
 import * as auth from '../auth/index.js'
+import { logChange } from '../audit.js'
 import { requireManager } from '../middleware/auth.js'
 import { createIpRateLimit } from '../middleware/rateLimit.js'
+import type { User } from '../../shared/types.js'
+import { DB } from '../../shared/constants.js'
 
 const router = Router()
 const MAX_PAY_RATE = 999.99
@@ -30,6 +33,40 @@ const resetPasswordRateLimit = createIpRateLimit({
   message: 'Too many password reset attempts, please try again later',
 })
 
+function userAuditSnapshot(user: User | null): Record<string, unknown> | null {
+  if (!user) return null
+  return {
+    id: user.id,
+    username: user.username,
+    display_name: user.display_name,
+    role: user.role,
+    active: user.active,
+    standard_rate: user.standard_rate,
+    enhanced_rate: user.enhanced_rate,
+    supervisor_rate: user.supervisor_rate,
+  }
+}
+
+async function getUserAuditSnapshotById(userId: string): Promise<Record<string, unknown> | null> {
+  const users = await auth.getAllUsers()
+  const user = users.find((candidate) => candidate.id === userId) ?? null
+  return userAuditSnapshot(user)
+}
+
+async function writeUserAuditLog(
+  action: 'add' | 'edit' | 'delete',
+  actor: string,
+  targetUserId: string | null,
+  oldValues?: Record<string, unknown> | null,
+  newValues?: Record<string, unknown> | null
+): Promise<void> {
+  try {
+    await logChange(action, DB.USERS_TABLE, targetUserId, actor, oldValues, newValues)
+  } catch (error) {
+    console.error('Failed to write user audit log', error)
+  }
+}
+
 router.use(requireManager)
 
 router.get('/', async (_req, res) => {
@@ -53,6 +90,7 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   const user = req.session!.user!
+  const before = await getUserAuditSnapshotById(req.params.id)
   const { username, displayName, role, password } = req.body ?? {}
   if (!username || !displayName) {
     res.status(400).json({ error: 'username, displayName required' })
@@ -70,6 +108,12 @@ router.put('/:id', async (req, res) => {
     res.status(400).json({ error: msg })
     return
   }
+  const after = await getUserAuditSnapshotById(req.params.id)
+  await writeUserAuditLog('edit', user.username, req.params.id, before, {
+    ...(after ?? {}),
+    event: before && after && before.role !== after.role ? 'user_role_change' : 'user_update',
+    password_changed: Boolean(password),
+  })
   res.json({ ok: true, message: msg })
 })
 
@@ -84,24 +128,40 @@ router.delete('/:id', async (req, res) => {
 })
 
 router.post('/:id/activate', async (req, res) => {
+  const actor = req.session!.user!
+  const before = await getUserAuditSnapshotById(req.params.id)
   const [ok, msg] = await auth.setUserActive(req.params.id, true)
   if (!ok) {
     res.status(400).json({ error: msg })
     return
   }
+  const after = await getUserAuditSnapshotById(req.params.id)
+  await writeUserAuditLog('edit', actor.username, req.params.id, before, {
+    ...(after ?? {}),
+    event: 'user_activated',
+  })
   res.json({ ok: true, message: msg })
 })
 
 router.post('/:id/deactivate', async (req, res) => {
+  const actor = req.session!.user!
+  const before = await getUserAuditSnapshotById(req.params.id)
   const [ok, msg] = await auth.setUserActive(req.params.id, false)
   if (!ok) {
     res.status(400).json({ error: msg })
     return
   }
+  const after = await getUserAuditSnapshotById(req.params.id)
+  await writeUserAuditLog('edit', actor.username, req.params.id, before, {
+    ...(after ?? {}),
+    event: 'user_deactivated',
+  })
   res.json({ ok: true, message: msg })
 })
 
 router.post('/:id/pay-rates', async (req, res) => {
+  const actor = req.session!.user!
+  const before = await getUserAuditSnapshotById(req.params.id)
   const { standard, enhanced, supervisor } = req.body ?? {}
   let parsedStandard: number | null
   let parsedEnhanced: number | null
@@ -124,11 +184,17 @@ router.post('/:id/pay-rates', async (req, res) => {
     res.status(400).json({ error: msg })
     return
   }
+  const after = await getUserAuditSnapshotById(req.params.id)
+  await writeUserAuditLog('edit', actor.username, req.params.id, before, {
+    ...(after ?? {}),
+    event: 'pay_rates_updated',
+  })
   res.json({ ok: true, message: msg })
 })
 
 router.post('/:id/reset-password', resetPasswordRateLimit, async (req, res) => {
   const actor = req.session!.user!
+  const target = await getUserAuditSnapshotById(req.params.id)
   const { newPassword } = req.body ?? {}
   if (!newPassword) {
     res.status(400).json({ error: 'newPassword required' })
@@ -139,16 +205,29 @@ router.post('/:id/reset-password', resetPasswordRateLimit, async (req, res) => {
     res.status(400).json({ error: msg })
     return
   }
+  await writeUserAuditLog(
+    'edit',
+    actor.username,
+    req.params.id,
+    target ? { ...target, event: 'password_reset_requested', password_reset: false } : { event: 'password_reset_requested', password_reset: false },
+    target ? { ...target, event: 'password_reset_completed', password_reset: true } : { event: 'password_reset_completed', password_reset: true }
+  )
   res.json({ ok: true, message: msg })
 })
 
 router.post('/:id/promote-admin', async (req, res) => {
   const actor = req.session!.user!
+  const before = await getUserAuditSnapshotById(req.params.id)
   const [ok, msg] = await auth.promoteToAdmin(actor, req.params.id)
   if (!ok) {
     res.status(400).json({ error: msg })
     return
   }
+  const after = await getUserAuditSnapshotById(req.params.id)
+  await writeUserAuditLog('edit', actor.username, req.params.id, before, {
+    ...(after ?? {}),
+    event: 'user_promoted_to_admin',
+  })
   res.json({ ok: true, message: msg })
 })
 

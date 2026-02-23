@@ -1,7 +1,10 @@
 import { Router } from 'express'
 import * as auth from '../auth/index.js'
+import { logChange } from '../audit.js'
 import { requireAuth } from '../middleware/auth.js'
 import { createIpRateLimit } from '../middleware/rateLimit.js'
+import { DB } from '../../shared/constants.js'
+import type { User } from '../../shared/types.js'
 
 const router = Router()
 const loginRateLimit = createIpRateLimit({
@@ -13,6 +16,40 @@ const authMutationRateLimit = createIpRateLimit({
   maxRequests: 5,
   windowMs: 15 * 60 * 1000,
 })
+
+function userAuditSnapshot(user: User | null): Record<string, unknown> | null {
+  if (!user) return null
+  return {
+    id: user.id,
+    username: user.username,
+    display_name: user.display_name,
+    role: user.role,
+    active: user.active,
+    standard_rate: user.standard_rate,
+    enhanced_rate: user.enhanced_rate,
+    supervisor_rate: user.supervisor_rate,
+  }
+}
+
+async function getUserAuditSnapshotByUsername(username: string): Promise<Record<string, unknown> | null> {
+  const users = await auth.getAllUsers()
+  const user = users.find((candidate) => candidate.username === username.trim()) ?? null
+  return userAuditSnapshot(user)
+}
+
+async function writeUserAuditLog(
+  action: 'add' | 'edit' | 'delete',
+  actor: string,
+  targetUserId: string | null,
+  oldValues?: Record<string, unknown> | null,
+  newValues?: Record<string, unknown> | null
+): Promise<void> {
+  try {
+    await logChange(action, DB.USERS_TABLE, targetUserId, actor, oldValues, newValues)
+  } catch (error) {
+    console.error('Failed to write user audit log', error)
+  }
+}
 
 router.post('/login', loginRateLimit, async (req, res) => {
   const { username, password } = req.body ?? {}
@@ -96,6 +133,18 @@ router.post('/first-setup', authMutationRateLimit, async (req, res) => {
     res.status(400).json({ error: msg })
     return
   }
+  const createdUser = await getUserAuditSnapshotByUsername(username)
+  await writeUserAuditLog(
+    'add',
+    'first-setup',
+    (createdUser?.id as string | undefined) ?? null,
+    null,
+    {
+      ...(createdUser ?? {}),
+      event: 'first_setup_manager_created',
+      display_name: displayName,
+    }
+  )
   res.json({ ok: true, message: msg })
 })
 
