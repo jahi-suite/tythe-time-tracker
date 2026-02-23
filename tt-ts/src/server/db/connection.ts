@@ -5,6 +5,24 @@ const { Pool } = pg
 
 let pool: pg.Pool | null = null
 
+function getSslRejectUnauthorized(): boolean {
+  const raw = process.env.DB_SSL_REJECT_UNAUTHORIZED?.trim().toLowerCase()
+
+  if (!raw) {
+    return false
+  }
+
+  if (raw === 'true') {
+    return true
+  }
+
+  if (raw === 'false') {
+    return false
+  }
+
+  throw new Error('Invalid DB_SSL_REJECT_UNAUTHORIZED: expected "true" or "false"')
+}
+
 export function getPool(): pg.Pool {
   if (!pool) {
     const config = getDatabaseConfig()
@@ -14,7 +32,7 @@ export function getPool(): pg.Pool {
       user: config.user,
       password: config.password,
       port: config.port,
-      ssl: { rejectUnauthorized: false },
+      ssl: { rejectUnauthorized: getSslRejectUnauthorized() },
     })
   }
   return pool
