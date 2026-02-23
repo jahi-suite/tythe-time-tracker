@@ -15,8 +15,14 @@ router.post('/login', async (req, res) => {
     res.status(401).json({ error: 'Invalid username or password' })
     return
   }
-  req.session!.user = user
-  res.json(user)
+  req.session!.regenerate((err: Error | null) => {
+    if (err) {
+      res.status(500).json({ error: 'Login failed' })
+      return
+    }
+    req.session!.user = user
+    res.json(user)
+  })
 })
 
 router.post('/logout', (req, res) => {
@@ -25,6 +31,12 @@ router.post('/logout', (req, res) => {
       res.status(500).json({ error: 'Logout failed' })
       return
     }
+    res.clearCookie('connect.sid', {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+    })
     res.json({ ok: true })
   })
 })
