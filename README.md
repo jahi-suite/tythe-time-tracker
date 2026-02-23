@@ -7,14 +7,14 @@ A web-based time tracking system for employees to clock in/out and for managers 
 ### Employee Features
 - **Clock In/Out** — Log shifts with optional supervisor role
 - **Pay Rates** — Automatic Standard (day), Enhanced (night), and Supervisor rates
-- **Personal Timesheet** — View your own time entries with dates, times, and pay breakdown
+- **Personal Timesheet** — View your own time entries with dates, times, pay breakdown, and estimated pay
 - **Export** — Export your timesheet to Excel or PDF
 
 ### Manager Features
-- **User Management** — Create and manage employee/manager accounts
+- **User Management** — Create and manage employee/manager accounts; set pay rates (£/hr) per user
 - **All Entries View** — See time entries from all staff
 - **Add / Edit / Delete** — Add shifts manually, edit entries, remove incorrect data
-- **Export** — Export any employee's timesheet or all staff (Excel/PDF)
+- **Export** — Export any employee's timesheet or all staff (Excel/PDF) with pay amounts when rates are set
 - **Audit Log** — View change history for manager actions
 - **Quick Export** — One-click export all from the dashboard
 
