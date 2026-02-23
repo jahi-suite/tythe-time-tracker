@@ -16,7 +16,8 @@
 - Components: `tythe_time_tracker/ui/components/footer.py` — Kari Suite footer.
 - Pages: employee_interface.py, personal_timesheet.py, export_interface.py, manager_dashboard.py, login.py.
 - Custom CSS is injected via `st.markdown(unsafe_allow_html=True)` in app.py and components.
-- Run stories in order: polish-01 through polish-03.
+- Logos: `tythe_time_tracker/ui/components/logos.py` — Tythe (bigger) + Kari (smaller).
+- Run stories in order: polish-01 through polish-04.
 
 ## Verification command
 
@@ -31,6 +32,7 @@ grep -r "st\.header\|st\.subheader" tythe_time_tracker/ui/ | grep -c "👤\|👑
 1. **polish-01** — Professional theme. In `app.py`: change page_icon from emoji to something professional (e.g. "⏱" or remove for default). Add global CSS for a corporate color palette (blues/grays, clean typography). Ensure error/success/info messages use professional styling. Keep mobile responsiveness from existing styles.
 2. **polish-02** — Clean headers and labels. Replace emoji-heavy headers and button labels across pages (employee_interface, personal_timesheet, export_interface, manager_dashboard, login). Use professional text: "Employee Clock In/Out" instead of "👤 Employee Clock In/Out", "Clock In" / "Clock Out" instead of "🟢 Clock In" / "🔴 Clock Out", etc. Keep functionality identical.
 3. **polish-03** — Layout and trust signals. Add subtle card-style containers or dividers where appropriate. Improve spacing and hierarchy. Ensure tables and forms have clean borders and readable layout. Add a subtle, professional header/branding block on the login page if it improves trust.
+4. **polish-04** — Logo positioning and dual branding. Tythe logo (bigger) and Kari logo (smaller) on login and footer. Well-positioned, centered, appropriate spacing. Mobile-friendly.
 
 ## Affected files
 
@@ -41,3 +43,4 @@ grep -r "st\.header\|st\.subheader" tythe_time_tracker/ui/ | grep -c "👤\|👑
 - `tythe_time_tracker/ui/pages/manager_dashboard.py` (headers, labels)
 - `tythe_time_tracker/ui/pages/login.py` (optional polish)
 - `tythe_time_tracker/ui/components/footer.py` (optional alignment with theme)
+- `tythe_time_tracker/ui/components/logos.py` (Tythe + Kari logos)

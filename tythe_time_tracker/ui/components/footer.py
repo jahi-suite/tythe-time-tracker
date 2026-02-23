@@ -1,11 +1,10 @@
 import streamlit as st
-from pathlib import Path
 
-_LOGO_PATH = Path(__file__).resolve().parent.parent.parent / "static" / "kari-logo.png"
+from .logos import render_logos
 
 
 def render_footer() -> None:
-    """Render the 'Powered by Kari Suite' footer with KARI logo at the bottom of a page."""
+    """Render the footer with Tythe (bigger) and Kari (smaller) logos, plus 'Powered by Kari Suite'."""
     st.markdown(
         """
         <style>
@@ -24,10 +23,7 @@ def render_footer() -> None:
         """,
         unsafe_allow_html=True,
     )
-    if _LOGO_PATH.exists():
-        col1, col2, col3 = st.columns([1, 1, 1])
-        with col2:
-            st.image(str(_LOGO_PATH), width=100)
+    render_logos(tythe_width=160, kari_width=70, layout="stacked")
     st.markdown(
         """
         <div class="kari-footer">

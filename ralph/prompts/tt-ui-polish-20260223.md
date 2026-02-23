@@ -24,6 +24,7 @@ Key files to understand before making changes:
 - `tythe_time_tracker/ui/pages/manager_dashboard.py` — manager dashboard
 - `tythe_time_tracker/ui/pages/login.py` — login page
 - `tythe_time_tracker/ui/components/footer.py` — Kari Suite footer
+- `tythe_time_tracker/ui/components/logos.py` — Tythe + Kari logos (Tythe bigger, Kari smaller)
 
 ## Task
 

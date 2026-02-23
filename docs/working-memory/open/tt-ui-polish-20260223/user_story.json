@@ -11,7 +11,7 @@
     {
       "id": "polish-02",
       "title": "Clean headers and labels",
-      "acceptance_criteria": "All pages (employee_interface, personal_timesheet, export_interface, manager_dashboard, login): headers and button labels use professional text, not emoji-heavy labels. E.g. 'Employee Clock In/Out' not '👤 Employee Clock In/Out', 'Clock In' not '🟢 Clock In'. Functionality unchanged.",
+      "acceptance_criteria": "All pages (employee_interface, personal_timesheet, export_interface, manager_dashboard, login): headers and button labels use professional text, not emoji-heavy labels. E.g. 'Employee Clock In/Out' not '\ud83d\udc64 Employee Clock In/Out', 'Clock In' not '\ud83d\udfe2 Clock In'. Functionality unchanged.",
       "passes": true
     },
     {
@@ -19,6 +19,12 @@
       "title": "Layout and trust signals",
       "acceptance_criteria": "Subtle card-style containers or dividers where appropriate. Improved spacing and visual hierarchy. Tables and forms have clean borders and readable layout. Overall appearance feels corporate and trustworthy.",
       "passes": true
+    },
+    {
+      "id": "polish-04",
+      "title": "Logo positioning and dual branding",
+      "acceptance_criteria": "Tythe logo (bigger) and Kari logo (smaller) display together on login page and footer. Logos are well-positioned, centered, with appropriate spacing. Tythe is primary (larger), Kari is secondary (smaller). Layout works on mobile.",
+      "passes": false
     }
   ]
 }
