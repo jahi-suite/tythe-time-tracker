@@ -10,7 +10,14 @@ from collections import defaultdict
 
 from ...core.services import TimeTrackingService
 from ...core.models import TimeEntry
-from ...core.auth import create_user, get_all_users, set_user_active, set_user_pay_rates
+from ...core.auth import (
+    create_user,
+    delete_user,
+    get_all_users,
+    set_user_active,
+    set_user_pay_rates,
+    update_user,
+)
 from ...core.constants import DatabaseConstants
 from ...database.connection import DatabaseConnection, get_db_connection
 from ...database.repository import TimeEntryRepository
@@ -289,7 +296,7 @@ def show_delete_entry_tab() -> None:
 
 
 def show_manage_users_tab() -> None:
-    """Show the 'Manage Users' tab for creating and toggling user accounts."""
+    """Show the 'Manage Users' tab for creating and managing user accounts."""
     with st.container(border=True):
         st.subheader("Create New User")
 
@@ -321,7 +328,12 @@ def show_manage_users_tab() -> None:
 
         current_user_id = st.session_state.current_user.get("id")
         for user in users:
-            col1, col2, col3, col4 = st.columns([2, 2, 1, 1])
+            uid = user["id"]
+            is_self = uid == current_user_id
+            edit_open_key = f"edit_user_open_{uid}"
+            delete_confirm_key = f"delete_user_confirm_{uid}"
+
+            col1, col2, col3, col4, col5, col6 = st.columns([2, 2, 1, 1, 1, 1])
             with col1:
                 st.markdown(f"**{user['display_name']}** (`{user['username']}`)")
             with col2:
@@ -330,27 +342,110 @@ def show_manage_users_tab() -> None:
                 status_label = "Active" if user["active"] else "Inactive"
                 st.markdown(status_label)
             with col4:
-                if user["id"] == current_user_id:
+                if is_self:
                     st.markdown("*(you)*")
                 elif user["active"]:
-                    if st.button("Deactivate", key=f"deactivate_{user['id']}"):
-                        ok, msg = set_user_active(user["id"], False)
+                    if st.button("Deactivate", key=f"deactivate_{uid}"):
+                        ok, msg = set_user_active(uid, False)
                         if ok:
                             st.success(msg)
                             st.rerun()
                         else:
                             st.error(msg)
                 else:
-                    if st.button("Activate", key=f"activate_{user['id']}"):
-                        ok, msg = set_user_active(user["id"], True)
+                    if st.button("Activate", key=f"activate_{uid}"):
+                        ok, msg = set_user_active(uid, True)
                         if ok:
                             st.success(msg)
                             st.rerun()
                         else:
                             st.error(msg)
+            with col5:
+                if is_self:
+                    st.button("Edit", key=f"edit_disabled_{uid}", disabled=True)
+                elif st.button("Edit", key=f"edit_{uid}"):
+                    st.session_state[edit_open_key] = not st.session_state.get(edit_open_key, False)
+                    if st.session_state[edit_open_key]:
+                        st.session_state[delete_confirm_key] = False
+            with col6:
+                if is_self:
+                    st.button("Delete", key=f"delete_disabled_{uid}", disabled=True)
+                elif st.button("Delete", key=f"delete_{uid}", type="secondary"):
+                    st.session_state[delete_confirm_key] = not st.session_state.get(delete_confirm_key, False)
+                    if st.session_state[delete_confirm_key]:
+                        st.session_state[edit_open_key] = False
+
+            if not is_self and st.session_state.get(edit_open_key, False):
+                with st.container(border=True):
+                    st.markdown(f"**Edit user:** {user['display_name']}")
+                    with st.form(f"edit_user_form_{uid}"):
+                        c1, c2 = st.columns(2)
+                        with c1:
+                            edit_username = st.text_input("Username", value=user["username"], key=f"edit_username_{uid}")
+                            edit_display_name = st.text_input(
+                                "Display Name",
+                                value=user["display_name"],
+                                key=f"edit_display_name_{uid}",
+                            )
+                        with c2:
+                            edit_role = st.selectbox(
+                                "Role",
+                                ["employee", "manager"],
+                                index=0 if user["role"] == "employee" else 1,
+                                key=f"edit_role_{uid}",
+                            )
+                            edit_password = st.text_input(
+                                "New Password (optional)",
+                                type="password",
+                                value="",
+                                key=f"edit_password_{uid}",
+                                help="Leave blank to keep the existing password.",
+                            )
+                        save_col, cancel_col = st.columns([1, 1])
+                        with save_col:
+                            save_edit = st.form_submit_button("Save Changes", type="primary")
+                        with cancel_col:
+                            cancel_edit = st.form_submit_button("Cancel")
+
+                    if cancel_edit:
+                        st.session_state[edit_open_key] = False
+                        st.rerun()
+
+                    if save_edit:
+                        ok, msg = update_user(
+                            uid,
+                            edit_username,
+                            edit_display_name,
+                            edit_role,
+                            password=(edit_password.strip() or None),
+                            current_user_id=current_user_id,
+                        )
+                        if ok:
+                            st.session_state[edit_open_key] = False
+                            st.success(msg)
+                            st.rerun()
+                        else:
+                            st.error(msg)
+
+            if not is_self and st.session_state.get(delete_confirm_key, False):
+                with st.container(border=True):
+                    st.warning(f"Delete user '{user['display_name']}'? This cannot be undone.")
+                    d1, d2 = st.columns([1, 1])
+                    with d1:
+                        if st.button("Confirm Delete", key=f"confirm_delete_{uid}", type="secondary"):
+                            ok, msg = delete_user(uid, current_user_id=current_user_id)
+                            if ok:
+                                st.session_state[delete_confirm_key] = False
+                                st.success(msg)
+                                st.rerun()
+                            else:
+                                st.error(msg)
+                    with d2:
+                        if st.button("Cancel Delete", key=f"cancel_delete_{uid}"):
+                            st.session_state[delete_confirm_key] = False
+                            st.rerun()
 
             with st.expander(f"Pay rates — {user['display_name']}", expanded=False):
-                uid = user["id"]
                 std = user.get("standard_rate")
                 enh = user.get("enhanced_rate")
                 sup = user.get("supervisor_rate")

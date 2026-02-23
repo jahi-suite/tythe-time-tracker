@@ -272,3 +272,98 @@ def set_user_active(user_id: str, active: bool) -> tuple[bool, str]:
         return False, f"Failed to update user: {e}"
     finally:
         conn.close()
+
+
+def update_user(
+    user_id: str,
+    username: str,
+    display_name: str,
+    role: str,
+    password: Optional[str] = None,
+    current_user_id: Optional[str] = None,
+) -> tuple[bool, str]:
+    """Update an existing user account.
+
+    Password is optional; if blank/None, the existing password is kept.
+    Returns (True, success_message) or (False, error_message).
+    """
+    from ..database.connection import DatabaseConnection, get_db_connection
+
+    if current_user_id and str(user_id) == str(current_user_id):
+        return False, "You cannot edit your own account here."
+    if not username.strip() or not display_name.strip():
+        return False, "Username and display name are required."
+    if role not in ("employee", "manager"):
+        return False, "Role must be 'employee' or 'manager'."
+
+    conn, err = get_db_connection()
+    if err or not conn:
+        logger.error("update_user: DB connection failed: %s", err)
+        return False, "Database connection failed."
+
+    try:
+        db = DatabaseConnection(conn)
+        query = f"""
+            UPDATE {DatabaseConstants.USERS_TABLE}
+            SET username = %s,
+                display_name = %s,
+                role = %s
+        """
+        params: List[object] = [username.strip(), display_name.strip(), role]
+
+        if password:
+            query += ", password_hash = %s"
+            params.append(hash_password(password))
+
+        query += " WHERE id = %s"
+        params.append(user_id)
+
+        with db.get_cursor() as cursor:
+            cursor.execute(query, tuple(params))
+            if cursor.rowcount == 0:
+                return False, "User not found."
+
+        return True, "User updated successfully."
+    except Exception as e:
+        err_str = str(e)
+        if "unique" in err_str.lower() or "duplicate" in err_str.lower():
+            return False, f"Username '{username.strip()}' is already taken."
+        logger.error("update_user: error: %s", e)
+        return False, f"Failed to update user: {err_str}"
+    finally:
+        conn.close()
+
+
+def delete_user(user_id: str, current_user_id: Optional[str] = None) -> tuple[bool, str]:
+    """Delete a user account.
+
+    Returns (True, success_message) or (False, error_message).
+    """
+    from ..database.connection import DatabaseConnection, get_db_connection
+
+    if current_user_id and str(user_id) == str(current_user_id):
+        return False, "You cannot delete your own account."
+
+    conn, err = get_db_connection()
+    if err or not conn:
+        logger.error("delete_user: DB connection failed: %s", err)
+        return False, "Database connection failed."
+
+    try:
+        db = DatabaseConnection(conn)
+        with db.get_cursor() as cursor:
+            cursor.execute(
+                f"""
+                DELETE FROM {DatabaseConstants.USERS_TABLE}
+                WHERE id = %s
+                """,
+                (user_id,),
+            )
+            if cursor.rowcount == 0:
+                return False, "User not found."
+        return True, "User deleted successfully."
+    except Exception as e:
+        logger.error("delete_user: error: %s", e)
+        return False, f"Failed to delete user: {e}"
+    finally:
+        conn.close()
