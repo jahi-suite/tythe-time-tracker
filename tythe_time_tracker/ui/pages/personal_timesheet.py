@@ -51,18 +51,21 @@ def show() -> None:
     st.header("Personal Timesheet")
 
     employee_name = st.session_state.current_user["display_name"]
-    st.write(f"Showing timesheet for: **{employee_name}**")
+    with st.container(border=True):
+        st.write(f"Showing timesheet for: **{employee_name}**")
 
     service = TimeTrackingService()
     entries = service.get_employee_timesheet(employee_name)
 
     if entries:
-        st.subheader(f"Timesheet for {employee_name}")
+        with st.container(border=True):
+            st.subheader(f"Timesheet for {employee_name}")
 
-        # Format and display data
-        timesheet_data = format_timesheet_data(entries)
-        st.dataframe(timesheet_data, use_container_width=True)
+            # Format and display data
+            timesheet_data = format_timesheet_data(entries)
+            st.dataframe(timesheet_data, use_container_width=True)
     else:
-        st.info(f"No time entries found for {employee_name}")
+        with st.container(border=True):
+            st.info(f"No time entries found for {employee_name}")
 
     render_footer()
