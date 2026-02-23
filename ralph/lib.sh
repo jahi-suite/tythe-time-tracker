@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Ralph shared library: configurable agent backend (Claude or Cursor).
+# Ralph shared library: configurable agent backend (Claude, Cursor, or Codex).
 # Source this from run.sh and from loops/*.sh.
 # Usage: spawn_agent <repo_root> <prompt_content>
-# Environment: RALPH_BACKEND (claude|cursor), RALPH_MODEL (Cursor), RALPH_CLAUDE_MODEL (Claude)
+# Environment: RALPH_BACKEND (claude|cursor|codex), RALPH_MODEL (Cursor/Codex), RALPH_CLAUDE_MODEL (Claude)
 
 # Resolve Claude CLI binary (PATH, common install path, or RALPH_CLAUDE_CMD).
 find_claude() {
@@ -41,7 +41,9 @@ spawn_agent() {
     ) || true
   else
     local -a cmd=(cursor agent --print --force --workspace "$repo_root")
-    [ -n "${RALPH_MODEL:-}" ] && cmd+=(--model "$RALPH_MODEL")
+    local model="${RALPH_MODEL:-}"
+    [ "${RALPH_BACKEND:-claude}" = "codex" ] && model="${model:-codex}"
+    [ -n "$model" ] && cmd+=(--model "$model")
     "${cmd[@]}" "$prompt_content" || true
   fi
 }
