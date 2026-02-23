@@ -60,8 +60,13 @@ div[data-testid="stHeader"] {
     --tt-info-border: #6d94bd;
 }
 
-html, body, [class*="css"] {
+/* Base: larger font for readability */
+html {
+    font-size: 18px;
+}
+body, [class*="css"] {
     color: var(--tt-text);
+    font-size: 1rem;
 }
 
 .stApp {
@@ -80,6 +85,9 @@ h1, h2, h3, h4 {
     filter: none !important;
     font-weight: 600 !important;
 }
+h1 { font-size: 1.9rem !important; }
+h2 { font-size: 1.5rem !important; }
+h3 { font-size: 1.25rem !important; }
 
 /* Override Streamlit's faded header/title styling */
 .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4,
@@ -90,10 +98,13 @@ h1, h2, h3, h4 {
 
 p, li, label, .stMarkdown, .stCaption {
     color: var(--tt-text);
+    font-size: 1.05rem;
+    line-height: 1.5;
 }
-/* Labels and form text: darker for readability */
+/* Labels and form text: darker, larger for readability */
 label, [data-testid="stWidgetLabel"] {
     color: #1e2a36 !important;
+    font-size: 1.05rem !important;
 }
 
 [data-testid="stSidebar"] {
@@ -103,6 +114,7 @@ label, [data-testid="stWidgetLabel"] {
 
 [data-testid="stSidebar"] * {
     color: var(--tt-text);
+    font-size: 1.05rem !important;
 }
 
 /* Buttons: high-contrast for readability - dark text on light bg */
@@ -134,11 +146,12 @@ label, [data-testid="stWidgetLabel"] {
     color: #ffffff !important;
 }
 
-/* Form controls: ensure dark, readable text */
+/* Form controls: ensure dark, readable text; larger font */
 .stTextInput input, .stSelectbox div, .stDateInput input, .stTimeInput input,
 .stNumberInput input, .stTextArea textarea,
 [data-testid="stSelectbox"] label, [data-testid="stTextInput"] label {
     color: #1e2a36 !important;
+    font-size: 1.05rem !important;
 }
 [data-testid="stSelectbox"] > div > div {
     color: #1e2a36 !important;
@@ -157,9 +170,12 @@ div[data-testid="stAlert"] {
     border-radius: 10px;
     border: 1px solid var(--tt-border);
     box-shadow: 0 1px 2px rgba(12, 22, 34, 0.06);
+    font-size: 1.1rem !important;
+    padding: 1rem 1.25rem !important;
 }
 div[data-testid="stAlert"] * {
     color: #1e2a36 !important;
+    font-size: inherit !important;
 }
 
 div[data-testid="stAlert"][kind="success"] {
