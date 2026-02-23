@@ -219,79 +219,79 @@ def handle_export(entries: list, export_format: str, start_date: date, end_date:
 def show() -> None:
     """Display the export interface."""
     st.header("Export Timesheet")
-    
+
     # Show access info
-    show_export_access_info()
-    st.markdown("---")
-    
+    with st.container(border=True):
+        show_export_access_info()
+
     # Employee selection
-    employee_name = get_employee_selection()
-    st.markdown("---")
-    
+    with st.container(border=True):
+        employee_name = get_employee_selection()
+
     # Date range selection
-    start_date, end_date = get_date_range_selection()
+    with st.container(border=True):
+        start_date, end_date = get_date_range_selection()
     if start_date is None or end_date is None:
         return
-    
-    st.markdown("---")
-    
+
     # Export options
-    export_format, role_filter = get_export_options()
-    st.markdown("---")
-    
+    with st.container(border=True):
+        export_format, role_filter = get_export_options()
+
     # Preview and export
-    if st.button("Preview Data", type="secondary"):
-        is_manager = st.session_state.get('manager_authenticated', False)
-        
-        if not employee_name and not is_manager:
-            st.warning("Please enter your name")
-            return
-        
-        # Get data
-        entries = get_timesheet_data(
-            employee_name=employee_name if employee_name else None,
-            start_date=start_date,
-            end_date=end_date,
-            is_manager=is_manager
-        )
-        
-        if entries:
-            show_preview_data(entries, start_date, end_date)
-            
-            # Export buttons
-            st.markdown("---")
-            st.subheader("Export")
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                if export_format == "Excel (.xlsx)":
-                    if st.button("Export to Excel", type="primary"):
-                        handle_export(entries, export_format, start_date, end_date)
-                else:
-                    if st.button("Export to PDF", type="primary"):
-                        handle_export(entries, export_format, start_date, end_date)
-            
-            with col2:
-                st.info("**Export includes:**\n- Staff name & role\n- Clock-in/out times\n- Total hours worked\n- Applied pay rate\n- Supervisor flag\n- Summary totals")
-    
+    with st.container(border=True):
+        if st.button("Preview Data", type="secondary"):
+            is_manager = st.session_state.get('manager_authenticated', False)
+
+            if not employee_name and not is_manager:
+                st.warning("Please enter your name")
+                return
+
+            # Get data
+            entries = get_timesheet_data(
+                employee_name=employee_name if employee_name else None,
+                start_date=start_date,
+                end_date=end_date,
+                is_manager=is_manager
+            )
+
+            if entries:
+                show_preview_data(entries, start_date, end_date)
+
+                # Export buttons
+                st.markdown("---")
+                st.subheader("Export")
+
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    if export_format == "Excel (.xlsx)":
+                        if st.button("Export to Excel", type="primary"):
+                            handle_export(entries, export_format, start_date, end_date)
+                    else:
+                        if st.button("Export to PDF", type="primary"):
+                            handle_export(entries, export_format, start_date, end_date)
+
+                with col2:
+                    st.info("**Export includes:**\n- Staff name & role\n- Clock-in/out times\n- Total hours worked\n- Applied pay rate\n- Supervisor flag\n- Summary totals")
+
     # Direct export without preview
-    st.markdown("---")
-    if st.button("Export Directly", type="primary"):
-        is_manager = st.session_state.get('manager_authenticated', False)
+    with st.container(border=True):
+        if st.button("Export Directly", type="primary"):
+            is_manager = st.session_state.get('manager_authenticated', False)
 
-        if not employee_name and not is_manager:
-            st.warning("Please enter your name")
-            return
+            if not employee_name and not is_manager:
+                st.warning("Please enter your name")
+                return
 
-        # Get data
-        entries = get_timesheet_data(
-            employee_name=employee_name if employee_name else None,
-            start_date=start_date,
-            end_date=end_date,
-            is_manager=is_manager
-        )
+            # Get data
+            entries = get_timesheet_data(
+                employee_name=employee_name if employee_name else None,
+                start_date=start_date,
+                end_date=end_date,
+                is_manager=is_manager
+            )
 
-        handle_export(entries, export_format, start_date, end_date)
+            handle_export(entries, export_format, start_date, end_date)
 
     render_footer()
