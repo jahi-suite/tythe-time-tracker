@@ -174,7 +174,7 @@ def init_database() -> Tuple[bool, Optional[str]]:
             cursor.execute(f"""
                 WITH unique_display_users AS (
                     SELECT LOWER(TRIM({DatabaseConstants.DISPLAY_NAME_COLUMN})) AS display_key,
-                           MIN({DatabaseConstants.ID_COLUMN}) AS user_id
+                           (array_agg({DatabaseConstants.ID_COLUMN}))[1] AS user_id
                     FROM {DatabaseConstants.USERS_TABLE}
                     GROUP BY LOWER(TRIM({DatabaseConstants.DISPLAY_NAME_COLUMN}))
                     HAVING COUNT(*) = 1
