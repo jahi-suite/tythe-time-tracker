@@ -10,8 +10,8 @@ cd "$REPO_ROOT"
 cd tt-ts && npm run build 2>/dev/null || exit 1
 cd "$REPO_ROOT"
 
-# sec-01: SESSION_SECRET must be required in production (throw/fail if missing)
-if ! grep -qE "production.*SESSION_SECRET|SESSION_SECRET.*production|throw.*SESSION_SECRET|!process\.env\.SESSION_SECRET" tt-ts/src/server/index.ts 2>/dev/null; then
+# sec-01: SESSION_SECRET must be required in production (explicit check, no fallback)
+if ! grep -qE "NODE_ENV.*production.*SESSION_SECRET|if.*production.*!.*SESSION_SECRET|throw.*SESSION_SECRET" tt-ts/src/server/index.ts 2>/dev/null; then
   echo "FAIL: sec-01 — SESSION_SECRET production check not found"
   exit 1
 fi
@@ -34,9 +34,9 @@ if ! grep -qE "rateLimit|rate-limit|rateLimit" tt-ts/src/server/routes/auth.ts 2
   exit 1
 fi
 
-# sec-05: pay-rates validation (numbers, range, or explicit validation)
-if ! grep -qE "pay-rates|standard.*enhanced|typeof.*number|parseFloat|isNaN|max.*999" tt-ts/src/server/routes/users.ts 2>/dev/null; then
-  echo "FAIL: sec-05 — pay-rates route or validation not found"
+# sec-05: pay-rates validation (must have explicit validation, not just pass-through)
+if ! grep -qE "typeof.*number|parseFloat|isNaN|Number\(|>= 0|<= 999|minValue|maxValue" tt-ts/src/server/routes/users.ts 2>/dev/null; then
+  echo "FAIL: sec-05 — pay-rates validation not found"
   exit 1
 fi
 
