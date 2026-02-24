@@ -16,6 +16,18 @@ export default {
           brown: '#8b7355',
           'text-muted': '#6b7c6d',
         },
+        lastcall: {
+          ink: '#070a10',
+          navy: '#111827',
+          panel: '#11192b',
+          line: '#26314a',
+          smoke: '#9aa4ba',
+          haze: '#606a82',
+          amber: '#f1b15b',
+          brass: '#c98a2e',
+          cream: '#f5ead7',
+          wine: '#2a1320',
+        },
       },
       fontFamily: {
         display: ['Fraunces', 'Georgia', 'serif'],
