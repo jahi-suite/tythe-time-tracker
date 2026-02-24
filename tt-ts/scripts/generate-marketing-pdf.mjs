@@ -242,28 +242,38 @@ function drawCoverPage() {
     lineGap: 4,
   })
 
-  doc.moveTo(left + 16, 218).lineTo(left + 150, 218).lineWidth(2).strokeColor(palette.amber).stroke()
+  let leftPanelY = 112 + measure(copy.hero.headline, 300, { font: 'Helvetica-Bold', fontSize: 22, lineGap: 4 }) + 14
+  doc.moveTo(left + 16, leftPanelY).lineTo(left + 150, leftPanelY).lineWidth(2).strokeColor(palette.amber).stroke()
 
-  textBlock(copy.hero.subhead, left + 16, 232, 300, { fontSize: 10.7, lineGap: 4, color: palette.smoke })
+  leftPanelY += 14
+  textBlock(copy.hero.subhead, left + 16, leftPanelY, 300, { fontSize: 10.7, lineGap: 4, color: palette.smoke })
+  leftPanelY += measure(copy.hero.subhead, 300, { fontSize: 10.7, lineGap: 4 }) + 14
 
-  doc.moveTo(left + 16, 362).lineTo(left + 316, 362).lineWidth(1).strokeColor('#2d3850').stroke()
-  doc.font('Helvetica-Bold').fontSize(16).fillColor(palette.cream).text(copy.hero.byline, left + 16, 376)
-  textBlock(copy.hero.role, left + 16, 396, 220, { fontSize: 10, color: palette.haze })
+  doc.moveTo(left + 16, leftPanelY).lineTo(left + 316, leftPanelY).lineWidth(1).strokeColor('#2d3850').stroke()
+  leftPanelY += 14
+  doc.font('Helvetica-Bold').fontSize(16).fillColor(palette.cream).text(copy.hero.byline, left + 16, leftPanelY)
+  leftPanelY += measure(copy.hero.byline, 220, { font: 'Helvetica-Bold', fontSize: 16 }) + 4
+  textBlock(copy.hero.role, left + 16, leftPanelY, 220, { fontSize: 10, color: palette.haze })
 
   card({ x: left + 346, y: coverCardsY, w: contentW - 346, h: coverCardsH, fill: '#0e1626', stroke: '#303a4f', radius: 18 })
   sectionBar(copy.hero.managerLabel, left + 358, 84, contentW - 370)
-  textBlock(copy.hero.managerBody, left + 358, 116, contentW - 370, { fontSize: 11, lineGap: 4 })
-  textBlock(copy.hero.managerBody2, left + 358, 188, contentW - 370, {
-    fontSize: 11,
-    lineGap: 4,
-    color: palette.cream,
-  })
+  let rightPanelY = 116
+  const panelW = contentW - 370
+  const panelOpts = { fontSize: 11, lineGap: 4 }
+  const h1 = measure(copy.hero.managerBody, panelW, panelOpts)
+  textBlock(copy.hero.managerBody, left + 358, rightPanelY, panelW, panelOpts)
+  rightPanelY += h1 + 12
 
-  let bulletY = 262
+  const managerBody2Opts = { ...panelOpts, color: palette.cream }
+  const h2 = measure(copy.hero.managerBody2, panelW, managerBody2Opts)
+  textBlock(copy.hero.managerBody2, left + 358, rightPanelY, panelW, managerBody2Opts)
+  rightPanelY += h2 + 16
+
   copy.hero.bullets.forEach((line) => {
-    doc.circle(left + 366, bulletY + 5, 2.3).fill(palette.amber)
-    textBlock(line, left + 376, bulletY, contentW - 388, { fontSize: 10.2, color: palette.cream })
-    bulletY += 28
+    doc.circle(left + 366, rightPanelY + 5, 2.3).fill(palette.amber)
+    const lineH = measure(line, panelW - 10, { fontSize: 10.2 })
+    textBlock(line, left + 376, rightPanelY, panelW - 10, { fontSize: 10.2, color: palette.cream })
+    rightPanelY += lineH + 2
   })
 
   doc.roundedRect(left, ctaY, contentW, 54, 14).fillAndStroke('#1a2235', '#33415b')
@@ -292,11 +302,18 @@ function drawPainPage() {
     width: contentW,
     lineGap: 5,
   })
-  textBlock(copy.pain.intro, left, 126, 430, { fontSize: 11, lineGap: 4 })
+  let painY = 66 + measure(copy.pain.title, contentW, { font: 'Helvetica-Bold', fontSize: 23, lineGap: 5 }) + 10
+  textBlock(copy.pain.intro, left, painY, 430, { fontSize: 11, lineGap: 4 })
+  painY += measure(copy.pain.intro, 430, { fontSize: 11, lineGap: 4 }) + 18
 
-  let y = 172
+  let y = painY
   copy.pain.moments.forEach((moment, i) => {
-    const boxH = 112
+    const titleW = contentW - 164
+    const titleH = measure(moment.title, titleW, { font: 'Helvetica-Bold', fontSize: 12.5, lineGap: 3 })
+    const bodyY = y + 20 + titleH + 10
+    const bodyH = measure(moment.body, titleW, { fontSize: 10.5, lineGap: 4 })
+    const contentBottomY = bodyY + bodyH
+    const boxH = Math.max(112, contentBottomY - y + 18)
     card({ x: left, y, w: contentW, h: boxH, fill: i % 2 === 0 ? '#10192a' : '#0d1423', stroke: '#2d3850', radius: 16 })
     doc.rect(left, y, 6, boxH).fill(i === 2 ? palette.gold : palette.amber)
     doc.roundedRect(left + 18, y + 14, 112, 24, 12).fill('#2a1b06')
@@ -305,15 +322,18 @@ function drawPainPage() {
       align: 'center',
     })
     doc.font('Helvetica-Bold').fontSize(12.5).fillColor(palette.cream).text(moment.title, left + 146, y + 16, {
-      width: contentW - 164,
+      width: titleW,
       lineGap: 3,
     })
-    textBlock(moment.body, left + 146, y + 52, contentW - 164, { fontSize: 10.5, lineGap: 4 })
+    textBlock(moment.body, left + 146, bodyY, titleW, { fontSize: 10.5, lineGap: 4 })
     y += boxH + 14
   })
 
-  doc.roundedRect(left, 550, contentW, 88, 18).fillAndStroke('#201504', '#6b4b12')
-  doc.font('Helvetica-Bold').fontSize(20).fillColor(palette.cream).text(copy.pain.closer, left + 18, 578, {
+  const closerY = y + 10
+  const closerTextH = measure(copy.pain.closer, contentW - 36, { font: 'Helvetica-Bold', fontSize: 20, lineGap: 4, align: 'center' })
+  const closerH = Math.max(88, closerTextH + 40)
+  doc.roundedRect(left, closerY, contentW, closerH, 18).fillAndStroke('#201504', '#6b4b12')
+  doc.font('Helvetica-Bold').fontSize(20).fillColor(palette.cream).text(copy.pain.closer, left + 18, closerY + (closerH - closerTextH) / 2, {
     width: contentW - 36,
     align: 'center',
     lineGap: 4,
@@ -333,43 +353,60 @@ function drawOutcomesPage() {
   doc.font('Helvetica-Bold').fontSize(24).fillColor(palette.cream).text(copy.outcomes.title, left, 66, {
     width: contentW,
   })
-  textBlock(copy.outcomes.intro, left, 102, contentW, { fontSize: 11, color: palette.smoke })
+  let outcomesY = 66 + measure(copy.outcomes.title, contentW, { font: 'Helvetica-Bold', fontSize: 24 }) + 10
+  textBlock(copy.outcomes.intro, left, outcomesY, contentW, { fontSize: 11, color: palette.smoke })
+  outcomesY += measure(copy.outcomes.intro, contentW, { fontSize: 11 }) + 14
 
   const gap = 14
   const colW = (contentW - gap) / 2
-  const cardYs = [146, 146 + 196 + gap]
+  const colBottoms = [outcomesY, outcomesY]
 
   copy.outcomes.cards.forEach((item, index) => {
     const col = index % 2
-    const row = Math.floor(index / 2)
     const x = left + col * (colW + gap)
-    const y = cardYs[row]
-    const h = index === 2 ? 238 : 196
+    const y = colBottoms[col]
+    const labelY = y + 14
+    const outcomeY = y + 44
+    const outcomeW = colW - 28
+    const outcomeH = measure(item.outcome, outcomeW, { font: 'Helvetica-Bold', fontSize: 15, lineGap: 4 })
+    const innerY = outcomeY + outcomeH + 14
+    const howW = colW - 48
+    const howY = innerY + 26
+    const howH = measure(item.how, howW, { fontSize: 9.8 })
+    const innerH = Math.max(70, howH + 34)
+    const h = innerY + innerH + 14 - y
 
     card({ x, y, w: colW, h, fill: '#111a2b', stroke: '#303a50', radius: 16 })
-    doc.roundedRect(x + 14, y + 14, 92, 18, 9).fill('#3a2507')
+    doc.roundedRect(x + 14, labelY, 92, 18, 9).fill('#3a2507')
     doc.font('Helvetica-Bold').fontSize(8).fillColor(palette.gold).text('OUTCOME', x + 40, y + 20, {
       width: 40,
       align: 'center',
     })
-    doc.font('Helvetica-Bold').fontSize(15).fillColor(palette.cream).text(item.outcome, x + 14, y + 44, {
-      width: colW - 28,
+    doc.font('Helvetica-Bold').fontSize(15).fillColor(palette.cream).text(item.outcome, x + 14, outcomeY, {
+      width: outcomeW,
       lineGap: 4,
     })
 
-    const innerY = y + h - 84
-    doc.roundedRect(x + 14, innerY, colW - 28, 70, 10).fillAndStroke('#0b1220', '#2a3449')
+    doc.roundedRect(x + 14, innerY, colW - 28, innerH, 10).fillAndStroke('#0b1220', '#2a3449')
     doc.font('Helvetica-Bold').fontSize(9).fillColor(palette.haze).text('How we do it', x + 24, innerY + 10, {
-      width: colW - 48,
+      width: howW,
       align: 'left',
     })
-    textBlock(item.how, x + 24, innerY + 26, colW - 48, { fontSize: 9.8, color: palette.smoke })
+    textBlock(item.how, x + 24, howY, howW, { fontSize: 9.8, color: palette.smoke })
+    colBottoms[col] += h + gap
   })
 
-  const featureCalloutY = 594
-  card({ x: left, y: featureCalloutY, w: contentW, h: 56, fill: '#151f31', stroke: '#334059', radius: 14 })
+  const featureCalloutY = Math.max(colBottoms[0], colBottoms[1]) + 6
+  const featureCalloutText =
+    'Outcome-first features keep admin light: clock-ins, rate maths, edits, audit trail, and exports when you need them.'
+  const featureCalloutTextH = measure(featureCalloutText, contentW - 28, {
+    fontSize: 10,
+    align: 'center',
+  })
+  const featureCalloutH = Math.max(56, featureCalloutTextH + 28)
+  card({ x: left, y: featureCalloutY, w: contentW, h: featureCalloutH, fill: '#151f31', stroke: '#334059', radius: 14 })
   doc.rect(left, featureCalloutY, contentW, 6).fill(palette.amber)
-  textBlock('Outcome-first features keep admin light: clock-ins, rate maths, edits, audit trail, and exports when you need them.', left + 14, featureCalloutY + 18, contentW - 28, {
+  textBlock(featureCalloutText, left + 14, featureCalloutY + 18, contentW - 28, {
     fontSize: 10,
     color: palette.cream,
     align: 'center',
@@ -391,34 +428,48 @@ function drawMechanicsPage() {
   })
 
   let y = 118
+  const stepsW = contentW * 0.62
   copy.mechanics.steps.forEach((step, idx) => {
-    const boxH = 116
-    card({ x: left, y, w: contentW * 0.62, h: boxH, fill: '#10182a', stroke: '#2d3951', radius: 14 })
+    const titleW = stepsW - 72
+    const titleH = measure(step.title, titleW, { font: 'Helvetica-Bold', fontSize: 13, lineGap: 3 })
+    const bodyY = y + 20 + titleH + 10
+    const bodyH = measure(step.text, titleW, { fontSize: 10.3, lineGap: 4 })
+    const boxH = Math.max(116, bodyY + bodyH + 18 - y)
+    card({ x: left, y, w: stepsW, h: boxH, fill: '#10182a', stroke: '#2d3951', radius: 14 })
     doc.roundedRect(left + 14, y + 14, 32, 32, 10).fill(palette.amber)
     doc.font('Helvetica-Bold').fontSize(14).fillColor(palette.charcoal).text(String(idx + 1), left + 26, y + 24, {
       width: 8,
       align: 'center',
     })
     doc.font('Helvetica-Bold').fontSize(13).fillColor(palette.cream).text(step.title, left + 58, y + 16, {
-      width: contentW * 0.62 - 72,
+      width: titleW,
       lineGap: 3,
     })
-    textBlock(step.text, left + 58, y + 46, contentW * 0.62 - 72, { fontSize: 10.3, lineGap: 4 })
+    textBlock(step.text, left + 58, bodyY, titleW, { fontSize: 10.3, lineGap: 4 })
     y += boxH + 14
   })
 
-  const sideX = left + contentW * 0.62 + 14
-  const sideW = contentW - contentW * 0.62 - 14
-  card({ x: sideX, y: 118, w: sideW, h: 390, fill: '#1b1407', stroke: '#5a4213', radius: 16 })
+  const sideX = left + stepsW + 14
+  const sideW = contentW - stepsW - 14
+  const sideTop = 118
+  let sideCursorY = 164
+  const sideInnerW = sideW - 24
+  const beforeTextH = measure(copy.mechanics.before, sideW - 48, { fontSize: 10.2, lineGap: 4 })
+  const beforeCardH = Math.max(138, beforeTextH + 52)
+  const afterTextH = measure(copy.mechanics.after, sideW - 48, { fontSize: 10.5, lineGap: 4 })
+  const afterCardY = sideCursorY + beforeCardH + 14
+  const afterCardH = Math.max(152, afterTextH + 54)
+  const sidePanelH = afterCardY + afterCardH + 14 - sideTop
+  card({ x: sideX, y: sideTop, w: sideW, h: sidePanelH, fill: '#1b1407', stroke: '#5a4213', radius: 16 })
   sectionBar(copy.mechanics.mondayTitle, sideX + 12, 132, sideW - 24)
 
-  card({ x: sideX + 12, y: 164, w: sideW - 24, h: 138, fill: '#0f1524', stroke: '#2f3950', radius: 12 })
+  card({ x: sideX + 12, y: sideCursorY, w: sideInnerW, h: beforeCardH, fill: '#0f1524', stroke: '#2f3950', radius: 12 })
   doc.font('Helvetica-Bold').fontSize(10).fillColor(palette.haze).text('BEFORE', sideX + 24, 180)
   textBlock(copy.mechanics.before, sideX + 24, 200, sideW - 48, { fontSize: 10.2, lineGap: 4 })
 
-  card({ x: sideX + 12, y: 316, w: sideW - 24, h: 152, fill: '#2a1b06', stroke: '#6b4b12', radius: 12 })
-  doc.font('Helvetica-Bold').fontSize(10).fillColor(palette.gold).text('AFTER', sideX + 24, 332)
-  textBlock(copy.mechanics.after, sideX + 24, 352, sideW - 48, { fontSize: 10.5, lineGap: 4, color: palette.cream })
+  card({ x: sideX + 12, y: afterCardY, w: sideInnerW, h: afterCardH, fill: '#2a1b06', stroke: '#6b4b12', radius: 12 })
+  doc.font('Helvetica-Bold').fontSize(10).fillColor(palette.gold).text('AFTER', sideX + 24, afterCardY + 16)
+  textBlock(copy.mechanics.after, sideX + 24, afterCardY + 36, sideW - 48, { fontSize: 10.5, lineGap: 4, color: palette.cream })
 }
 
 function drawTestimonialAndCtaPage() {
@@ -441,25 +492,44 @@ function drawTestimonialAndCtaPage() {
     align: 'center',
   })
 
-  doc.moveTo(left + 120, 208).lineTo(left + contentW - 120, 208).lineWidth(1.5).strokeColor('#41506f').stroke()
-  textBlock(copy.testimonial.body, left + 54, 228, contentW - 108, {
+  let testimonialY =
+    102 +
+    measure(copy.testimonial.quote, contentW - 48, {
+      font: 'Helvetica-Bold',
+      fontSize: 27,
+      lineGap: 6,
+      align: 'center',
+    }) +
+    14
+  doc.moveTo(left + 120, testimonialY).lineTo(left + contentW - 120, testimonialY).lineWidth(1.5).strokeColor('#41506f').stroke()
+  testimonialY += 20
+  textBlock(copy.testimonial.body, left + 54, testimonialY, contentW - 108, {
     fontSize: 11.2,
     color: palette.smoke,
     align: 'center',
     lineGap: 4,
   })
-  textBlock(copy.testimonial.payoff, left + 54, 300, contentW - 108, {
+  testimonialY += measure(copy.testimonial.body, contentW - 108, { fontSize: 11.2, align: 'center', lineGap: 4 }) + 10
+  textBlock(copy.testimonial.payoff, left + 54, testimonialY, contentW - 108, {
     fontSize: 11.2,
     color: palette.cream,
     align: 'center',
     lineGap: 4,
     font: 'Helvetica-Bold',
   })
-  doc.font('Helvetica-Bold').fontSize(14).fillColor(palette.gold).text(copy.testimonial.name, left + 24, 374, {
+  testimonialY +=
+    measure(copy.testimonial.payoff, contentW - 108, {
+      font: 'Helvetica-Bold',
+      fontSize: 11.2,
+      align: 'center',
+      lineGap: 4,
+    }) + 14
+  doc.font('Helvetica-Bold').fontSize(14).fillColor(palette.gold).text(copy.testimonial.name, left + 24, testimonialY, {
     width: contentW - 48,
     align: 'center',
   })
-  textBlock(copy.testimonial.role, left + 24, 392, contentW - 48, {
+  testimonialY += measure(copy.testimonial.name, contentW - 48, { font: 'Helvetica-Bold', fontSize: 14, align: 'center' }) + 4
+  textBlock(copy.testimonial.role, left + 24, testimonialY, contentW - 48, {
     fontSize: 10,
     color: palette.haze,
     align: 'center',
@@ -472,14 +542,17 @@ function drawTestimonialAndCtaPage() {
     width: contentW - 36,
     lineGap: 4,
   })
-  textBlock(copy.cta.body, left + 18, 552, contentW - 36, { fontSize: 11, color: '#efe7db', lineGap: 4 })
+  let ctaY =
+    496 + measure(copy.cta.title, contentW - 36, { font: 'Helvetica-Bold', fontSize: 22, lineGap: 4 }) + 12
+  textBlock(copy.cta.body, left + 18, ctaY, contentW - 36, { fontSize: 11, color: '#efe7db', lineGap: 4 })
+  ctaY += measure(copy.cta.body, contentW - 36, { fontSize: 11, lineGap: 4 }) + 16
 
-  doc.roundedRect(left + 18, 616, 262, 34, 11).fill(palette.amber)
-  doc.font('Helvetica-Bold').fontSize(11).fillColor(palette.charcoal).text(copy.cta.button, left + 34, 628, {
+  doc.roundedRect(left + 18, ctaY, 262, 34, 11).fill(palette.amber)
+  doc.font('Helvetica-Bold').fontSize(11).fillColor(palette.charcoal).text(copy.cta.button, left + 34, ctaY + 12, {
     width: 228,
     align: 'center',
   })
-  textBlock(copy.cta.note, left + 294, 620, contentW - 312, { fontSize: 10.2, color: palette.smoke })
+  textBlock(copy.cta.note, left + 294, ctaY + 4, contentW - 312, { fontSize: 10.2, color: palette.smoke })
 }
 
 drawCoverPage()
