@@ -24,7 +24,7 @@ export function Layout() {
 
   const handleLogout = async () => {
     await logout()
-    // Delay so browser processes Set-Cookie from logout response before we navigate
+    // Delay so browser processes Set-Cookie from logout response before we navigate (deploy trigger)
     await new Promise((r) => setTimeout(r, 150))
     window.location.href = '/login'
   }
