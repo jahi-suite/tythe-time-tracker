@@ -2,10 +2,16 @@
 
 Deploy the Tythe Time Tracker app to Cloud Run (serverless containers).
 
+**Service**: `karitime` | **Region**: `europe-west2` | **Project**: `karitime`
+
+## CI/CD
+
+Deploy via **Cloud Run "Deploy from repository"** — push to the connected branch triggers a build and deploy. See `docs/CICD_SETUP.md`.
+
 ## Prerequisites
 
 - Google Cloud CLI installed and authenticated (`gcloud auth login`)
-- A GCP project (`gcloud config set project YOUR_PROJECT_ID`)
+- GCP project: `gcloud config set project karitime`
 
 ## Required Environment Variables
 
@@ -30,34 +36,22 @@ This reads `tt-ts/.env`, overrides `SUPABASE_PORT=6543`, adds `NODE_ENV=producti
 | `NODE_ENV` | `production` |
 | `SESSION_STORE` | `pg` (required for sessions across instances) |
 
-## Deploy
+## Manual Deploy (Optional)
 
-From the repo root:
-
-```bash
-cd tt-ts
-gcloud run deploy tythe-time-tracker \
-  --source . \
-  --region us-central1 \
-  --allow-unauthenticated \
-  --set-env-vars "NODE_ENV=production,SESSION_STORE=pg" \
-  --set-secrets "SUPABASE_HOST=supabase-host:latest,SUPABASE_PASSWORD=supabase-password:latest,SESSION_SECRET=session-secret:latest"
-```
-
-Or build and push manually:
+If you need to deploy from CLI without the repository trigger:
 
 ```bash
-cd tt-ts
-gcloud builds submit --tag gcr.io/YOUR_PROJECT_ID/tythe-time-tracker
-gcloud run deploy tythe-time-tracker \
-  --image gcr.io/YOUR_PROJECT_ID/tythe-time-tracker \
-  --region us-central1 \
-  --allow-unauthenticated \
-  --set-env-vars "NODE_ENV=production,SESSION_STORE=pg,SUPABASE_HOST=...,SUPABASE_DATABASE=postgres,SUPABASE_USER=...,SUPABASE_PORT=6543"
+# Build from repo root (Dockerfile expects repo root context)
+gcloud builds submit --tag gcr.io/karitime/karitime .
+gcloud run deploy karitime \
+  --image gcr.io/karitime/karitime \
+  --region europe-west2 \
+  --project karitime \
+  --allow-unauthenticated
 ```
 
-For secrets, use [Secret Manager](https://cloud.google.com/run/docs/configuring/secrets) and reference them in the deploy command.
+Then run `./ralph/set-cloudrun-env-from-dotenv.sh` to set env vars.
 
 ## Env Template
 
-Copy `tt-ts/gcp-env.template` and fill in values. Use it when configuring Cloud Run env vars.
+Copy `tt-ts/gcp-env.template` and fill in values. Use it when configuring Cloud Run env vars or when creating `tt-ts/.env`.

@@ -52,7 +52,9 @@ streamlit run app.py
 
 App runs at `http://localhost:8501`
 
-## Deployment (Streamlit Cloud)
+## Deployment
+
+### Streamlit (Python app)
 
 1. Push to GitHub
 2. Connect repo at [Streamlit Cloud](https://streamlit.io/cloud)
@@ -60,6 +62,10 @@ App runs at `http://localhost:8501`
 4. Use **Session pooler** host from Supabase for IPv4 compatibility
 
 See `STREAMLIT_CLOUD_DATABASE.md` for step-by-step setup.
+
+### tt-ts (TypeScript app)
+
+Deploy to **Google Cloud Run** via "Deploy from repository". Push to the connected branch triggers a build and deploy. See `docs/CICD_SETUP.md` and `docs/GCP_CLOUD_RUN_SETUP.md`.
 
 ## Browser Support (Mobile)
 
