@@ -572,6 +572,20 @@ tbody tr:last-child td { border-bottom: 0; }
 .badge-role-employee { background: #64748b; color: #fff; }
 .badge-status-active { background: #16a34a; color: #fff; }
 .badge-status-inactive { background: #dc2626; color: #fff; }
+.badge-status-complete { background: #0f766e; color: #fff; }
+.badge-status-in-progress { background: #ea580c; color: #fff; }
+.badge-pay-rate {
+  background: var(--tt-surface-subtle);
+  color: var(--tt-primary-dark);
+  border: 1px solid #bfd0e2;
+}
+.badge-entry-id {
+  background: #f8fafc;
+  color: var(--tt-text-muted);
+  border: 1px solid var(--tt-border);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  text-transform: none;
+}
 
 .user-card-actions {
   display: flex;
@@ -601,6 +615,64 @@ tbody tr:last-child td { border-bottom: 0; }
 .btn-pay-rates {
   font-size: 0.9rem;
   padding: 0.4rem 0.75rem;
+}
+
+.manager-entries-section {
+  margin-top: 1rem;
+}
+
+.manager-entries-grid {
+  margin-top: 0.75rem;
+}
+
+.shift-card,
+.audit-card {
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-card-radius);
+  padding: 1rem;
+  background: var(--tt-surface);
+  box-shadow: var(--tt-card-shadow);
+  transition: box-shadow 180ms ease;
+}
+
+.shift-card:hover,
+.audit-card:hover {
+  box-shadow: var(--tt-card-shadow-hover);
+}
+
+.shift-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.shift-card-title {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--tt-text);
+}
+
+.shift-card-subtitle {
+  margin: 0.35rem 0 0;
+  color: var(--tt-text-muted);
+  font-size: 0.9rem;
+}
+
+.shift-card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+
+.shift-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--tt-border);
 }
 
 .timesheet-dashboard .stat-card {

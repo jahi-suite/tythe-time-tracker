@@ -454,6 +454,8 @@ export function ManagerPage() {
     const minute = parts.find((part) => part.type === 'minute')?.value ?? ''
     return `${hour}:${minute}`
   }
+  const formatDateTimeInLondon = (isoValue: string) =>
+    new Date(isoValue).toLocaleString('en-GB', { timeZone: 'Europe/London' })
 
   async function loadShiftForEdit(entryIdValue: string) {
     setEditShiftLookupError('')
@@ -840,7 +842,7 @@ export function ManagerPage() {
       {tab === 'entries' && (
         <div className="card">
           <h3>All Time Entries</h3>
-          <div className="btn-row">
+          <div className="dashboard-toolbar">
             <a href={exportExcelUrl()} download className="btn-primary" style={{ textDecoration: 'none' }}>
               Export All to Excel
             </a>
@@ -849,35 +851,54 @@ export function ManagerPage() {
             </a>
           </div>
           {Object.entries(staffGroups).map(([staff, shifts]) => (
-            <details key={staff}>
+            <details key={staff} className="manage-users-section manager-entries-section">
               <summary>{staff}</summary>
-              <ul>
+              <div className="cards-grid manager-entries-grid">
                 {shifts.map((s) => (
-                  <li key={s.id}>
-                    {new Date(s.clock_in).toLocaleString('en-GB', { timeZone: 'Europe/London' })} —{' '}
-                    {s.clock_out ? new Date(s.clock_out).toLocaleString('en-GB', { timeZone: 'Europe/London' }) : 'In Progress'} — {s.pay_rate_type}{' '}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setTab('edit')
-                        setEditShiftEntryId(s.id)
-                        setEditShiftAutoLoadPending(true)
-                      }}
-                    >
-                      Edit
-                    </button>{' '}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setTab('delete')
-                        setDeleteShiftEntryId(s.id)
-                      }}
-                    >
-                      Delete
-                    </button>
-                  </li>
+                  <article key={s.id} className="shift-card">
+                    <div className="shift-card-header">
+                      <div>
+                        <h4 className="shift-card-title">{formatDateTimeInLondon(s.clock_in)}</h4>
+                        <p className="shift-card-subtitle">
+                          Clock out: {s.clock_out ? formatDateTimeInLondon(s.clock_out) : 'In Progress'}
+                        </p>
+                      </div>
+                      <span className="badge badge-pay-rate">{s.pay_rate_type}</span>
+                    </div>
+                    <div className="shift-card-badges">
+                      <span className={`badge badge-status badge-status-${s.clock_out ? 'complete' : 'in-progress'}`}>
+                        {s.clock_out ? 'Complete' : 'In Progress'}
+                      </span>
+                      <span className="badge badge-entry-id" title={s.id}>
+                        ID: {s.id}
+                      </span>
+                    </div>
+                    <div className="shift-card-actions">
+                      <button
+                        type="button"
+                        className="btn-primary"
+                        onClick={() => {
+                          setTab('edit')
+                          setEditShiftEntryId(s.id)
+                          setEditShiftAutoLoadPending(true)
+                        }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-danger"
+                        onClick={() => {
+                          setTab('delete')
+                          setDeleteShiftEntryId(s.id)
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </article>
                 ))}
-              </ul>
+              </div>
             </details>
           ))}
         </div>
