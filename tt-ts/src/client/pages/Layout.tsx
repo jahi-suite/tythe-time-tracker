@@ -24,7 +24,7 @@ export function Layout() {
 
   const handleLogout = async () => {
     await logout()
-    navigate('/')
+    navigate('/login')
   }
 
   const handleChangePassword = async (e: React.FormEvent) => {
