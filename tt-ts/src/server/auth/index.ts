@@ -30,7 +30,7 @@ export async function authenticateUser(username: string, password: string): Prom
   }>(
     `SELECT id, username, password_hash, role, display_name
      FROM ${DB.USERS_TABLE}
-     WHERE username = $1 AND active = true`,
+     WHERE LOWER(TRIM(username)) = LOWER($1) AND active = true`,
     [username.trim()]
   )
   const row = res.rows[0]

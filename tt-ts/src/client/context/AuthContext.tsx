@@ -38,11 +38,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (username: string, password: string) => {
     const { auth } = await import('../api')
     const u = await auth.login(username, password)
-    if (u && !(u.display_name?.trim() || u.username?.trim())) {
-      await auth.logout()
-      setUser(null)
-      throw new Error('Invalid username or password')
-    }
     setUser(u)
   }, [])
 
