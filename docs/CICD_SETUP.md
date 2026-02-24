@@ -1,4 +1,17 @@
-# CI/CD Setup (GitHub Actions -> Cloud Run)
+# CI/CD Setup (GitHub Actions or Cloud Run UI)
+
+## Option A: Cloud Run "Deploy from repository" (UI)
+
+If you set up continuous deployment from the Google Cloud Console:
+
+1. **Dockerfile path**: `Dockerfile` (at repo root)
+2. **Build context**: `.` (repo root)
+
+The root `Dockerfile` builds the `tt-ts` app. Push to your connected branch to trigger a build.
+
+---
+
+## Option B: GitHub Actions
 
 This project deploys `tt-ts` to Google Cloud Run when code is pushed to `main`.
 
