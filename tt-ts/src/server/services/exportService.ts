@@ -33,10 +33,14 @@ export async function exportToExcel(
   startDate?: Date | null,
   endDate?: Date | null
 ): Promise<Buffer> {
+  const breakDeductionNote =
+    '20 minutes unpaid break deducted for shifts of 6+ hours (deducted from majority rate type).'
   if (entries.length === 0) {
     const wb = new ExcelJS.Workbook()
     const ws = wb.addWorksheet('Staff Hours & Shifts')
     ws.addRow(['No entries'])
+    ws.addRow([])
+    ws.addRow(['Note', breakDeductionNote])
     return Buffer.from(await wb.xlsx.writeBuffer())
   }
 
@@ -60,6 +64,7 @@ export async function exportToExcel(
     'Enhanced Hours',
     'Supervisor Hours',
     'Total Hours',
+    'Break Deducted',
     'Total Shifts',
     'Pay Rate Type',
     'Supervisor Flag',
@@ -81,6 +86,7 @@ export async function exportToExcel(
       data.Enhanced,
       data.Supervisor,
       data.total_hours,
+      '',
       data.total_shifts,
       '',
       '',
@@ -93,9 +99,10 @@ export async function exportToExcel(
     for (const entry of sortedEntries) {
       if (getStaffSummaryKey(entry) !== summaryKey) continue
       const isSupervisor = entry.pay_rate_type === 'Supervisor'
-      const split = applyBreakDeduction(
-        splitShiftByRate(entry.clock_in, entry.clock_out, isSupervisor)
-      )
+      const grossSplit = splitShiftByRate(entry.clock_in, entry.clock_out, isSupervisor)
+      const split = applyBreakDeduction(grossSplit)
+      const grossHours = grossSplit.Standard + grossSplit.Enhanced + grossSplit.Supervisor
+      const breakDeducted = grossHours >= 6 ? '20 min' : '—'
       const bstIn = convertToBst(entry.clock_in)
       const bstOut = entry.clock_out ? convertToBst(entry.clock_out) : null
       let shiftDisplay: string
@@ -117,6 +124,7 @@ export async function exportToExcel(
         split.Enhanced,
         split.Supervisor,
         split.Standard + split.Enhanced + split.Supervisor,
+        breakDeducted,
         '',
         shiftDisplay,
         isSupervisor ? 'Yes' : 'No',
@@ -128,6 +136,7 @@ export async function exportToExcel(
     }
     ws.addRow([])
   }
+  ws.addRow(['Note', breakDeductionNote])
 
   const summaryWs = wb.addWorksheet('Overall Summary')
   const overall = Object.values(staffSummary).reduce(
