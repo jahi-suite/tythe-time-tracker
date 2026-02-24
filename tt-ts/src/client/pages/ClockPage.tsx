@@ -46,14 +46,29 @@ export function ClockPage() {
   const bstTime = openShift?.clock_in
     ? new Date(openShift.clock_in).toLocaleString('en-GB', { timeZone: 'Europe/London' })
     : ''
+  const clockStatus = openShift ? 'Clocked In' : 'Clocked Out'
 
   return (
-    <div className="page">
+    <div className="page page-dashboard">
       <h2>Employee Clock In/Out</h2>
       <div className="card">
         <p>Clocking in/out as: <strong>{user?.display_name}</strong></p>
       </div>
-      <div className="grid-2">
+      <div className="stat-cards">
+        <div className="stat-card">
+          <span className="stat-value">{clockStatus}</span>
+          <span className="stat-label">Current Status</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-value">{isSupervisor ? 'Supervisor' : 'Employee'}</span>
+          <span className="stat-label">Next Clock In Role</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-value">{openShift?.pay_rate_type ?? 'N/A'}</span>
+          <span className="stat-label">Open Shift Pay Rate</span>
+        </div>
+      </div>
+      <div className="cards-grid">
         <div className="card">
           <h3>Clock In/Out</h3>
           <label>
@@ -75,11 +90,19 @@ export function ClockPage() {
         </div>
         <div className="card">
           <h3>Quick Status</h3>
+          <p>
+            <span className={`badge ${openShift ? 'badge-status-active' : 'badge-status-inactive'}`}>
+              {clockStatus}
+            </span>
+          </p>
           {openShift ? (
             <>
               <p className="message-success">{user?.display_name} is currently clocked in</p>
               <p>Clocked in at: {bstTime} BST</p>
-              <p>Pay Rate: {openShift.pay_rate_type}</p>
+              <p>
+                Pay Rate:{' '}
+                <span className="badge">{openShift.pay_rate_type}</span>
+              </p>
             </>
           ) : (
             <p className="message-info">{user?.display_name} is not currently clocked in</p>
