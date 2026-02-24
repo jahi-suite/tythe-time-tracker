@@ -1,7 +1,7 @@
 [build]
   base = "tt-ts"
   command = "npm run build:client"
-  publish = "dist"
+  publish = "tt-ts/dist"
   functions = "netlify/functions"
 
 [functions]
