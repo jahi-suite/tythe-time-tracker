@@ -69,7 +69,14 @@ router.post('/login', loginRateLimit, async (req, res) => {
       return
     }
     req.session!.user = user
-    res.json(user)
+    // Ensure the session is persisted before the client follows up with /me.
+    req.session!.save((saveErr: Error | null) => {
+      if (saveErr) {
+        res.status(500).json({ error: 'Login failed' })
+        return
+      }
+      res.json(user)
+    })
   })
 })
 
