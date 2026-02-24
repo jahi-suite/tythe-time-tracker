@@ -43,6 +43,28 @@ export async function authenticateUser(username: string, password: string): Prom
   }
 }
 
+export async function getAuthUserById(id: string): Promise<AuthUser | null> {
+  const res = await query<{
+    id: string
+    username: string
+    role: string
+    display_name: string
+  }>(
+    `SELECT id, username, role, display_name
+     FROM ${DB.USERS_TABLE}
+     WHERE id = $1 AND active = true`,
+    [id]
+  )
+  const row = res.rows[0]
+  if (!row) return null
+  return {
+    id: row.id,
+    username: row.username,
+    role: row.role as AuthUser['role'],
+    display_name: row.display_name,
+  }
+}
+
 export async function createUser(
   username: string,
   password: string,

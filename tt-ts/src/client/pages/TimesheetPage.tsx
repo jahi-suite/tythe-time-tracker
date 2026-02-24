@@ -4,6 +4,7 @@ import { timesheet } from '../api'
 
 export function TimesheetPage() {
   const { user } = useAuth()
+  const displayName = user?.display_name || user?.username || 'Unknown user'
   const [entries, setEntries] = useState<Array<{ id: string; clock_in: string; clock_out: string | null; pay_rate_type: string }>>([])
 
   useEffect(() => {
@@ -41,7 +42,7 @@ export function TimesheetPage() {
     <div className="page page-dashboard timesheet-dashboard">
       <h2>Personal Timesheet</h2>
       <div className="card">
-        <p>Showing timesheet for: <strong>{user?.display_name}</strong></p>
+        <p>Showing timesheet for: <strong>{displayName}</strong></p>
       </div>
       <div className="stat-cards">
         <div className="stat-card">
@@ -64,7 +65,7 @@ export function TimesheetPage() {
       {entries.length > 0 ? (
         <div className="cards-grid">
           <div className="card timesheet-table-card">
-            <h3>Timesheet for {user?.display_name}</h3>
+            <h3>Timesheet for {displayName}</h3>
             <div className="timesheet-table-wrap">
               <table className="timesheet-table">
                 <thead>
@@ -105,7 +106,7 @@ export function TimesheetPage() {
         </div>
       ) : (
         <div className="card">
-          <p className="message-info">No time entries found for {user?.display_name}</p>
+          <p className="message-info">No time entries found for {displayName}</p>
         </div>
       )}
     </div>

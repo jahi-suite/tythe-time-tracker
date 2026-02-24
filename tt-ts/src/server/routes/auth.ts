@@ -88,13 +88,22 @@ router.post('/logout', (req, res) => {
   })
 })
 
-router.get('/me', (req, res) => {
-  const user = req.session?.user
-  if (!user) {
+router.get('/me', async (req, res) => {
+  const sessionUser = req.session?.user
+  if (!sessionUser) {
     res.status(401).json({ error: 'Not authenticated' })
     return
   }
-  res.json(user)
+  const freshUser = await auth.getAuthUserById(sessionUser.id)
+  if (!freshUser) {
+    await new Promise<void>((resolve) => {
+      req.session?.destroy(() => resolve())
+    })
+    res.status(401).json({ error: 'Not authenticated' })
+    return
+  }
+  req.session!.user = freshUser
+  res.json(freshUser)
 })
 
 router.post('/change-password', authMutationRateLimit, requireAuth, async (req, res) => {

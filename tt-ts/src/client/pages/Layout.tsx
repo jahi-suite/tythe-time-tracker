@@ -12,6 +12,7 @@ export function Layout() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordError, setPasswordError] = useState('')
   const [passwordSuccess, setPasswordSuccess] = useState('')
+  const displayName = user?.display_name || user?.username || 'Unknown user'
 
   const isManager = user?.role === 'manager' || user?.role === 'admin'
   const pages = [
@@ -64,7 +65,7 @@ export function Layout() {
       </header>
       <nav className="sidebar">
         <p className="user-info">
-          <strong>Logged in as:</strong> {user?.display_name} ({user?.role})
+          <strong>Logged in as:</strong> {displayName} ({user?.role})
         </p>
         <button onClick={handleLogout} className="btn-secondary">
           Logout

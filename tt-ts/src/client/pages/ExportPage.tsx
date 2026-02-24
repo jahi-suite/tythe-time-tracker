@@ -4,6 +4,7 @@ import { exportExcelUrl, exportPdfUrl } from '../api'
 
 export function ExportPage() {
   const { user } = useAuth()
+  const displayName = user?.display_name || user?.username || 'Unknown user'
   const isManager = user?.role === 'manager' || user?.role === 'admin'
   const [employee, setEmployee] = useState('')
   const [start, setStart] = useState('')
@@ -104,7 +105,7 @@ export function ExportPage() {
       </div>
       <div className="card">
         <h3>Current Selection</h3>
-        <p><strong>Employee:</strong> {isManager ? (employee || 'All employees') : user?.display_name}</p>
+        <p><strong>Employee:</strong> {isManager ? (employee || 'All employees') : displayName}</p>
         <p><strong>Start date:</strong> {start || 'Any'}</p>
         <p><strong>End date:</strong> {end || 'Any'}</p>
         <p><strong>Formats:</strong> Excel, PDF</p>

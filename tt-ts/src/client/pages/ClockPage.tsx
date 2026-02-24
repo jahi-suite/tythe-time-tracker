@@ -4,6 +4,7 @@ import { clock } from '../api'
 
 export function ClockPage() {
   const { user } = useAuth()
+  const displayName = user?.display_name || user?.username || 'Unknown user'
   const [openShift, setOpenShift] = useState<{ id: string; clock_in: string; pay_rate_type: string } | null>(null)
   const [isSupervisor, setIsSupervisor] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
@@ -25,7 +26,7 @@ export function ClockPage() {
     setMessage(null)
     try {
       await clock.in(isSupervisor)
-      setMessage({ type: 'success', text: `${user?.display_name} clocked in successfully` })
+      setMessage({ type: 'success', text: `${displayName} clocked in successfully` })
       loadOpenShift()
     } catch (err) {
       setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Clock in failed' })
@@ -36,7 +37,7 @@ export function ClockPage() {
     setMessage(null)
     try {
       await clock.out()
-      setMessage({ type: 'success', text: `${user?.display_name} clocked out successfully` })
+      setMessage({ type: 'success', text: `${displayName} clocked out successfully` })
       loadOpenShift()
     } catch (err) {
       setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Clock out failed' })
@@ -52,7 +53,7 @@ export function ClockPage() {
     <div className="page page-dashboard">
       <h2>Employee Clock In/Out</h2>
       <div className="card">
-        <p>Clocking in/out as: <strong>{user?.display_name}</strong></p>
+        <p>Clocking in/out as: <strong>{displayName}</strong></p>
       </div>
       <div className="stat-cards">
         <div className="stat-card">
@@ -97,7 +98,7 @@ export function ClockPage() {
           </p>
           {openShift ? (
             <>
-              <p className="message-success">{user?.display_name} is currently clocked in</p>
+              <p className="message-success">{displayName} is currently clocked in</p>
               <p>Clocked in at: {bstTime} BST</p>
               <p>
                 Pay Rate:{' '}
@@ -105,7 +106,7 @@ export function ClockPage() {
               </p>
             </>
           ) : (
-            <p className="message-info">{user?.display_name} is not currently clocked in</p>
+            <p className="message-info">{displayName} is not currently clocked in</p>
           )}
         </div>
       </div>

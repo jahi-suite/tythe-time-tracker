@@ -837,7 +837,7 @@ export function ManagerPage() {
     <div className="page">
       <h2>Manager Dashboard</h2>
       <div className="card">
-        <p className="message-success">Logged in as {user?.display_name}</p>
+        <p className="message-success">Logged in as {user?.display_name || user?.username || 'Unknown user'}</p>
       </div>
       <div className="tabs">
         <button onClick={() => setTab('entries')} className={tab === 'entries' ? 'active' : ''}>
