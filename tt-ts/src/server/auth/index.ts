@@ -28,7 +28,8 @@ export async function authenticateUser(username: string, password: string): Prom
     role: string
     display_name: string
   }>(
-    `SELECT id, username, password_hash, role, display_name
+    `SELECT id, username, password_hash, role,
+       COALESCE(NULLIF(TRIM(display_name), ''), username, 'User') AS display_name
      FROM ${DB.USERS_TABLE}
      WHERE LOWER(TRIM(username)) = LOWER($1) AND active = true`,
     [username.trim()]
@@ -50,14 +51,15 @@ export async function getAuthUserById(id: string): Promise<AuthUser | null> {
     role: string
     display_name: string
   }>(
-    `SELECT id, username, role, display_name
+    `SELECT id, username, role,
+       COALESCE(NULLIF(TRIM(display_name), ''), username, 'User') AS display_name
      FROM ${DB.USERS_TABLE}
      WHERE id = $1 AND active = true`,
     [id]
   )
   const row = res.rows[0]
   if (!row) return null
-  if (!row.display_name?.trim() || !row.username?.trim()) return null
+  if (!row.username?.trim()) return null
   return {
     id: row.id,
     username: row.username,
