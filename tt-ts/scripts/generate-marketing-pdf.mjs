@@ -140,7 +140,10 @@ const copy = {
   },
 }
 
-const doc = new PDFDocument({ size: 'A4', margin: 42 })
+const doc = new PDFDocument({
+  size: 'A4',
+  margins: { top: 42, right: 42, bottom: 0, left: 42 },
+})
 const stream = createWriteStream(outPath)
 doc.pipe(stream)
 
@@ -173,9 +176,9 @@ function pageChrome(pageTitle, pageNo) {
   doc.rect(0, 0, w, 10).fill(palette.amber)
   doc.rect(0, h - 28, w, 28).fill('#0b1220')
   doc.font('Helvetica').fontSize(9).fillColor(palette.haze)
-  doc.text('Employee Portal - The Tythe Barn', 42, h - 18, { width: 240 })
-  doc.text(pageTitle, 42 + 240, h - 18, { width: 180, align: 'center' })
-  doc.text(String(pageNo), w - 70, h - 18, { width: 28, align: 'right' })
+  doc.text('Employee Portal - The Tythe Barn', 42, h - 18, { width: 240, lineBreak: false })
+  doc.text(pageTitle, 42 + 240, h - 18, { width: 180, align: 'center', lineBreak: false })
+  doc.text(String(pageNo), w - 70, h - 18, { width: 28, align: 'right', lineBreak: false })
   doc.restore()
 }
 
