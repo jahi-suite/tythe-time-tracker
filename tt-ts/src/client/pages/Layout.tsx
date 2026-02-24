@@ -1,3 +1,4 @@
+// deploy trigger: ensures Netlify runs full build after display name fix
 import React, { useState } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
@@ -12,7 +13,7 @@ export function Layout() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordError, setPasswordError] = useState('')
   const [passwordSuccess, setPasswordSuccess] = useState('')
-  const displayName = user?.display_name || user?.username || 'Unknown user'
+  const displayName = (user?.display_name?.trim() || user?.username?.trim() || 'User').trim() || 'User'
 
   const isManager = user?.role === 'manager' || user?.role === 'admin'
   const pages = [

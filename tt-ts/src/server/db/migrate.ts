@@ -53,7 +53,7 @@ export async function runMigrations(): Promise<void> {
     // Fix users with empty display_name (prevents "Unknown user")
     const fixUsers = await client.query(
       `UPDATE ${DB.USERS_TABLE}
-       SET display_name = COALESCE(NULLIF(TRIM(username), ''), 'User')
+       SET display_name = COALESCE(NULLIF(TRIM(display_name), ''), NULLIF(TRIM(username), ''), 'User')
        WHERE display_name IS NULL OR TRIM(display_name) = ''`
     )
     if (fixUsers.rowCount && fixUsers.rowCount > 0) {
