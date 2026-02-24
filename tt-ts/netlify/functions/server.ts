@@ -12,7 +12,35 @@ async function getApp() {
   return appPromise
 }
 
+function isDebugOrHealthPath(ev: unknown): boolean {
+  const e = ev as { path?: string; rawUrl?: string }
+  const path = e.path ?? e.rawUrl ?? ''
+  return path.includes('/api/debug') || path.includes('/api/health')
+}
+
+function jsonResponse(statusCode: number, body: object) {
+  return {
+    statusCode,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  }
+}
+
 export const handler = async (event: unknown, context: unknown) => {
-  const app = await getApp()
-  return serverless(app)(event as never, context as never)
+  try {
+    const app = await getApp()
+    return serverless(app)(event as never, context as never)
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    const stack = err instanceof Error ? err.stack : undefined
+    console.error('[handler] startup failed:', msg, stack)
+    if (isDebugOrHealthPath(event)) {
+      return jsonResponse(200, {
+        error: 'startup_failed',
+        message: msg,
+        hint: 'Check Netlify env: SESSION_SECRET, SUPABASE_* (use port 6543 for pooler), NODE_ENV=production',
+      })
+    }
+    return jsonResponse(502, { error: 'Service unavailable' })
+  }
 }

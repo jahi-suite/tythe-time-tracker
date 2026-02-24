@@ -26,10 +26,6 @@ const sessionSecret = process.env.SESSION_SECRET?.trim()
 const sessionStoreMode = (process.env.SESSION_STORE?.trim().toLowerCase() ||
   (isProduction ? 'pg' : 'memory')) as 'memory' | 'pg' | 'redis'
 
-if (isProduction && !sessionSecret) {
-  throw new Error('SESSION_SECRET is required when NODE_ENV=production')
-}
-
 async function createSessionStore(): Promise<session.Store | undefined> {
   if (sessionStoreMode === 'memory') {
     return undefined
@@ -147,6 +143,10 @@ export async function createApp() {
       startupError: startupError,
     })
   })
+
+  if (isProduction && !sessionSecret) {
+    throw new Error('SESSION_SECRET is required when NODE_ENV=production')
+  }
 
   let store: session.Store | undefined
   try {
