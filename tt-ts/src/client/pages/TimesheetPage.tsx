@@ -27,40 +27,81 @@ export function TimesheetPage() {
     }
   }
 
+  const closedEntries = entries.filter((e) => !!e.clock_out)
+  const openEntries = entries.length - closedEntries.length
+  const totalHours = closedEntries
+    .reduce((sum, e) => {
+      if (!e.clock_out) return sum
+      return sum + (new Date(e.clock_out).getTime() - new Date(e.clock_in).getTime()) / 3600000
+    }, 0)
+    .toFixed(2)
+  const payRateTypes = new Set(entries.map((e) => e.pay_rate_type)).size
+
   return (
-    <div className="page">
+    <div className="page page-dashboard timesheet-dashboard">
       <h2>Personal Timesheet</h2>
       <div className="card">
         <p>Showing timesheet for: <strong>{user?.display_name}</strong></p>
       </div>
+      <div className="stat-cards">
+        <div className="stat-card">
+          <span className="stat-value">{entries.length}</span>
+          <span className="stat-label">Entries</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-value">{openEntries}</span>
+          <span className="stat-label">Open Shifts</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-value">{totalHours}h</span>
+          <span className="stat-label">Logged Hours</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-value">{payRateTypes || 0}</span>
+          <span className="stat-label">Pay Rates Used</span>
+        </div>
+      </div>
       {entries.length > 0 ? (
-        <div className="card">
-          <h3>Timesheet for {user?.display_name}</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Clock-In</th>
-                <th>Clock-Out</th>
-                <th>Duration</th>
-                <th>Pay Rate</th>
-              </tr>
-            </thead>
-            <tbody>
-              {entries.map((e) => {
-                const r = formatRow(e)
-                return (
-                  <tr key={e.id}>
-                    <td>{r.date}</td>
-                    <td>{r.clockIn}</td>
-                    <td>{r.clockOut}</td>
-                    <td>{r.duration}</td>
-                    <td>{r.payRate}</td>
+        <div className="cards-grid">
+          <div className="card timesheet-table-card">
+            <h3>Timesheet for {user?.display_name}</h3>
+            <div className="timesheet-table-wrap">
+              <table className="timesheet-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Clock-In</th>
+                    <th>Clock-Out</th>
+                    <th>Duration</th>
+                    <th>Status</th>
+                    <th>Pay Rate</th>
                   </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                </thead>
+                <tbody>
+                  {entries.map((e) => {
+                    const r = formatRow(e)
+                    const isOpen = !e.clock_out
+                    return (
+                      <tr key={e.id}>
+                        <td>{r.date}</td>
+                        <td>{r.clockIn}</td>
+                        <td>{r.clockOut}</td>
+                        <td>{r.duration}</td>
+                        <td>
+                          <span className={`badge ${isOpen ? 'badge-status-active' : 'badge-status-inactive'}`}>
+                            {isOpen ? 'Open' : 'Closed'}
+                          </span>
+                        </td>
+                        <td>
+                          <span className="badge timesheet-pay-rate-badge">{r.payRate}</span>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       ) : (
         <div className="card">

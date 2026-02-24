@@ -603,6 +603,48 @@ tbody tr:last-child td { border-bottom: 0; }
   padding: 0.4rem 0.75rem;
 }
 
+.timesheet-dashboard .stat-card {
+  text-align: left;
+}
+
+.timesheet-table-card {
+  overflow: hidden;
+}
+
+.timesheet-table-wrap {
+  margin-top: 0.75rem;
+  border: 1px solid var(--tt-border);
+  border-radius: 10px;
+  overflow: auto;
+  background: #fff;
+}
+
+.timesheet-table {
+  border: 0;
+  border-radius: 0;
+  min-width: 720px;
+}
+
+.timesheet-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.timesheet-table tbody tr:nth-child(even) {
+  background: #fbfdff;
+}
+
+.timesheet-table tbody tr:hover {
+  background: #f4f8fc;
+}
+
+.timesheet-pay-rate-badge {
+  background: var(--tt-surface-subtle);
+  color: var(--tt-primary-dark);
+  border: 1px solid #bfd0e2;
+}
+
 @media (max-width: 768px) {
   .app-layout { grid-template-columns: 1fr; }
   .app-layout nav.sidebar { border-right: none; border-bottom: 1px solid var(--tt-border); }
@@ -619,6 +661,12 @@ tbody tr:last-child td { border-bottom: 0; }
     -webkit-overflow-scrolling: touch;
   }
   th, td { white-space: nowrap; }
+  .timesheet-table-wrap {
+    margin-top: 0.5rem;
+  }
+  .timesheet-table {
+    min-width: 680px;
+  }
   .footer {
     padding: 0.9rem 0.75rem 1rem;
   }
