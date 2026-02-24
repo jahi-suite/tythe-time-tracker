@@ -150,7 +150,7 @@ def split_shift_by_rate(clock_in, clock_out, is_supervisor):
     }
 
 def apply_break_deduction(split):
-    """Apply a 20-minute unpaid break for 6h+ shifts, never reducing Enhanced hours."""
+    """Apply a 20-minute unpaid break for 6h+ shifts to the majority rate bucket."""
     adjusted = {
         'Standard': round(float(split.get('Standard', 0) or 0), 2),
         'Enhanced': round(float(split.get('Enhanced', 0) or 0), 2),
@@ -162,14 +162,16 @@ def apply_break_deduction(split):
         return adjusted
 
     break_hours = 20 / 60
+    order = ['Standard', 'Enhanced', 'Supervisor']
+    majority = 'Standard'
+    max_hours = adjusted['Standard']
 
-    standard_deduction = min(adjusted['Standard'], break_hours)
-    adjusted['Standard'] -= standard_deduction
-    remaining_deduction = break_hours - standard_deduction
+    for key in order[1:]:
+        if adjusted[key] > max_hours:
+            majority = key
+            max_hours = adjusted[key]
 
-    if remaining_deduction > 0:
-        supervisor_deduction = min(adjusted['Supervisor'], remaining_deduction)
-        adjusted['Supervisor'] -= supervisor_deduction
+    adjusted[majority] -= min(adjusted[majority], break_hours)
 
     adjusted['Standard'] = round(adjusted['Standard'], 2)
     adjusted['Enhanced'] = round(adjusted['Enhanced'], 2)
