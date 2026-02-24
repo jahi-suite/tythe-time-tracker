@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-# Ralph loop for: tt-marketing-pdf-fix-cover-gap-20260224
-# Fix big gap on cover page between content and CTA bar
+# Ralph loop for: tt-netlify-fullstack-20260224
+# Netlify full-stack deployment (Express + frontend)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 . "$REPO_ROOT/ralph/lib.sh"
 
-TASK_ID="tt-marketing-pdf-fix-cover-gap-20260224"
+TASK_ID="tt-netlify-fullstack-20260224"
 TASK_DIR="docs/working-memory/open/$TASK_ID"
 PROMPT_FILE="$REPO_ROOT/ralph/prompts/$TASK_ID.md"
 
@@ -17,7 +17,7 @@ MAX_ITERATIONS="${RALPH_MAX_ITERATIONS:-15}"
 SLEEP="${RALPH_SLEEP:-3}"
 
 verify() {
-  "$REPO_ROOT/ralph/verify-tt-marketing-pdf-fix-cover-gap-20260224.sh"
+  "$REPO_ROOT/ralph/verify-tt-netlify-fullstack-20260224.sh"
 }
 
 info()  { echo -e "\033[1;34m[INFO]\033[0m $*"; }
@@ -25,12 +25,12 @@ ok()    { echo -e "\033[1;32m[ OK ]\033[0m $*"; }
 fail()  { echo -e "\033[1;31m[FAIL]\033[0m $*"; }
 
 info "Ralph loop: $TASK_ID | backend: $RALPH_BACKEND | max: $MAX_ITERATIONS"
-info "Fixing cover page gap in marketing PDF..."
+info "Configuring Netlify full-stack deployment..."
 ITERATION=0
 while [ $ITERATION -lt $MAX_ITERATIONS ]; do
   ITERATION=$((ITERATION + 1))
   if verify; then
-    ok "Marketing PDF cover gap fixed at iteration $ITERATION"
+    ok "Netlify full-stack config complete at iteration $ITERATION"
     exit 0
   fi
   PROMPT=$(sed "s|{{TASK_ID}}|$TASK_ID|g; s|{{TASK_DIR}}|$TASK_DIR|g" "$PROMPT_FILE")

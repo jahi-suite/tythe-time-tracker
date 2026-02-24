@@ -23,9 +23,9 @@ Implement the **next uncompleted story** from the plan. Do ONE story per iterati
 ## Break Rule Summary
 
 - 6+ hours worked → 20-minute unpaid break
-- Deduct from Standard first, then Supervisor. NEVER from Enhanced.
-- Mixed shifts: only Standard (and Supervisor if applicable) reduced.
-- Pure Enhanced: no deduction.
+- Deduct from the **majority** rate type (whichever of Standard, Enhanced, Supervisor has the most hours in that shift).
+- Mixed 4h Std + 3h Enh → deduct from Standard. Mixed 2h Std + 5h Enh → deduct from Enhanced.
+- Tie (e.g. 3h + 3h): deduct from Standard.
 
 ## Rules
 

@@ -30,8 +30,8 @@ if command -v pdfinfo &>/dev/null; then
 elif command -v pdftk &>/dev/null; then
   PAGES=$(pdftk "$PDF" dump_data 2>/dev/null | grep -oP 'NumberOfPages: \K\d+' || echo 0)
 else
-  # Fallback: grep for /Count in PDF - each page has a reference
-  PAGES=$(grep -c "/Type /Page" "$PDF" 2>/dev/null || echo 0)
+  # Fallback: count page objects, excluding the /Pages tree object
+  PAGES=$(strings "$PDF" 2>/dev/null | grep -Ec '/Type /Page($|[^s])' || echo 0)
 fi
 
 if [ "$PAGES" -eq 0 ]; then
