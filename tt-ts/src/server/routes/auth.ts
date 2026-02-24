@@ -57,17 +57,21 @@ router.post('/login', loginRateLimit, async (req, res) => {
     res.status(400).json({ error: 'Username and password required' })
     return
   }
+  console.error('[login] attempt username=', username)
   const user = await auth.authenticateUser(username, password)
   if (!user) {
+    console.error('[login] auth failed username=', username)
     res.status(401).json({ error: 'Invalid username or password' })
     return
   }
   req.session!.regenerate((err: Error | null) => {
     if (err) {
+      console.error('[login] session regenerate failed username=', username, 'err=', err?.message)
       res.status(500).json({ error: 'Login failed' })
       return
     }
     req.session!.user = user
+    console.error('[login] success username=', username)
     res.json(user)
   })
 })

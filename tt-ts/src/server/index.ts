@@ -152,6 +152,28 @@ export async function createApp() {
     }
   })
 
+  app.get("/api/debug", (req, res) => {
+    res.json({
+      env: {
+        hasSupabaseHost: !!process.env.SUPABASE_HOST,
+        hasSessionSecret: !!process.env.SESSION_SECRET,
+        nodeEnv: process.env.NODE_ENV,
+        supabasePort: Number.parseInt(process.env.SUPABASE_PORT ?? '', 10) || 0,
+      },
+      session: {
+        store: process.env.SESSION_STORE?.trim() || (isProduction ? 'pg' : 'memory'),
+        cookieSecure: process.env.NODE_ENV === 'production',
+        cookieSameSite: 'lax',
+      },
+      request: {
+        protocol: req.protocol,
+        host: req.get('host'),
+        origin: req.get('origin'),
+        forwardedProto: req.get('x-forwarded-proto'),
+      },
+    })
+  })
+
   app.use('/api', requireSameOriginForMutations)
 
   app.use('/api/auth', authRoutes)
