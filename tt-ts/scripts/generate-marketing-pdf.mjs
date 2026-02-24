@@ -152,7 +152,7 @@ function pageSize() {
 }
 
 function fullBleed(color) {
-  const { w } = pageSize()
+  const { w, h } = pageSize()
   doc.save()
   doc.rect(0, 0, w, h).fill(color)
   doc.restore()
