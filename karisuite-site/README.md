@@ -1,6 +1,6 @@
 # Kari Suite — Main site (karisuite.com)
 
-Static site for the Kari Suite homepage. Deploy to karisuite.com and www.karisuite.com.
+Static site for the Kari Suite homepage. Deploy to Cloud Run for karisuite.com and www.karisuite.com.
 
 - **index.html** — Home page
 - **privacy.html** — Privacy policy (links to Kari Time privacy for product details)
@@ -8,13 +8,32 @@ Static site for the Kari Suite homepage. Deploy to karisuite.com and www.karisui
 
 Kari Time (the app) stays at time.karisuite.com — unchanged.
 
-## Deployment
+## Deploy to Cloud Run
 
-Deploy the contents of this folder to any static host:
+### Option 1: One-time deploy (CLI)
 
-- **Google Cloud Storage** + Load Balancer
-- **Netlify** — drag and drop or connect repo
-- **Cloudflare Pages**
-- **Firebase Hosting**
+```bash
+./karisuite-site/deploy.sh
+```
 
-For www.karisuite.com, configure your DNS to point to this site. Ensure both karisuite.com and www.karisuite.com resolve to the same content.
+### Option 2: Deploy from repository (CI/CD)
+
+In Google Cloud Console → Cloud Run → **Deploy from repository**:
+
+1. Add a **second** trigger for the same repo
+2. **Build context**: `karisuite-site` (or path to this folder)
+3. **Dockerfile path**: `karisuite-site/Dockerfile`
+4. **Service name**: `karisuite-site`
+5. **Region**: `europe-west2`
+
+Push to main will then deploy both the Kari Time app and the Kari Suite site.
+
+### Domain mapping
+
+After deploy, map karisuite.com and www.karisuite.com to the `karisuite-site` service:
+
+- Cloud Run → Domain mappings → Add mapping
+- Add `karisuite.com` and `www.karisuite.com`
+- Update DNS with the records Cloud Run provides (A/AAAA, not ghs.googlehosted.com)
+
+**Live URL**: https://karisuite-site-144765655694.europe-west2.run.app
