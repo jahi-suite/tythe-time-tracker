@@ -1181,13 +1181,26 @@ export function ManagerPage() {
       {tab === 'audit' && (
         <div className="card">
           <h3>Audit Log</h3>
-          <ul>
-            {auditLogs.map((l) => (
-              <li key={l.id}>
-                {l.action} by {l.changed_by} at {new Date(l.created_at).toLocaleString()}
-              </li>
-            ))}
-          </ul>
+          {auditLogs.length === 0 ? (
+            <p className="caption">No audit log entries found.</p>
+          ) : (
+            <div className="cards-grid manager-audit-grid">
+              {auditLogs.map((l) => (
+                <article key={l.id} className="audit-card">
+                  <div className="audit-card-header">
+                    <div>
+                      <h4 className="audit-card-title">{formatDateTimeInLondon(l.created_at)}</h4>
+                      <p className="audit-card-meta">By {l.changed_by}</p>
+                    </div>
+                    <span className="badge badge-entry-id" title={l.id}>
+                      Log: {l.id}
+                    </span>
+                  </div>
+                  <p className="audit-card-action">{l.action}</p>
+                </article>
+              ))}
+            </div>
+          )}
         </div>
       )}
       {tab === 'edit' && (

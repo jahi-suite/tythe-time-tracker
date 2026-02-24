@@ -625,6 +625,10 @@ tbody tr:last-child td { border-bottom: 0; }
   margin-top: 0.75rem;
 }
 
+.manager-audit-grid {
+  margin-top: 0.75rem;
+}
+
 .shift-card,
 .audit-card {
   border: 1px solid var(--tt-border);
@@ -638,6 +642,34 @@ tbody tr:last-child td { border-bottom: 0; }
 .shift-card:hover,
 .audit-card:hover {
   box-shadow: var(--tt-card-shadow-hover);
+}
+
+.audit-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.audit-card-title {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--tt-text);
+}
+
+.audit-card-meta {
+  margin: 0.35rem 0 0;
+  color: var(--tt-text-muted);
+  font-size: 0.9rem;
+}
+
+.audit-card-action {
+  margin: 0.85rem 0 0;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--tt-border);
+  color: var(--tt-text);
+  line-height: 1.4;
+  word-break: break-word;
 }
 
 .shift-card-header {
