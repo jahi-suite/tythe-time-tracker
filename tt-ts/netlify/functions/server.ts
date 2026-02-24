@@ -1,14 +1,12 @@
 import serverless from 'serverless-http'
 
-import { createApp } from '../../src/server/index.js'
-
-let appPromise: ReturnType<typeof createApp> | null = null
+let appPromise: Promise<Awaited<ReturnType<typeof import('../../src/server/index.js')['createApp']>>> | null = null
 
 async function getApp() {
   if (!appPromise) {
+    const { createApp } = await import('../../src/server/index.js')
     appPromise = createApp()
   }
-
   return appPromise
 }
 
