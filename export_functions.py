@@ -443,6 +443,11 @@ def export_to_pdf(entries, filename="timesheet_export.pdf"):
     """
     summary_para = Paragraph(summary_text, styles['Normal'])
     story.append(summary_para)
+    break_note_para = Paragraph(
+        "20 minutes unpaid break deducted for shifts of 6+ hours (deducted from majority rate type).",
+        styles['Normal'],
+    )
+    story.append(break_note_para)
     story.append(Spacer(1, 20))
     
     # Sort entries by employee and clock_in
@@ -491,7 +496,7 @@ def export_to_pdf(entries, filename="timesheet_export.pdf"):
         story.append(Spacer(1, 8))
         
         # Individual shifts for this staff member
-        shift_rows = [["Date", "Clock-In", "Clock-Out", "Standard", "Enhanced", "Supervisor", "Total", "Type"]]
+        shift_rows = [["Date", "Clock-In", "Clock-Out", "Standard", "Enhanced", "Supervisor", "Total", "Break Deducted", "Type"]]
         for entry in entries_sorted:
             # Handle both TimeEntry objects and tuples for backward compatibility
             if hasattr(entry, 'employee'):
@@ -506,9 +511,10 @@ def export_to_pdf(entries, filename="timesheet_export.pdf"):
             
             if emp.strip().lower() == employee.strip().lower():
                 is_supervisor = (pay_rate_type == 'Supervisor')
-                split = apply_break_deduction(
-                    split_shift_by_rate(clock_in, clock_out, is_supervisor)
-                )
+                gross_split = split_shift_by_rate(clock_in, clock_out, is_supervisor)
+                split = apply_break_deduction(gross_split)
+                gross_total_hours = round(sum(gross_split.values()), 2)
+                break_deducted = "20 min" if gross_total_hours >= 6 else "—"
                 if is_supervisor:
                     shift_display = f"Supervisor ({split['Supervisor']}h)"
                 elif split['Standard'] > 0 and split['Enhanced'] > 0:
@@ -525,6 +531,7 @@ def export_to_pdf(entries, filename="timesheet_export.pdf"):
                     str(split['Enhanced']),
                     str(split['Supervisor']),
                     str(sum(split.values())),
+                    break_deducted,
                     shift_display
                 ])
         if len(shift_rows) > 1:
