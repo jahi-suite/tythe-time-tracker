@@ -1,6 +1,6 @@
 # Copy values from tt-ts/.env into Netlify.
 # For serverless: use SUPABASE_PORT=6543 (pooler) not 5432.
-# Add NODE_ENV=production.
+# Add NODE_ENV=production and SESSION_STORE=pg (required for persistent sessions on Netlify).
 
 SUPABASE_HOST=
 SUPABASE_DATABASE=postgres
@@ -9,3 +9,4 @@ SUPABASE_PASSWORD=
 SUPABASE_PORT=6543
 SESSION_SECRET=
 NODE_ENV=production
+SESSION_STORE=pg

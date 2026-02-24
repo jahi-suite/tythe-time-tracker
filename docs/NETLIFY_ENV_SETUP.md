@@ -13,6 +13,7 @@ Copy these from your `tt-ts/.env` into Netlify **Site configuration → Environm
 | `SUPABASE_PORT` | **Use `6543`** | Serverless needs pooler (transaction mode). Override your local 5432. |
 | `SESSION_SECRET` | Your `.env` | Same as local |
 | `NODE_ENV` | **Add this** | Set to `production` |
+| `SESSION_STORE` | **Add this** | Set to `pg` so sessions persist across serverless invocations |
 
 ## Quick import
 
@@ -21,4 +22,5 @@ Copy these from your `tt-ts/.env` into Netlify **Site configuration → Environm
 3. In Netlify: **Add a variable** → **Import from .env** → paste
 4. Edit `SUPABASE_PORT` to `6543` (if it was 5432)
 5. Add `NODE_ENV` = `production`
-6. Save and redeploy
+6. Add `SESSION_STORE` = `pg`
+7. Save and redeploy
