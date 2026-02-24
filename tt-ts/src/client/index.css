@@ -288,6 +288,8 @@ button:disabled {
 .btn-primary:hover:not(:disabled) { background: var(--tt-primary-dark); border-color: var(--tt-primary-dark); }
 .btn-secondary { background: #f4f7fb; color: var(--tt-primary); padding: 0.5rem 1rem; border: 1px solid #9fb8d1; border-radius: 8px; cursor: pointer; }
 .btn-secondary:hover:not(:disabled) { background: #eaf1f8; border-color: #86a8c8; }
+.btn-danger { background: #dc2626; color: #fff; padding: 0.5rem 1rem; border: 1px solid #b91c1c; border-radius: 8px; cursor: pointer; }
+.btn-danger:hover:not(:disabled) { background: #b91c1c; border-color: #991b1b; }
 
 label { display: block; margin-bottom: 0.5rem; }
 label input, label select { margin-top: 0.35rem; margin-left: 0; }
@@ -410,6 +412,180 @@ tbody tr:last-child td { border-bottom: 0; }
 .sidebar-nav-link:focus-visible {
   outline: 2px solid #86acd4;
   outline-offset: 2px;
+}
+
+/* Manage Users Dashboard */
+.manage-users-dashboard {
+  padding: 0;
+}
+
+.manage-users-stats .stat-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.stat-card {
+  padding: 1rem;
+  background: #f8fafc;
+  border: 1px solid var(--tt-border);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.stat-value {
+  display: block;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--tt-primary-dark);
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--tt-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.manage-users-toolbar {
+  display: flex;
+  gap: 1rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+
+.manage-users-search {
+  flex: 1;
+  min-width: 200px;
+  max-width: 320px;
+}
+
+.manage-users-filter {
+  min-width: 140px;
+}
+
+.manage-users-section {
+  margin-top: 1.25rem;
+}
+
+.manage-users-section summary {
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin-bottom: 1rem;
+  color: var(--tt-primary-dark);
+}
+
+.user-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.user-card {
+  border: 1px solid var(--tt-border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(22, 58, 92, 0.05);
+  transition: box-shadow 180ms ease;
+}
+
+.user-card:hover {
+  box-shadow: 0 4px 14px rgba(22, 58, 92, 0.1);
+}
+
+.user-card-header {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.user-card-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--tt-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.user-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-card-name {
+  margin: 0 0 0.2rem 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--tt-text);
+}
+
+.user-card-username {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--tt-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.user-card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 999px;
+  text-transform: capitalize;
+}
+
+.badge-role-admin { background: #2563eb; color: #fff; }
+.badge-role-manager { background: #7c3aed; color: #fff; }
+.badge-role-employee { background: #64748b; color: #fff; }
+.badge-status-active { background: #16a34a; color: #fff; }
+.badge-status-inactive { background: #dc2626; color: #fff; }
+
+.user-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--tt-border);
+}
+
+.user-card-edit-form {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid var(--tt-border);
+}
+
+.user-card-pay-rates {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid var(--tt-border);
+}
+
+.btn-pay-rates {
+  font-size: 0.9rem;
+  padding: 0.4rem 0.75rem;
 }
 
 @media (max-width: 768px) {

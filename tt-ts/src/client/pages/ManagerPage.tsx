@@ -61,6 +61,259 @@ const DEFAULT_EDIT_USER_FORM: EditUserFormState = {
   role: 'employee',
 }
 
+function UserCard({
+  u,
+  isCurrentUser,
+  editUserId,
+  editUserForm,
+  setEditUserForm,
+  userPayRatesForms,
+  setUserPayRatesForms,
+  userPayRatesError,
+  userPayRatesSuccess,
+  userPayRatesSubmittingId,
+  payRatesExpanded,
+  setPayRatesExpanded,
+  userStatusSubmittingId,
+  editUserSubmitting,
+  editUserError,
+  setEditUserError,
+  editUserSuccess,
+  setEditUserSuccess,
+  canPromoteAdmin,
+  getInitials,
+  onEditUserSubmit,
+  onCancelEditUser,
+  onOpenEditUser,
+  onUserStatusChange,
+  onUserPayRatesSave,
+  onUserListRefresh,
+}: {
+  u: ApiUser
+  isCurrentUser: boolean
+  editUserId: string | null
+  editUserForm: EditUserFormState
+  setEditUserForm: React.Dispatch<React.SetStateAction<EditUserFormState>>
+  userPayRatesForms: Record<string, UserPayRatesFormState>
+  setUserPayRatesForms: React.Dispatch<React.SetStateAction<Record<string, UserPayRatesFormState>>>
+  userPayRatesError: Record<string, string>
+  userPayRatesSuccess: Record<string, string>
+  userPayRatesSubmittingId: string | null
+  payRatesExpanded: Record<string, boolean>
+  setPayRatesExpanded: React.Dispatch<React.SetStateAction<Record<string, boolean>>>
+  userStatusSubmittingId: string | null
+  editUserSubmitting: boolean
+  editUserError: string
+  setEditUserError: React.Dispatch<React.SetStateAction<string>>
+  editUserSuccess: string
+  setEditUserSuccess: React.Dispatch<React.SetStateAction<string>>
+  canPromoteAdmin: boolean
+  getInitials: (name: string) => string
+  onEditUserSubmit: (e: React.FormEvent<HTMLFormElement>) => void
+  onCancelEditUser: () => void
+  onOpenEditUser: (target: { id: string; username: string; display_name: string; role: string }) => void
+  onUserStatusChange: (target: { id: string; display_name: string; username: string; active: boolean }) => void
+  onUserPayRatesSave: (target: ApiUser) => void
+  onUserListRefresh: () => void
+}) {
+  const isEditing = editUserId === u.id
+  const payRatesOpen = payRatesExpanded[u.id] ?? false
+
+  return (
+    <div className="user-card">
+      <div className="user-card-header">
+        <div className="user-card-avatar" title={u.display_name}>
+          {getInitials(u.display_name ?? '')}
+        </div>
+        <div className="user-card-info">
+          <h4 className="user-card-name">{u.display_name}{isCurrentUser ? ' (you)' : ''}</h4>
+          <span className="user-card-username">{u.username}</span>
+          <div className="user-card-badges">
+            <span className={`badge badge-role badge-role-${u.role}`}>{u.role}</span>
+            <span className={`badge badge-status badge-status-${u.active ? 'active' : 'inactive'}`}>
+              {u.active ? 'Active' : 'Inactive'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {isEditing && (
+        <form onSubmit={onEditUserSubmit} className="user-card-edit-form">
+          <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+            <label>
+              Username:
+              <input
+                type="text"
+                value={editUserForm.username}
+                onChange={(e) => setEditUserForm((prev) => ({ ...prev, username: e.target.value }))}
+                autoComplete="off"
+              />
+            </label>
+            <label>
+              Display Name:
+              <input
+                type="text"
+                value={editUserForm.displayName}
+                onChange={(e) => setEditUserForm((prev) => ({ ...prev, displayName: e.target.value }))}
+                autoComplete="off"
+              />
+            </label>
+            <label>
+              Role:
+              <select
+                value={editUserForm.role}
+                onChange={(e) =>
+                  setEditUserForm((prev) => ({
+                    ...prev,
+                    role: e.target.value as EditUserFormState['role'],
+                  }))
+                }
+              >
+                <option value="employee">employee</option>
+                <option value="manager">manager</option>
+                {canPromoteAdmin && <option value="admin">admin</option>}
+              </select>
+            </label>
+            <label>
+              New Password (optional):
+              <input
+                type="password"
+                value={editUserForm.password}
+                onChange={(e) => setEditUserForm((prev) => ({ ...prev, password: e.target.value }))}
+                placeholder="Leave blank to keep"
+                autoComplete="new-password"
+              />
+            </label>
+          </div>
+          {editUserError && <p className="message-error">{editUserError}</p>}
+          {editUserSuccess && <p className="message-success">{editUserSuccess}</p>}
+          <div className="btn-row">
+            <button type="submit" className="btn-primary" disabled={editUserSubmitting}>
+              {editUserSubmitting ? 'Saving...' : 'Save'}
+            </button>
+            <button type="button" className="btn-secondary" onClick={onCancelEditUser} disabled={editUserSubmitting}>
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+
+      <div className="user-card-actions">
+        {isCurrentUser ? (
+          <button type="button" className="btn-secondary" disabled title="Cannot edit your own user here">
+            Edit
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => {
+              setEditUserError('')
+              setEditUserSuccess('')
+              onOpenEditUser(u)
+            }}
+          >
+            {isEditing ? 'Editing' : 'Edit'}
+          </button>
+        )}
+        {!isCurrentUser && (
+          <button
+            type="button"
+            className="btn-danger"
+            onClick={() => onUserStatusChange(u)}
+            disabled={Boolean(userStatusSubmittingId)}
+            title={isCurrentUser ? 'Cannot deactivate your own user' : undefined}
+          >
+            {userStatusSubmittingId === u.id ? 'Saving...' : u.active ? 'Deactivate' : 'Activate'}
+          </button>
+        )}
+        <button
+          type="button"
+          className="btn-secondary btn-pay-rates"
+          onClick={() => setPayRatesExpanded((prev) => ({ ...prev, [u.id]: !prev[u.id] }))}
+        >
+          {payRatesOpen ? 'Hide Pay Rates' : 'View Pay Rates'}
+        </button>
+      </div>
+
+      {payRatesOpen && (
+        <div className="user-card-pay-rates">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              void onUserPayRatesSave(u)
+            }}
+          >
+            <div style={{ display: 'grid', gap: '0.75rem', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
+              <label>
+                Standard £/hr:
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={userPayRatesForms[u.id]?.standard ?? ''}
+                  onChange={(e) => {
+                    setUserPayRatesForms((prev) => ({
+                      ...prev,
+                      [u.id]: {
+                        ...(prev[u.id] ?? { standard: '', enhanced: '', supervisor: '' }),
+                        standard: e.target.value,
+                      },
+                    }))
+                  }}
+                />
+              </label>
+              <label>
+                Enhanced £/hr:
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={userPayRatesForms[u.id]?.enhanced ?? ''}
+                  onChange={(e) => {
+                    setUserPayRatesForms((prev) => ({
+                      ...prev,
+                      [u.id]: {
+                        ...(prev[u.id] ?? { standard: '', enhanced: '', supervisor: '' }),
+                        enhanced: e.target.value,
+                      },
+                    }))
+                  }}
+                />
+              </label>
+              <label>
+                Supervisor £/hr:
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={userPayRatesForms[u.id]?.supervisor ?? ''}
+                  onChange={(e) => {
+                    setUserPayRatesForms((prev) => ({
+                      ...prev,
+                      [u.id]: {
+                        ...(prev[u.id] ?? { standard: '', enhanced: '', supervisor: '' }),
+                        supervisor: e.target.value,
+                      },
+                    }))
+                  }}
+                />
+              </label>
+            </div>
+            {userPayRatesError[u.id] && <p className="message-error">{userPayRatesError[u.id]}</p>}
+            {userPayRatesSuccess[u.id] && <p className="message-success">{userPayRatesSuccess[u.id]}</p>}
+            <div className="btn-row">
+              <button type="submit" className="btn-secondary" disabled={Boolean(userPayRatesSubmittingId)}>
+                {userPayRatesSubmittingId === u.id ? 'Saving...' : 'Save Pay Rates'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function ManagerPage() {
   const { user } = useAuth()
   const [entries, setEntries] = useState<Array<{ id: string; employee: string; clock_in: string; clock_out: string | null; pay_rate_type: string }>>([])
@@ -101,6 +354,39 @@ export function ManagerPage() {
   const [userPayRatesError, setUserPayRatesError] = useState<Record<string, string>>({})
   const [userPayRatesSuccess, setUserPayRatesSuccess] = useState<Record<string, string>>({})
   const [userPayRatesSubmittingId, setUserPayRatesSubmittingId] = useState<string | null>(null)
+  const [userSearch, setUserSearch] = useState('')
+  const [userFilter, setUserFilter] = useState<'all' | 'admin' | 'employee' | 'active' | 'inactive'>('all')
+  const [payRatesExpanded, setPayRatesExpanded] = useState<Record<string, boolean>>({})
+
+  const getInitials = (displayName: string) => {
+    return displayName
+      .trim()
+      .split(/\s+/)
+      .map((w) => w[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase() || '?'
+  }
+
+  const filteredUsers = userList.filter((u) => {
+    const q = userSearch.trim().toLowerCase()
+    if (q) {
+      const matchName = u.display_name?.toLowerCase().includes(q)
+      const matchUser = u.username?.toLowerCase().includes(q)
+      if (!matchName && !matchUser) return false
+    }
+    if (userFilter === 'admin' && u.role !== 'admin') return false
+    if (userFilter === 'employee' && (u.role === 'admin' || u.role === 'manager')) return false
+    if (userFilter === 'active' && !u.active) return false
+    if (userFilter === 'inactive' && u.active) return false
+    return true
+  })
+
+  const adminUsers = filteredUsers.filter((u) => u.role === 'admin')
+  const teamUsers = filteredUsers.filter((u) => u.role !== 'admin')
+  const totalUsers = userList.length
+  const activeUsers = userList.filter((u) => u.active).length
+  const adminCount = userList.filter((u) => u.role === 'admin').length
 
   useEffect(() => {
     timesheet.getAll().then((d) => setEntries(d.entries)).catch(() => setEntries([]))
@@ -682,241 +968,193 @@ export function ManagerPage() {
         </div>
       )}
       {tab === 'users' && (
-        <div className="card">
-          <h3>Create New User</h3>
-          <form onSubmit={handleCreateUserSubmit}>
-            <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-              <label>
-                Username:
-                <input
-                  type="text"
-                  value={createUserForm.username}
-                  onChange={(e) => setCreateUserForm((prev) => ({ ...prev, username: e.target.value }))}
-                  placeholder="Username"
-                  autoComplete="off"
-                />
-              </label>
-              <label>
-                Display Name:
-                <input
-                  type="text"
-                  value={createUserForm.displayName}
-                  onChange={(e) => setCreateUserForm((prev) => ({ ...prev, displayName: e.target.value }))}
-                  placeholder="Display name"
-                  autoComplete="off"
-                />
-              </label>
-              <label>
-                Password:
-                <input
-                  type="password"
-                  value={createUserForm.password}
-                  onChange={(e) => setCreateUserForm((prev) => ({ ...prev, password: e.target.value }))}
-                  placeholder="Password"
-                  autoComplete="new-password"
-                />
-              </label>
-              <label>
-                Role:
-                <select
-                  value={createUserForm.role}
-                  onChange={(e) =>
-                    setCreateUserForm((prev) => ({
-                      ...prev,
-                      role: e.target.value as CreateUserFormState['role'],
-                    }))
-                  }
-                >
-                  <option value="employee">employee</option>
-                  <option value="manager">manager</option>
-                  {user?.role === 'admin' && <option value="admin">admin</option>}
-                </select>
-              </label>
-            </div>
-            {createUserError && <p className="message-error">{createUserError}</p>}
-            {createUserSuccess && <p className="message-success">{createUserSuccess}</p>}
-            <div className="btn-row">
-              <button type="submit" className="btn-primary" disabled={createUserSubmitting}>
-                {createUserSubmitting ? 'Creating...' : 'Create User'}
-              </button>
-            </div>
-          </form>
+        <div className="manage-users-dashboard">
+          <div className="card">
+            <h3>Create New User</h3>
+            <form onSubmit={handleCreateUserSubmit}>
+              <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+                <label>
+                  Username:
+                  <input
+                    type="text"
+                    value={createUserForm.username}
+                    onChange={(e) => setCreateUserForm((prev) => ({ ...prev, username: e.target.value }))}
+                    placeholder="Username"
+                    autoComplete="off"
+                  />
+                </label>
+                <label>
+                  Display Name:
+                  <input
+                    type="text"
+                    value={createUserForm.displayName}
+                    onChange={(e) => setCreateUserForm((prev) => ({ ...prev, displayName: e.target.value }))}
+                    placeholder="Display name"
+                    autoComplete="off"
+                  />
+                </label>
+                <label>
+                  Password:
+                  <input
+                    type="password"
+                    value={createUserForm.password}
+                    onChange={(e) => setCreateUserForm((prev) => ({ ...prev, password: e.target.value }))}
+                    placeholder="Password"
+                    autoComplete="new-password"
+                  />
+                </label>
+                <label>
+                  Role:
+                  <select
+                    value={createUserForm.role}
+                    onChange={(e) =>
+                      setCreateUserForm((prev) => ({
+                        ...prev,
+                        role: e.target.value as CreateUserFormState['role'],
+                      }))
+                    }
+                  >
+                    <option value="employee">employee</option>
+                    <option value="manager">manager</option>
+                    {user?.role === 'admin' && <option value="admin">admin</option>}
+                  </select>
+                </label>
+              </div>
+              {createUserError && <p className="message-error">{createUserError}</p>}
+              {createUserSuccess && <p className="message-success">{createUserSuccess}</p>}
+              <div className="btn-row">
+                <button type="submit" className="btn-primary" disabled={createUserSubmitting}>
+                  {createUserSubmitting ? 'Creating...' : 'Create User'}
+                </button>
+              </div>
+            </form>
+          </div>
 
-          <h3>All Users</h3>
-          {userStatusError && <p className="message-error">{userStatusError}</p>}
-          {userStatusSuccess && <p className="message-success">{userStatusSuccess}</p>}
-          <ul>
-            {userList.map((u) => (
-              <li key={u.id} style={{ marginBottom: '1rem' }}>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                  <span>
-                    {u.display_name} ({u.username}) — {u.role} — {u.active ? 'Active' : 'Inactive'}
-                    {user?.id === u.id ? ' (you)' : ''}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => handleUserStatusChange(u)}
-                    disabled={Boolean(userStatusSubmittingId) || user?.id === u.id}
-                    title={user?.id === u.id ? 'Cannot deactivate your own user here' : undefined}
-                  >
-                    {userStatusSubmittingId === u.id ? 'Saving...' : u.active ? 'Deactivate' : 'Activate'}
-                  </button>
-                  {user?.id === u.id ? (
-                    <button type="button" disabled title="Cannot edit your own user here">
-                      Edit
-                    </button>
-                  ) : (
-                    <button type="button" onClick={() => openEditUserForm(u)}>
-                      {editUserId === u.id ? 'Editing' : 'Edit'}
-                    </button>
-                  )}
+          <div className="card manage-users-stats">
+            <h3>Summary</h3>
+            <div className="stat-cards">
+              <div className="stat-card">
+                <span className="stat-value">{totalUsers}</span>
+                <span className="stat-label">Total Users</span>
+              </div>
+              <div className="stat-card">
+                <span className="stat-value">{activeUsers}</span>
+                <span className="stat-label">Active Users</span>
+              </div>
+              <div className="stat-card">
+                <span className="stat-value">{adminCount}</span>
+                <span className="stat-label">Admin Users</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="card">
+            <h3>All Users</h3>
+            <div className="manage-users-toolbar">
+              <input
+                type="search"
+                placeholder="Search by name or username..."
+                value={userSearch}
+                onChange={(e) => setUserSearch(e.target.value)}
+                className="manage-users-search"
+              />
+              <select
+                value={userFilter}
+                onChange={(e) => setUserFilter(e.target.value as typeof userFilter)}
+                className="manage-users-filter"
+              >
+                <option value="all">All</option>
+                <option value="admin">Admin</option>
+                <option value="employee">Employee</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            {userStatusError && <p className="message-error">{userStatusError}</p>}
+            {userStatusSuccess && <p className="message-success">{userStatusSuccess}</p>}
+
+            {adminUsers.length > 0 && (
+              <details open className="manage-users-section">
+                <summary>Administrators</summary>
+                <div className="user-cards-grid">
+                  {adminUsers.map((u) => (
+                    <UserCard
+                      key={u.id}
+                      u={u}
+                      isCurrentUser={user?.id === u.id}
+                      editUserId={editUserId}
+                      editUserForm={editUserForm}
+                      setEditUserForm={setEditUserForm}
+                      userPayRatesForms={userPayRatesForms}
+                      setUserPayRatesForms={setUserPayRatesForms}
+                      userPayRatesError={userPayRatesError}
+                      userPayRatesSuccess={userPayRatesSuccess}
+                      userPayRatesSubmittingId={userPayRatesSubmittingId}
+                      payRatesExpanded={payRatesExpanded}
+                      setPayRatesExpanded={setPayRatesExpanded}
+                      userStatusSubmittingId={userStatusSubmittingId}
+                      editUserSubmitting={editUserSubmitting}
+                      editUserError={editUserError}
+                      setEditUserError={setEditUserError}
+                      editUserSuccess={editUserSuccess}
+                      setEditUserSuccess={setEditUserSuccess}
+                      canPromoteAdmin={user?.role === 'admin'}
+                      getInitials={getInitials}
+                      onEditUserSubmit={handleEditUserSubmit}
+                      onCancelEditUser={cancelEditUserForm}
+                      onOpenEditUser={openEditUserForm}
+                      onUserStatusChange={handleUserStatusChange}
+                      onUserPayRatesSave={handleUserPayRatesSave}
+                      onUserListRefresh={() => users.list().then((d) => setUserList(d.users)).catch(() => setUserList([]))}
+                    />
+                  ))}
                 </div>
-                {editUserId === u.id && (
-                  <form onSubmit={handleEditUserSubmit} style={{ marginTop: '0.75rem' }}>
-                    <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-                      <label>
-                        Username:
-                        <input
-                          type="text"
-                          value={editUserForm.username}
-                          onChange={(e) => setEditUserForm((prev) => ({ ...prev, username: e.target.value }))}
-                          autoComplete="off"
-                        />
-                      </label>
-                      <label>
-                        Display Name:
-                        <input
-                          type="text"
-                          value={editUserForm.displayName}
-                          onChange={(e) => setEditUserForm((prev) => ({ ...prev, displayName: e.target.value }))}
-                          autoComplete="off"
-                        />
-                      </label>
-                      <label>
-                        Role:
-                        <select
-                          value={editUserForm.role}
-                          onChange={(e) =>
-                            setEditUserForm((prev) => ({
-                              ...prev,
-                              role: e.target.value as EditUserFormState['role'],
-                            }))
-                          }
-                        >
-                          <option value="employee">employee</option>
-                          <option value="manager">manager</option>
-                          {user?.role === 'admin' && <option value="admin">admin</option>}
-                        </select>
-                      </label>
-                      <label>
-                        New Password (optional):
-                        <input
-                          type="password"
-                          value={editUserForm.password}
-                          onChange={(e) => setEditUserForm((prev) => ({ ...prev, password: e.target.value }))}
-                          placeholder="Leave blank to keep current password"
-                          autoComplete="new-password"
-                        />
-                      </label>
-                    </div>
-                    {editUserError && <p className="message-error">{editUserError}</p>}
-                    {editUserSuccess && <p className="message-success">{editUserSuccess}</p>}
-                    <div className="btn-row">
-                      <button type="submit" className="btn-primary" disabled={editUserSubmitting}>
-                        {editUserSubmitting ? 'Saving...' : 'Save Changes'}
-                      </button>
-                      <button type="button" className="btn-secondary" onClick={cancelEditUserForm} disabled={editUserSubmitting}>
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                )}
-                <details style={{ marginTop: '0.75rem' }}>
-                  <summary>Pay rates — {u.display_name}</summary>
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault()
-                      void handleUserPayRatesSave(u)
-                    }}
-                    style={{ marginTop: '0.75rem' }}
-                  >
-                    <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
-                      <label>
-                        Standard £/hr:
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={userPayRatesForms[u.id]?.standard ?? ''}
-                          onChange={(e) => {
-                            const value = e.target.value
-                            setUserPayRatesForms((prev) => ({
-                              ...prev,
-                              [u.id]: {
-                                ...(prev[u.id] ?? { standard: '', enhanced: '', supervisor: '' }),
-                                standard: value,
-                              },
-                            }))
-                            setUserPayRatesError((prev) => ({ ...prev, [u.id]: '' }))
-                            setUserPayRatesSuccess((prev) => ({ ...prev, [u.id]: '' }))
-                          }}
-                        />
-                      </label>
-                      <label>
-                        Enhanced £/hr:
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={userPayRatesForms[u.id]?.enhanced ?? ''}
-                          onChange={(e) => {
-                            const value = e.target.value
-                            setUserPayRatesForms((prev) => ({
-                              ...prev,
-                              [u.id]: {
-                                ...(prev[u.id] ?? { standard: '', enhanced: '', supervisor: '' }),
-                                enhanced: value,
-                              },
-                            }))
-                            setUserPayRatesError((prev) => ({ ...prev, [u.id]: '' }))
-                            setUserPayRatesSuccess((prev) => ({ ...prev, [u.id]: '' }))
-                          }}
-                        />
-                      </label>
-                      <label>
-                        Supervisor £/hr:
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={userPayRatesForms[u.id]?.supervisor ?? ''}
-                          onChange={(e) => {
-                            const value = e.target.value
-                            setUserPayRatesForms((prev) => ({
-                              ...prev,
-                              [u.id]: {
-                                ...(prev[u.id] ?? { standard: '', enhanced: '', supervisor: '' }),
-                                supervisor: value,
-                              },
-                            }))
-                            setUserPayRatesError((prev) => ({ ...prev, [u.id]: '' }))
-                            setUserPayRatesSuccess((prev) => ({ ...prev, [u.id]: '' }))
-                          }}
-                        />
-                      </label>
-                    </div>
-                    {userPayRatesError[u.id] && <p className="message-error">{userPayRatesError[u.id]}</p>}
-                    {userPayRatesSuccess[u.id] && <p className="message-success">{userPayRatesSuccess[u.id]}</p>}
-                    <div className="btn-row">
-                      <button type="submit" className="btn-secondary" disabled={Boolean(userPayRatesSubmittingId)}>
-                        {userPayRatesSubmittingId === u.id ? 'Saving...' : 'Save Pay Rates'}
-                      </button>
-                    </div>
-                  </form>
-                </details>
-              </li>
-            ))}
-          </ul>
+              </details>
+            )}
+
+            {teamUsers.length > 0 && (
+              <details open={adminUsers.length === 0} className="manage-users-section">
+                <summary>Team Members</summary>
+                <div className="user-cards-grid">
+                  {teamUsers.map((u) => (
+                    <UserCard
+                      key={u.id}
+                      u={u}
+                      isCurrentUser={user?.id === u.id}
+                      editUserId={editUserId}
+                      editUserForm={editUserForm}
+                      setEditUserForm={setEditUserForm}
+                      userPayRatesForms={userPayRatesForms}
+                      setUserPayRatesForms={setUserPayRatesForms}
+                      userPayRatesError={userPayRatesError}
+                      userPayRatesSuccess={userPayRatesSuccess}
+                      userPayRatesSubmittingId={userPayRatesSubmittingId}
+                      payRatesExpanded={payRatesExpanded}
+                      setPayRatesExpanded={setPayRatesExpanded}
+                      userStatusSubmittingId={userStatusSubmittingId}
+                      editUserSubmitting={editUserSubmitting}
+                      editUserError={editUserError}
+                      setEditUserError={setEditUserError}
+                      editUserSuccess={editUserSuccess}
+                      setEditUserSuccess={setEditUserSuccess}
+                      canPromoteAdmin={user?.role === 'admin'}
+                      getInitials={getInitials}
+                      onEditUserSubmit={handleEditUserSubmit}
+                      onCancelEditUser={cancelEditUserForm}
+                      onOpenEditUser={openEditUserForm}
+                      onUserStatusChange={handleUserStatusChange}
+                      onUserPayRatesSave={handleUserPayRatesSave}
+                      onUserListRefresh={() => users.list().then((d) => setUserList(d.users)).catch(() => setUserList([]))}
+                    />
+                  ))}
+                </div>
+              </details>
+            )}
+
+            {filteredUsers.length === 0 && (
+              <p className="caption">No users match your search or filter.</p>
+            )}
+          </div>
         </div>
       )}
       {tab === 'audit' && (
