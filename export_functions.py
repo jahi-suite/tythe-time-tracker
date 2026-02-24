@@ -149,6 +149,33 @@ def split_shift_by_rate(clock_in, clock_out, is_supervisor):
         'Supervisor': 0
     }
 
+def apply_break_deduction(split):
+    """Apply a 20-minute unpaid break for 6h+ shifts, never reducing Enhanced hours."""
+    adjusted = {
+        'Standard': round(float(split.get('Standard', 0) or 0), 2),
+        'Enhanced': round(float(split.get('Enhanced', 0) or 0), 2),
+        'Supervisor': round(float(split.get('Supervisor', 0) or 0), 2),
+    }
+
+    total_hours = adjusted['Standard'] + adjusted['Enhanced'] + adjusted['Supervisor']
+    if total_hours < 6:
+        return adjusted
+
+    break_hours = 20 / 60
+
+    standard_deduction = min(adjusted['Standard'], break_hours)
+    adjusted['Standard'] -= standard_deduction
+    remaining_deduction = break_hours - standard_deduction
+
+    if remaining_deduction > 0:
+        supervisor_deduction = min(adjusted['Supervisor'], remaining_deduction)
+        adjusted['Supervisor'] -= supervisor_deduction
+
+    adjusted['Standard'] = round(adjusted['Standard'], 2)
+    adjusted['Enhanced'] = round(adjusted['Enhanced'], 2)
+    adjusted['Supervisor'] = round(adjusted['Supervisor'], 2)
+    return adjusted
+
 def _get_user_rates_map():
     """Build map of display_name (lower) -> {standard_rate, enhanced_rate, supervisor_rate}."""
     users = get_all_users()
