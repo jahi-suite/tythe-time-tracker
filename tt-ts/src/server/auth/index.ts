@@ -57,6 +57,7 @@ export async function getAuthUserById(id: string): Promise<AuthUser | null> {
   )
   const row = res.rows[0]
   if (!row) return null
+  if (!row.display_name?.trim() && !row.username?.trim()) return null
   return {
     id: row.id,
     username: row.username,
