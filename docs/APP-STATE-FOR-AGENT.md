@@ -6,7 +6,10 @@ This document describes the application as it exists today so another agent can 
 
 ## What it is
 
-Web app for **The Tythe Barn** to track staff time: clock in/out, view timesheets, and manage entries. Built with **Streamlit** and **Supabase (PostgreSQL)**. Deployable on Streamlit Cloud.
+Web app for **The Tythe Barn** to track staff time: clock in/out, view timesheets, and manage entries. **Two implementations** share the same Supabase (PostgreSQL) database:
+
+1. **Streamlit** (`app.py`) — Python, deployable on Streamlit Cloud.
+2. **tt-ts** (`tt-ts/`) — TypeScript + React (Vite) + Node/Express, feature parity with Streamlit.
 
 ---
 
@@ -32,11 +35,15 @@ Key deps: `streamlit`, `psycopg2-binary`, `bcrypt`, `pandas`, `openpyxl`, `repor
 
 ---
 
+**tt-ts (TypeScript app):** Run `cd tt-ts && npm run dev` (client + server). Same pages: Clock, Timesheet, Export, Manager (View All, Add/Edit/Delete, Manage Users, Audit Log). Manage Users: card-based UI, per-user rates, promote to admin. Export: Excel/PDF with break deduction.
+
+---
+
 ## Authentication
 
 - **Login:** `tythe_time_tracker.ui.pages.login.show()` – username + password form; calls `authenticate_user()`; on success sets `st.session_state.current_user = { id, username, role, display_name }` and reruns.
 - **First user:** If `users` table is empty, the login page shows "Set up your admin account" — a form for username, display name, and password. No secrets editing required. Optional: expander "Advanced: Create from Streamlit secrets instead" for `SEED_MANAGER_USERNAME` / `SEED_MANAGER_PASSWORD` → `bootstrap_seed_manager()`.
-- **Protection:** Every page assumes an authenticated user; manager dashboard also checks `current_user["role"] == "manager"`. Logout clears session (sidebar).
+- **Protection:** Every page assumes an authenticated user; manager dashboard checks `current_user["role"]` in `["manager", "admin"]`. Logout clears session (sidebar).
 - **Auth helpers:** `tythe_time_tracker.core.auth`: `hash_password`, `verify_password`, `authenticate_user`, `create_user`, `get_all_users`, `set_user_active`.
 
 ---
@@ -57,23 +64,24 @@ Key deps: `streamlit`, `psycopg2-binary`, `bcrypt`, `pandas`, `openpyxl`, `repor
    - Uses `export_functions.export_to_excel` / `export_to_pdf`.
 
 4. **Manager Dashboard** (`ui.pages.manager_dashboard`)  
-   - **Requires** `role == "manager"`.  
-   - Tabs: **View All Entries** (grouped by staff, quick export), **Add Shift**, **Edit Shift**, **Delete Entry**, **Manage Users**.  
-   - **Manage Users:** Form to create user (username, password, display name, role: employee | manager). List of all users with Active/Inactive and Activate/Deactivate buttons (cannot deactivate self).
+   - **Requires** `role` in `["manager", "admin"]`.  
+   - Tabs: **View All Entries** (grouped by staff, quick export), **Add Shift**, **Edit Shift**, **Delete Entry**, **Manage Users**, **Audit Log**.  
+   - **Manage Users:** Create user (username, password, display name, role: employee | manager | admin). List all users with Activate/Deactivate, Edit, per-user pay rates (Standard/Enhanced/Supervisor £/hr). Promote to admin (admin only). Cannot deactivate self.
 
 ---
 
 ## Database schema
 
 - **`users`**  
-  `id` (UUID PK), `username` (TEXT UNIQUE), `password_hash` (TEXT), `role` (TEXT: 'employee'|'manager'), `display_name` (TEXT), `active` (BOOLEAN), `created_at` (TIMESTAMPTZ).  
+  `id` (UUID PK), `username` (TEXT UNIQUE), `password_hash` (TEXT), `role` (TEXT: 'employee'|'manager'|'admin'), `display_name` (TEXT), `active` (BOOLEAN), `standard_rate`, `enhanced_rate`, `supervisor_rate` (DECIMAL NULL, per-user £/hr), `created_at` (TIMESTAMPTZ).  
   Created in `tythe_time_tracker.database.init`; seed manager inserted when table is empty and seed env/secrets are set.
 
 - **`time_entries`**  
   `id` (UUID PK), `employee` (TEXT – stores display name of the user who clocked in), `clock_in` (TIMESTAMPTZ), `clock_out` (TIMESTAMPTZ), `pay_rate_type` (TEXT: Standard | Enhanced | Supervisor), `created_at` (TIMESTAMPTZ).  
   Created in same `init`; business logic in `tythe_time_tracker.core.services.TimeTrackingService`; persistence in `tythe_time_tracker.database.repository.TimeEntryRepository`.
 
-No audit_log table yet (planned in Ralph task `tt-audit-log-20260222`).
+- **`audit_log`**  
+  Logs who changed what (edit/delete shifts, user changes). Manager Dashboard has Audit Log tab.
 
 ---
 
@@ -115,6 +123,9 @@ tythe-time-tracker/
 ├── docs/
 │   ├── APP-STATE-FOR-AGENT.md      # This file
 │   └── working-memory/open/        # Ralph task plans (auth, audit, mobile, branding)
+├── tt-ts/                          # TypeScript app (Vite + React + Express)
+│   ├── src/                        # Client: pages (Clock, Timesheet, Export, Manager), components, hooks
+│   └── server/                     # Express API, services, exportUtils
 └── ralph/                          # Ralph scripts (run.sh, status.sh, prompts, loops)
 ```
 
@@ -122,12 +133,16 @@ tythe-time-tracker/
 
 ## Ralph tasks (current)
 
-- **tt-user-auth-20260222** – User auth, login, manager seed, manage users (stories marked complete).
-- **tt-audit-log-20260222** – Audit log table + changelog for managers (not implemented yet).
-- **tt-mobile-fix-20260222** – Mobile viewport/config (not implemented yet).
-- **tt-kari-branding-20260222** – “Powered by Kari Suite” footer + login branding (partially or fully done per updates).
+- **tt-user-auth-20260222** – User auth, login, manager seed (done).
+- **tt-audit-log-20260222** – Audit log (done).
+- **tt-kari-branding-20260222** – "Powered by Kari Suite" (done).
+- **tt-ts-scaffold-001** – tt-ts scaffold (done).
+- **tt-ts-manage-users-dashboard-20260223** – Card-based Manage Users (done).
+- **tt-ts-app-dashboard-style-20260223** – Dashboard style across tt-ts (in progress).
+- **tt-break-deduction-20260223** – 20min break for 6h+ shifts (in progress).
+- **tt-streamlit-desktop-contrast-20260223** – Desktop form contrast fixes.
 
-Run a task: from repo root, `./ralph/run.sh <task-id>`. Backend is configurable (default Claude; `RALPH_BACKEND=cursor` for Cursor).
+Run a loop: `RALPH_BACKEND=codex-cli ./ralph/loops/<task-id>.sh`. Or `./ralph/run.sh <task-id>`.
 
 ---
 
@@ -136,15 +151,19 @@ Run a task: from repo root, `./ralph/run.sh <task-id>`. Backend is configurable 
 - **Standard:** 4:00 AM–7:00 PM BST.  
 - **Enhanced:** 7:00 PM–4:00 AM BST.  
 - **Supervisor:** Overrides; all hours at supervisor rate.  
-Times stored UTC; display uses BST. Logic in `core.services` / `utils.time_utils`.
+Times stored UTC; display uses BST. Logic in `core.services` / `utils.time_utils`. Per-user rates in `users` table; exports and timesheets show estimated pay when set.
+
+## Break deduction (business rule)
+
+- Shifts of **6+ hours** get a **20-minute unpaid break** deducted.
+- Deduct from the **majority** rate type (whichever of Standard, Enhanced, Supervisor has the most hours in that shift). Tie: deduct from Standard.
+- Logic in `export_functions.apply_break_deduction` (Python) and `exportUtils.applyBreakDeduction` (TypeScript).
 
 ---
 
 ## What’s *not* in the app yet
 
-- Audit log / changelog (who changed whose hours).
-- “Powered by Kari Suite” everywhere (may be partial).
-- Mobile-specific fixes (viewport/config).
-- No automated tests referenced in this doc (pytest present in requirements).
+- Mobile-specific fixes (viewport/config) — may be partial.
+- Automated tests — pytest present; coverage varies.
 
 Use this file as the single source of truth for “how the app works today” when briefing another agent.
