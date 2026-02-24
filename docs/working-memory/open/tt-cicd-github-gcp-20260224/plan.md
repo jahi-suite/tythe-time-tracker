@@ -1,6 +1,6 @@
 # Task: tt-cicd-github-gcp-20260224
 
-> Created: 2026-02-24 | Status: open
+> Created: 2026-02-24 | Status: completed
 > **Goal**: Full CI/CD — push to main → deploy to GCP Cloud Run (production)
 
 ## Goal
@@ -42,3 +42,10 @@ Create `.github/workflows/deploy-cloudrun.yml`:
 - Workflow file exists and has correct trigger + deploy steps
 - `tt-ts` build passes
 - Manual: push to main, verify deploy runs in GitHub Actions
+
+## Execution Notes (2026-02-24)
+
+- Phase 1 completed: `.github/workflows/deploy-cloudrun.yml` added for push-to-main deploys to Cloud Run (`tythe-time-tracker`, `us-central1`).
+- Phase 2 completed: `docs/CICD_SETUP.md` added for GCP APIs, service account roles, and GitHub secrets (`GCP_SA_KEY`, `GCP_PROJECT_ID`).
+- Phase 3 completed: local workflow YAML syntax/structure verified with `python3` + PyYAML (`yaml.BaseLoader`) because `actionlint` was not available in the environment.
+- Manual deployment verification in GitHub Actions is still pending a real push to `main`.
