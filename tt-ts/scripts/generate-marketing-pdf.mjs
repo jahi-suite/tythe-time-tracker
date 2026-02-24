@@ -131,7 +131,7 @@ const copy = {
     role: 'Bar Manager, The Tythe Barn',
   },
   cta: {
-    bar: 'Last orders CTA',
+    bar: 'Last orders',
     title: 'Give yourself one less Sunday-night dread spiral.',
     body:
       'Start using the portal before your next busy weekend, so Monday payroll is a quick admin job instead of a reconstruction project.',
@@ -182,16 +182,39 @@ function pageChrome(pageTitle, pageNo) {
   doc.restore()
 }
 
-function sectionBar(text, x, y, width) {
+function withRoundedClip({ x, y, w, h, radius }, draw) {
   doc.save()
-  doc.roundedRect(x, y, width, 20, 8).fill('#2a1b06')
-  doc.roundedRect(x + 1, y + 1, width - 2, 18, 7).strokeColor('#5d430e').stroke()
-  doc.font('Helvetica-Bold').fontSize(9).fillColor(palette.gold)
-  doc.text(text.toUpperCase(), x + 10, y + 6, {
-    width: width - 20,
+  doc.roundedRect(x, y, w, h, radius).clip()
+  draw()
+  doc.restore()
+}
+
+function sectionBar(text, x, y, width, opts = {}) {
+  const font = opts.font || 'Helvetica-Bold'
+  const fontSize = opts.fontSize ?? 9
+  const textLineGap = opts.lineGap ?? 1
+  const padX = opts.padX ?? 10
+  const padY = opts.padY ?? 6
+  const minH = opts.height ?? 20
+  const fill = opts.fill || '#2a1b06'
+  const stroke = opts.stroke || '#5d430e'
+  const color = opts.color || palette.gold
+  const label = opts.uppercase === false ? text : text.toUpperCase()
+  const textH = measure(label, width - padX * 2, { font, fontSize, lineGap: textLineGap })
+  const barH = Math.max(minH, textH + padY * 2)
+  const radius = Math.min(opts.radius ?? 8, Math.floor(barH / 2))
+
+  doc.save()
+  doc.roundedRect(x, y, width, barH, radius).fill(fill)
+  doc.roundedRect(x + 1, y + 1, width - 2, barH - 2, Math.max(1, radius - 1)).strokeColor(stroke).stroke()
+  doc.font(font).fontSize(fontSize).fillColor(color)
+  doc.text(label, x + padX, y + padY, {
+    width: width - padX * 2,
     align: 'left',
+    lineGap: textLineGap,
   })
   doc.restore()
+  return barH
 }
 
 function textBlock(text, x, y, width, opts = {}) {
@@ -233,16 +256,25 @@ function drawCoverPage() {
   pageChrome('Constance story', 1)
   sectionBar(copy.hero.eyebrow, left, 34, 220)
 
-  card({ x: left, y: coverCardsY, w: 332, h: coverCardsH, fill: '#11192a', stroke: '#364159', radius: 18 })
-  doc.roundedRect(left + 214, 80, 108, 20, 10).fill('#3a2507')
-  doc.font('Helvetica-Bold').fontSize(8).fillColor(palette.gold).text(copy.hero.chip.toUpperCase(), left + 224, 87)
+  const leftCard = { x: left, y: coverCardsY, w: 332, h: coverCardsH, radius: 18 }
+  card({ ...leftCard, fill: '#11192a', stroke: '#364159' })
+  withRoundedClip(leftCard, () => {
+    sectionBar(copy.hero.chip, leftCard.x + 14, leftCard.y + 14, 140, {
+      height: 20,
+      fontSize: 8,
+      lineGap: 0,
+      radius: 10,
+      fill: '#3a2507',
+      stroke: '#5d430e',
+    })
+  })
 
-  doc.font('Helvetica-Bold').fontSize(22).fillColor(palette.cream).text(copy.hero.headline, left + 16, 112, {
+  doc.font('Helvetica-Bold').fontSize(22).fillColor(palette.cream).text(copy.hero.headline, left + 16, leftCard.y + 44, {
     width: 300,
     lineGap: 4,
   })
 
-  let leftPanelY = 112 + measure(copy.hero.headline, 300, { font: 'Helvetica-Bold', fontSize: 22, lineGap: 4 }) + 14
+  let leftPanelY = leftCard.y + 44 + measure(copy.hero.headline, 300, { font: 'Helvetica-Bold', fontSize: 22, lineGap: 4 }) + 14
   doc.moveTo(left + 16, leftPanelY).lineTo(left + 150, leftPanelY).lineWidth(2).strokeColor(palette.amber).stroke()
 
   leftPanelY += 14
@@ -255,24 +287,36 @@ function drawCoverPage() {
   leftPanelY += measure(copy.hero.byline, 220, { font: 'Helvetica-Bold', fontSize: 16 }) + 4
   textBlock(copy.hero.role, left + 16, leftPanelY, 220, { fontSize: 10, color: palette.haze })
 
-  card({ x: left + 346, y: coverCardsY, w: contentW - 346, h: coverCardsH, fill: '#0e1626', stroke: '#303a4f', radius: 18 })
-  sectionBar(copy.hero.managerLabel, left + 358, 84, contentW - 370)
-  let rightPanelY = 116
-  const panelW = contentW - 370
+  const rightCard = { x: left + 346, y: coverCardsY, w: contentW - 346, h: coverCardsH, radius: 18 }
+  card({ ...rightCard, fill: '#0e1626', stroke: '#303a4f' })
+  const panelInset = 12
+  const panelX = rightCard.x + panelInset
+  const panelW = rightCard.w - panelInset * 2
+  let rightPanelY = rightCard.y + 14
+  withRoundedClip(rightCard, () => {
+    const managerBarH = sectionBar(copy.hero.managerLabel, panelX, rightPanelY, panelW, {
+      height: 26,
+      fontSize: 8,
+      lineGap: 1,
+      padY: 5,
+      radius: 10,
+    })
+    rightPanelY += managerBarH + 12
+  })
   const panelOpts = { fontSize: 11, lineGap: 4 }
   const h1 = measure(copy.hero.managerBody, panelW, panelOpts)
-  textBlock(copy.hero.managerBody, left + 358, rightPanelY, panelW, panelOpts)
+  textBlock(copy.hero.managerBody, panelX, rightPanelY, panelW, panelOpts)
   rightPanelY += h1 + 12
 
   const managerBody2Opts = { ...panelOpts, color: palette.cream }
   const h2 = measure(copy.hero.managerBody2, panelW, managerBody2Opts)
-  textBlock(copy.hero.managerBody2, left + 358, rightPanelY, panelW, managerBody2Opts)
+  textBlock(copy.hero.managerBody2, panelX, rightPanelY, panelW, managerBody2Opts)
   rightPanelY += h2 + 16
 
   copy.hero.bullets.forEach((line) => {
-    doc.circle(left + 366, rightPanelY + 5, 2.3).fill(palette.amber)
+    doc.circle(panelX + 8, rightPanelY + 5, 2.3).fill(palette.amber)
     const lineH = measure(line, panelW - 10, { fontSize: 10.2 })
-    textBlock(line, left + 376, rightPanelY, panelW - 10, { fontSize: 10.2, color: palette.cream })
+    textBlock(line, panelX + 18, rightPanelY, panelW - 10, { fontSize: 10.2, color: palette.cream })
     rightPanelY += lineH + 2
   })
 
@@ -377,10 +421,12 @@ function drawOutcomesPage() {
     const h = innerY + innerH + 14 - y
 
     card({ x, y, w: colW, h, fill: '#111a2b', stroke: '#303a50', radius: 16 })
-    doc.roundedRect(x + 14, labelY, 92, 18, 9).fill('#3a2507')
-    doc.font('Helvetica-Bold').fontSize(8).fillColor(palette.gold).text('OUTCOME', x + 40, y + 20, {
-      width: 40,
+    const outcomeLabelW = 108
+    doc.roundedRect(x + 14, labelY, outcomeLabelW, 18, 9).fill('#3a2507')
+    doc.font('Helvetica-Bold').fontSize(8).fillColor(palette.gold).text('OUTCOME', x + 14, labelY + 6, {
+      width: outcomeLabelW,
       align: 'center',
+      lineBreak: false,
     })
     doc.font('Helvetica-Bold').fontSize(15).fillColor(palette.cream).text(item.outcome, x + 14, outcomeY, {
       width: outcomeW,
@@ -475,7 +521,7 @@ function drawMechanicsPage() {
 function drawTestimonialAndCtaPage() {
   doc.addPage()
   darkPageBackdrop()
-  pageChrome('Testimonial + CTA', 5)
+  pageChrome('Testimonial', 5)
 
   const { w, h } = pageSize()
   const left = 42
