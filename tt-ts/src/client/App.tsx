@@ -9,6 +9,7 @@ import { ClockPage } from './pages/ClockPage'
 import { TimesheetPage } from './pages/TimesheetPage'
 import { ExportPage } from './pages/ExportPage'
 import { ManagerPage } from './pages/ManagerPage'
+import { TermsPage } from './pages/TermsPage'
 
 function AppRoutes() {
   const { user, loading } = useAuth()
@@ -44,6 +45,7 @@ function AppRoutes() {
   if (user) {
     return (
       <Routes>
+        <Route path="/terms" element={<TermsPage />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<Navigate to="/clock" replace />} />
           <Route path="clock" element={<ClockPage />} />
@@ -58,6 +60,7 @@ function AppRoutes() {
   if (needsSetup)
     return (
       <Routes>
+        <Route path="/terms" element={<TermsPage />} />
         <Route path="/login" element={<FirstSetupPage />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
@@ -66,6 +69,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<MarketingLandingPage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/terms" element={<TermsPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
