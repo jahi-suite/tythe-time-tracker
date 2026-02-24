@@ -12,12 +12,6 @@ async function getApp() {
   return appPromise
 }
 
-function isDebugOrHealthPath(ev: unknown): boolean {
-  const e = ev as { path?: string; rawUrl?: string }
-  const path = e.path ?? e.rawUrl ?? ''
-  return path.includes('/api/debug') || path.includes('/api/health')
-}
-
 function jsonResponse(statusCode: number, body: object) {
   return {
     statusCode,
@@ -39,9 +33,6 @@ export const handler = async (event: unknown, context: unknown) => {
       message: msg,
       hint: 'Check Netlify env: SESSION_SECRET, SUPABASE_* (use port 6543 for pooler), NODE_ENV=production',
     }
-    if (isDebugOrHealthPath(event)) {
-      return jsonResponse(200, diagnostic)
-    }
-    return jsonResponse(502, diagnostic)
+    return jsonResponse(200, diagnostic)
   }
 }
