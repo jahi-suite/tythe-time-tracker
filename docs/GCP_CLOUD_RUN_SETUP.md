@@ -9,7 +9,15 @@ Deploy the Tythe Time Tracker app to Cloud Run (serverless containers).
 
 ## Required Environment Variables
 
-Set these in Cloud Run **Revision → Variables** (or via `gcloud run deploy --set-env-vars`):
+Set these in Cloud Run **Revision → Variables** (or via CLI).
+
+**From tt-ts/.env (CLI):**
+
+```bash
+./ralph/set-cloudrun-env-from-dotenv.sh
+```
+
+This reads `tt-ts/.env`, overrides `SUPABASE_PORT=6543`, adds `NODE_ENV=production` and `SESSION_STORE=pg`, and runs `gcloud run services update karitime`.
 
 | Variable | Notes |
 |----------|-------|
