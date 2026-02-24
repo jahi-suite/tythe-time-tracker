@@ -104,6 +104,14 @@ router.get('/me', async (req, res) => {
     res.status(401).json({ error: 'Not authenticated' })
     return
   }
+  // Belt-and-suspenders: reject if both identifiers empty (should not happen after getAuthUserById)
+  if (!freshUser.display_name?.trim() && !freshUser.username?.trim()) {
+    await new Promise<void>((resolve) => {
+      req.session?.destroy(() => resolve())
+    })
+    res.status(401).json({ error: 'Not authenticated' })
+    return
+  }
   req.session!.user = freshUser
   res.json(freshUser)
 })

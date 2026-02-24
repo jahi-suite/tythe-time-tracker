@@ -17,6 +17,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { auth } = await import('../api')
       const u = await auth.me()
+      // Reject incomplete users client-side: force logout if both identifiers empty
+      if (u && !(u.display_name?.trim() || u.username?.trim())) {
+        await auth.logout()
+        setUser(null)
+        return
+      }
       setUser(u)
     } catch {
       setUser(null)
