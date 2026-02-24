@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kari Time</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1410;
+    --cream: #f5f0e8;
+    --amber: #c8853a;
+    --amber-light: #e8a855;
+    --night: #12100e;
+    --muted: #6b5f52;
+    --rule: rgba(200,133,58,0.25);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--night);
+    color: var(--cream);
+    font-size: 17px;
+    line-height: 1.65;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE TEXTURE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.35;
+  }
+
+  /* ── LAYOUT HELPERS ── */
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  section {
+    padding: 96px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 24px;
+    display: block;
+  }
+
+  h1, h2, h3 {
+    font-family: 'Playfair Display', Georgia, serif;
+    line-height: 1.15;
+    color: var(--cream);
+  }
+
+  h1 { font-size: clamp(2.4rem, 6vw, 4rem); font-weight: 900; }
+  h2 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 700; }
+  h3 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); font-weight: 700; }
+
+  p { color: rgba(245,240,232,0.75); max-width: 62ch; }
+
+  .amber { color: var(--amber-light); }
+
+  hr.rule {
+    border: none;
+    border-top: 1px solid var(--rule);
+    margin: 40px 0;
+  }
+
+  /* ── NAV ── */
+  nav {
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--rule);
+    position: sticky;
+    top: 0;
+    background: rgba(18,16,14,0.92);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+
+  .nav-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-style: italic;
+    color: var(--cream);
+    text-decoration: none;
+    opacity: 0.9;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .nav-login {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(245,240,232,0.85);
+    text-decoration: none;
+    padding: 8px 16px;
+    transition: color 0.2s;
+  }
+  .nav-login:hover { color: var(--cream); }
+
+  .nav-cta {
+    background: var(--amber);
+    color: var(--night);
+    padding: 10px 22px;
+    border-radius: 3px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+  .nav-cta:hover { background: var(--amber-light); }
+
+  /* ── HERO ── */
+  #hero {
+    padding: 80px 0 96px;
+    position: relative;
+  }
+
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(200,133,58,0.12);
+    border: 1px solid rgba(200,133,58,0.3);
+    padding: 6px 14px;
+    border-radius: 2px;
+    margin-bottom: 36px;
+  }
+  .hero-eyebrow span { font-size: 13px; color: var(--amber-light); font-weight: 500; }
+
+  #hero h1 { margin-bottom: 24px; }
+
+  #hero .subtitle {
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
+    color: rgba(245,240,232,0.65);
+    max-width: 52ch;
+    margin-bottom: 44px;
+  }
+
+  .hero-cta-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .btn-primary {
+    display: inline-block;
+    background: var(--amber);
+    color: var(--night);
+    padding: 15px 32px;
+    border-radius: 3px;
+    font-weight: 500;
+    font-size: 16px;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .btn-primary:hover { background: var(--amber-light); transform: translateY(-1px); }
+
+  .hero-small-print {
+    font-size: 13px;
+    color: rgba(245,240,232,0.4);
+  }
+
+  .hero-bar {
+    margin-top: 64px;
+    padding-top: 40px;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+  }
+
+  .hero-bar-item {
+    font-size: 13px;
+    color: rgba(245,240,232,0.5);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .hero-bar-item::before {
+    content: '✓';
+    color: var(--amber);
+    font-size: 12px;
+  }
+
+  /* ── ORIGIN STORY ── */
+  #origin blockquote {
+    border-left: 3px solid var(--amber);
+    padding: 0 0 0 28px;
+    margin: 0;
+  }
+
+  #origin blockquote p {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.25rem, 3vw, 1.75rem);
+    font-style: italic;
+    color: var(--cream);
+    line-height: 1.45;
+    max-width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .attribution {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 24px;
+  }
+  .attribution strong {
+    font-size: 15px;
+    color: var(--cream);
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+  }
+  .attribution span {
+    font-size: 13px;
+    color: rgba(245,240,232,0.45);
+    letter-spacing: 0.05em;
+  }
+
+  .origin-body {
+    margin-top: 48px;
+    padding: 36px;
+    background: rgba(200,133,58,0.06);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+  }
+
+  .origin-body p {
+    margin-bottom: 0;
+    font-size: 16px;
+    line-height: 1.75;
+  }
+
+  /* ── FOR YOU ── */
+  #for-you .intro {
+    font-size: clamp(1rem, 2vw, 1.15rem);
+    color: rgba(245,240,232,0.7);
+    margin-bottom: 40px;
+    max-width: 56ch;
+  }
+
+  .pain-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 36px;
+  }
+
+  .pain-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    font-size: 16px;
+    color: rgba(245,240,232,0.75);
+    padding: 18px 24px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 3px;
+    line-height: 1.5;
+  }
+
+  .pain-list li::before {
+    content: '✕';
+    color: rgba(200,133,58,0.6);
+    font-size: 13px;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  /* ── SATURDAY NIGHT ── */
+  #saturday {
+    background: rgba(200,133,58,0.04);
+  }
+
+  .timeline {
+    margin-top: 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 80px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--amber), transparent);
+    opacity: 0.3;
+  }
+
+  .timeline-item {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 24px;
+    padding: 28px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .timeline-item:last-child { border-bottom: none; }
+
+  .time-stamp {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--amber);
+    letter-spacing: 0.05em;
+    line-height: 1.5;
+    padding-top: 2px;
+    text-align: right;
+  }
+
+  .timeline-content strong {
+    display: block;
+    color: var(--cream);
+    margin-bottom: 6px;
+    font-size: 15px;
+  }
+
+  .timeline-content p {
+    font-size: 14px;
+    color: rgba(245,240,232,0.55);
+    max-width: 100%;
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .timeline-sting {
+    margin-top: 48px;
+    text-align: center;
+    padding: 28px;
+    border: 1px solid rgba(200,133,58,0.3);
+    border-radius: 3px;
+    background: rgba(200,133,58,0.06);
+  }
+
+  .timeline-sting p {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1rem, 2.5vw, 1.35rem);
+    font-style: italic;
+    color: var(--cream);
+    max-width: 100%;
+    margin: 0;
+  }
+
+  /* ── OUTCOMES ── */
+  .outcome-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 48px;
+  }
+
+  .outcome-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  @media (max-width: 600px) {
+    .outcome-card { grid-template-columns: 1fr; }
+  }
+
+  .outcome-left {
+    padding: 32px 36px;
+    background: rgba(200,133,58,0.08);
+    border-right: 1px solid var(--rule);
+  }
+
+  @media (max-width: 600px) {
+    .outcome-left { border-right: none; border-bottom: 1px solid var(--rule); }
+  }
+
+  .outcome-left .tag {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .outcome-left p {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    color: var(--cream);
+    max-width: 100%;
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  .outcome-right {
+    padding: 32px 36px;
+    background: rgba(255,255,255,0.02);
+  }
+
+  .outcome-right .tag {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(245,240,232,0.35);
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .outcome-right p {
+    font-size: 14px;
+    color: rgba(245,240,232,0.6);
+    max-width: 100%;
+    line-height: 1.65;
+    margin: 0;
+  }
+
+  /* ── HOW IT WORKS ── */
+  .steps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 2px;
+    margin-top: 48px;
+  }
+
+  .step-card {
+    padding: 36px 28px;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+  }
+
+  .step-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    color: var(--amber);
+    opacity: 0.4;
+    line-height: 1;
+    margin-bottom: 20px;
+  }
+
+  .step-card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+  }
+
+  .step-card p {
+    font-size: 14px;
+    line-height: 1.65;
+    margin: 0;
+  }
+
+  /* ── BEFORE / AFTER ── */
+  .before-after {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    margin-top: 48px;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  @media (max-width: 560px) {
+    .before-after { grid-template-columns: 1fr; }
+  }
+
+  .ba-col {
+    padding: 36px;
+  }
+
+  .ba-col.before {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+  }
+
+  .ba-col.after {
+    background: rgba(200,133,58,0.1);
+    border: 1px solid rgba(200,133,58,0.25);
+  }
+
+  .ba-label {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: 20px;
+    display: block;
+  }
+  .before .ba-label { color: rgba(245,240,232,0.35); }
+  .after .ba-label { color: var(--amber); }
+
+  .ba-col ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .ba-col li {
+    font-size: 14px;
+    line-height: 1.5;
+    padding-left: 20px;
+    position: relative;
+    color: rgba(245,240,232,0.65);
+  }
+
+  .ba-col li::before {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+  .before li::before { content: '–'; color: rgba(245,240,232,0.25); }
+  .after li::before { content: '✓'; color: var(--amber); }
+
+  /* ── FINAL CTA ── */
+  #cta {
+    text-align: center;
+    border-bottom: none;
+  }
+
+  #cta h2 { margin-bottom: 20px; }
+  #cta p { margin: 0 auto 44px; }
+
+  .cta-box {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .cta-features {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 24px;
+  }
+
+  .cta-features span {
+    font-size: 13px;
+    color: rgba(245,240,232,0.45);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .cta-features span::before {
+    content: '·';
+    color: var(--amber);
+    font-size: 18px;
+    line-height: 0;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    padding: 32px 24px;
+    text-align: center;
+    border-top: 1px solid var(--rule);
+  }
+
+  footer p {
+    font-size: 13px;
+    color: rgba(245,240,232,0.3);
+    margin: 0 auto;
+    max-width: 100%;
+  }
+
+  footer a { color: rgba(245,240,232,0.45); }
+
+  /* ── FADE IN ANIMATION ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .fade-up {
+    animation: fadeUp 0.7s ease forwards;
+    opacity: 0;
+  }
+
+  .delay-1 { animation-delay: 0.1s; }
+  .delay-2 { animation-delay: 0.22s; }
+  .delay-3 { animation-delay: 0.35s; }
+  .delay-4 { animation-delay: 0.48s; }
+
+  /* ── SCROLL REVEAL ── */
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="/" class="nav-brand" target="_top">Kari Time</a>
+  <div class="nav-links">
+    <a href="/login" class="nav-login" target="_top">Log in</a>
+    <a href="#cta" class="nav-cta">Get started</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="container">
+
+    <div class="hero-eyebrow fade-up">
+      <span>Payroll-ready shift tracking for hospitality venues</span>
+    </div>
+
+    <h1 class="fade-up delay-1">
+      Stop chasing<br>
+      <em class="amber">timesheets.</em><br>
+      Start running<br>your venue.
+    </h1>
+
+    <p class="subtitle fade-up delay-2">
+      Clock in, export, done. Built by a bar manager after too many scraps of paper went missing and too many pay disputes. No spreadsheets, no paper, no month-end chaos.
+    </p>
+
+    <div class="hero-cta-group fade-up delay-3">
+      <a href="/login" class="btn-primary" target="_top">Set it up before this weekend</a>
+      <span class="hero-small-print">No credit card. No sales call.</span>
+    </div>
+
+    <div class="hero-bar fade-up delay-4">
+      <span class="hero-bar-item">Clock in &amp; out from any phone</span>
+      <span class="hero-bar-item">Custom day, night &amp; enhanced rates</span>
+      <span class="hero-bar-item">One-click payroll export</span>
+      <span class="hero-bar-item">Full audit trail</span>
+    </div>
+
+  </div>
+</section>
+
+<!-- ORIGIN STORY -->
+<section id="origin">
+  <div class="container">
+
+    <span class="label reveal">The first thing you should know</span>
+
+    <blockquote class="reveal">
+      <p>"I built this after one too many nights hunting for a missing timesheet."</p>
+    </blockquote>
+
+    <div class="attribution reveal">
+      <strong>Constance</strong>
+      <span>Bar Manager</span>
+    </div>
+
+    <div class="origin-body reveal">
+      <p>
+        I was managing the bar, closing out events, and then trying to rebuild hours from scraps of paper.
+        People were tired. I was tired. Hours got argued about. Rates got argued about.
+        I was fed up, so I built the thing I wanted at 11pm on a Saturday: clock in, clock out,
+        clear records, payroll done.
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOR YOU -->
+<section id="for-you">
+  <div class="container">
+
+    <span class="label reveal">For the manager doing three jobs at once</span>
+
+    <h2 class="reveal">You are not "operations"<br>in a neat little org chart.</h2>
+
+    <p class="intro reveal" style="margin-top:20px;">
+      You are on the floor, fixing rota gaps, answering staff questions, and then somehow expected to do payroll without missing a beat. This is for the person who says "I'll deal with it Monday" — and then spends Monday untangling chaos.
+    </p>
+
+    <ul class="pain-list reveal">
+      <li>No more scraps of paper vanishing on a busy night</li>
+      <li>No more "whose shift was that?" on Monday morning</li>
+      <li>No more rebuilding entire weekends from memory and messages</li>
+      <li>No more manual rate calculations for day, night, enhanced and supervisor</li>
+      <li>No more payroll guesswork when you can least afford it</li>
+    </ul>
+
+  </div>
+</section>
+
+<!-- SATURDAY NIGHT -->
+<section id="saturday">
+  <div class="container">
+
+    <span class="label reveal">The bit that feels too accurate</span>
+
+    <h2 class="reveal">A normal Saturday night,<br>if you're still doing hours the old way.</h2>
+
+    <p style="margin-top:16px;" class="reveal">
+      This is not a fake problem statement. This is the exact kind of weekend that turns into a payroll nightmare.
+    </p>
+
+    <div class="timeline reveal">
+      <div class="timeline-item">
+        <div class="time-stamp">11:07<br>PM</div>
+        <div class="timeline-content">
+          <strong>Wedding still going. Staff already asking what time they can leave.</strong>
+          <p>You say you'll sort hours later because the bar queue is six deep and someone's till is short.</p>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="time-stamp">12:18<br>AM</div>
+        <div class="timeline-content">
+          <strong>Someone writes their finish time on a napkin.</strong>
+          <p>Another person says "I clocked out, didn't I?" Nobody remembers whose clipboard had the sheet.</p>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="time-stamp">MON<br>8:12 AM</div>
+        <div class="timeline-content">
+          <strong>Payroll starts with: whose shift was that?</strong>
+          <p>Now you are rebuilding a weekend from messages, photos, and memory while trying to open the venue.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-sting reveal">
+      <p>Payroll should not start with "whose shift was that?"</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- OUTCOMES -->
+<section id="outcomes">
+  <div class="container">
+
+    <span class="label reveal">What you actually buy</span>
+
+    <h2 class="reveal">Outcomes first.<br>Features second.</h2>
+
+    <p style="margin-top:16px;" class="reveal">
+      You do not need another dashboard. You need fewer Sunday-night headaches.
+    </p>
+
+    <div class="outcome-grid reveal">
+
+      <div class="outcome-card">
+        <div class="outcome-left">
+          <span class="tag">Outcome</span>
+          <p>You close your laptop Friday knowing payroll is basically done.</p>
+        </div>
+        <div class="outcome-right">
+          <span class="tag">How we do it</span>
+          <p>Hours are already there, rates are already applied, and export is ready when you need it.</p>
+        </div>
+      </div>
+
+      <div class="outcome-card">
+        <div class="outcome-left">
+          <span class="tag">Outcome</span>
+          <p>Arguments about hours stop being a 40-minute conversation.</p>
+        </div>
+        <div class="outcome-right">
+          <span class="tag">How we do it</span>
+          <p>Every edit is visible. You can see who changed what and when, instead of playing detective.</p>
+        </div>
+      </div>
+
+      <div class="outcome-card">
+        <div class="outcome-left">
+          <span class="tag">Outcome</span>
+          <p>You stop carrying the whole system around in your head.</p>
+        </div>
+        <div class="outcome-right">
+          <span class="tag">How we do it</span>
+          <p>Staff log their own time. You approve, fix exceptions, and move on with your night.</p>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="container">
+
+    <span class="label reveal">How it works in practice</span>
+
+    <h2 class="reveal">What changes in the week after go-live.</h2>
+
+    <div class="steps-grid reveal">
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <h3>Clock-ins that survive busy nights</h3>
+        <p>Phone or tablet. Quick in, quick out. No paper sheet drifting around the venue.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <h3>Rates set once</h3>
+        <p>Day, night, enhanced, supervisor. Set your real-world rates and let the app do the maths.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">3</div>
+        <h3>Fix the weird stuff fast</h3>
+        <p>Missed clock-out? Wrong role? Edit it in seconds without breaking the whole week's record.</p>
+      </div>
+    </div>
+
+    <div class="before-after reveal">
+      <div class="ba-col before">
+        <span class="ba-label">Monday, before</span>
+        <ul>
+          <li>Message staff to find out hours</li>
+          <li>Chase paper sheets around the venue</li>
+          <li>Recalculate rates manually</li>
+          <li>Hope nobody disputes it</li>
+        </ul>
+      </div>
+      <div class="ba-col after">
+        <span class="ba-label">Monday, after</span>
+        <ul>
+          <li>Open portal</li>
+          <li>Review exceptions</li>
+          <li>Export</li>
+          <li>Send payroll. Go do your actual job.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section id="cta">
+  <div class="container">
+
+    <span class="label reveal" style="text-align:center;display:block;">Last orders</span>
+
+    <h2 class="reveal">Give yourself one less<br>Sunday-night dread spiral.</h2>
+
+    <p class="reveal" style="margin-top:16px;">
+      Start using the portal before your next busy weekend, so Monday payroll is a quick admin job instead of a reconstruction project.
+    </p>
+
+    <div class="cta-box reveal">
+      <a href="/login" class="btn-primary" style="font-size:17px;padding:18px 40px;" target="_top">Set it up before this weekend</a>
+      <span style="font-size:13px;color:rgba(245,240,232,0.4);">No sales call. No credit card. Just log in and start with your team.</span>
+    </div>
+
+    <div class="cta-features reveal">
+      <span>Clock in, export, done</span>
+      <span>Excel &amp; PDF payroll exports</span>
+      <span>Manager dashboard + audit log</span>
+      <span>Custom day, night &amp; enhanced rates</span>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>Kari Time &nbsp;·&nbsp; Payroll-ready shift tracking for hospitality venues &nbsp;·&nbsp; Powered by <a href="#">Kari Suite</a></p>
+</footer>
+
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
