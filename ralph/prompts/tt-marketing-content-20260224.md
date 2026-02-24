@@ -17,11 +17,11 @@ Update MarketingLandingPage.tsx with these three changes:
 
 ### 1. Origin Story
 
-Add that Employee Portal was **made by the Bar Manager (Constance)** because she was fed up of:
+Add that Employee Portal was **made by a bar manager** (do NOT use any name in the hero) because they were fed up of:
 - Scraps of paper going missing
 - Disputes with staff on pay and rates
 
-Weave this into the hero subhead, or add a short "Made by someone who gets it" / "Built from the bar" section. Be creative but keep it concise.
+Weave this into the hero subhead. Say "a bar manager" — never a personal name in the hero.
 
 ### 2. Pay Rates Copy
 
@@ -44,6 +44,10 @@ Suggested testimonial (you may refine the tone but keep it authentic):
 — **Constance**, Tythe Barn Bar Manager
 
 Replace the testimonials array with a single testimonial object for Constance. Adjust the section layout if needed (e.g. single testimonial can be centered).
+
+### 4. Testimonial Section Heading
+
+Change the section heading from "Trusted by venue owners" to something that reflects a manager who built it — e.g. "Built by a bar manager" or "From the bar manager who built it". The creator is a manager, not a venue owner.
 
 ## Rules
 

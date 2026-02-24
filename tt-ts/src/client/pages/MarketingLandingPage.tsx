@@ -62,7 +62,8 @@ export function MarketingLandingPage() {
               <span className="text-barn-green">Start running your venue.</span>
             </h1>
             <p className="mt-4 sm:mt-6 text-lg sm:text-xl text-barn-text-muted max-w-2xl leading-relaxed">
-              Clock in, export, done. Built for the way you work — no spreadsheets, no paper, no
+              Clock in, export, done. Built by a bar manager after too many scraps of paper went
+              missing and too many pay and rate disputes. No spreadsheets, no paper, no
               month-end chaos.
             </p>
             <Link
@@ -90,7 +91,7 @@ export function MarketingLandingPage() {
             <ul className="mt-8 space-y-4">
               {[
                 'Chasing signatures at month-end',
-                'Manual rate calculations — standard, enhanced, supervisor',
+                'Manual rate calculations — custom day/night, enhanced, supervisor',
                 'No audit trail when disputes arise',
               ].map((item, i) => (
                 <motion.li
@@ -135,7 +136,7 @@ export function MarketingLandingPage() {
               {
                 icon: DollarSign,
                 title: 'Pay rates, automatic',
-                desc: 'Standard, enhanced (night), supervisor. Set once, calculated forever.',
+                desc: 'Add custom pay rates, enhanced rates (like night premium), and venue-specific day/night rates. Set once, calculated forever.',
               },
               {
                 icon: FileText,
@@ -186,7 +187,11 @@ export function MarketingLandingPage() {
           </motion.h2>
           <div className="grid sm:grid-cols-3 gap-8 sm:gap-12">
             {[
-              { step: 1, title: 'Add your team', desc: 'Create accounts, set pay rates. One-time setup.' },
+              {
+                step: 1,
+                title: 'Add your team',
+                desc: 'Create accounts and set custom day/night + enhanced rates. One-time setup.',
+              },
               { step: 2, title: 'Staff clock in', desc: 'From phone or tablet. Times logged automatically.' },
               { step: 3, title: 'Export, done', desc: 'One click. Excel or PDF. Send to payroll.' },
             ].map(({ step, title, desc }, i) => (
@@ -217,21 +222,15 @@ export function MarketingLandingPage() {
             {...fadeIn}
             className="font-display text-3xl sm:text-4xl font-bold text-barn-charcoal text-center mb-16"
           >
-            Trusted by venue owners
+            Built by a bar manager
           </motion.h2>
-          <div className="grid sm:grid-cols-2 gap-8">
+          <div className="max-w-3xl mx-auto">
             {[
               {
                 quote:
-                  'We went from paper chaos to payroll-ready in a week. Game changer. No more chasing staff for timesheets.',
-                author: 'Sarah Mitchell',
-                role: 'Wedding Venue Owner, The Old Barn',
-              },
-              {
-                quote:
-                  'Finally, something that understands our rates. Standard, enhanced, supervisor — all automatic. No more spreadsheets.',
-                author: 'James Chen',
-                role: 'Boutique Hotel Manager',
+                  'I built this because I was sick of scraps of paper going missing and endless disputes with staff over hours and rates. Now we clock in, set our custom day and night rates, and export. No more arguments — it\'s all there.',
+                author: 'Constance',
+                role: 'Tythe Barn Bar Manager',
               },
             ].map(({ quote, author, role }, i) => (
               <motion.div

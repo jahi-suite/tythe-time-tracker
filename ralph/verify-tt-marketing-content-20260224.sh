@@ -49,6 +49,18 @@ if grep -q "James Chen" "$PAGE"; then
   exit 1
 fi
 
+# Section heading: not "Trusted by venue owners" (creator is a manager, not venue owner)
+if grep -q "Trusted by venue owners" "$PAGE"; then
+  echo "FAIL: Change testimonial section heading from 'Trusted by venue owners' to reflect a bar manager"
+  exit 1
+fi
+
+# Hero must NOT use personal name — say "a bar manager" not a name
+if grep -qE "Built by Constance|Constance, a bar manager" "$PAGE"; then
+  echo "FAIL: Hero must say 'a bar manager' without using a personal name"
+  exit 1
+fi
+
 # tt-ts build passes
 cd "$REPO_ROOT/tt-ts" && npm run build 2>/dev/null || {
   echo "FAIL: tt-ts build failed"
