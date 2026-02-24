@@ -35,7 +35,6 @@ export async function authenticateUser(username: string, password: string): Prom
   )
   const row = res.rows[0]
   if (!row || !verifyPassword(password, row.password_hash)) return null
-  if (!row.display_name?.trim() || !row.username?.trim()) return null
   return {
     id: row.id,
     username: row.username,
