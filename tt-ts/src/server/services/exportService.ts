@@ -34,7 +34,7 @@ export async function exportToExcel(
   endDate?: Date | null
 ): Promise<Buffer> {
   const breakDeductionNote =
-    '20 minutes unpaid break deducted for shifts of 6+ hours (deducted from majority rate type).'
+    'Hours and pay shown are ALREADY net of the 20-minute unpaid break for shifts of 6+ hours. Do not deduct break again.'
   if (entries.length === 0) {
     const wb = new ExcelJS.Workbook()
     const ws = wb.addWorksheet('Staff Hours & Shifts')
@@ -63,7 +63,7 @@ export async function exportToExcel(
     'Standard Hours',
     'Enhanced Hours',
     'Supervisor Hours',
-    'Total Hours',
+    'Total Hours (net of break)',
     'Break Deducted',
     'Total Shifts',
     'Pay Rate Type',
@@ -147,12 +147,14 @@ export async function exportToExcel(
     { hours: 0, shifts: 0 }
   )
   summaryWs.addRow(['Metric', 'Value'])
-  summaryWs.addRow(['Total Hours', overall.hours])
+  summaryWs.addRow(['Total Hours (net of break)', overall.hours])
   summaryWs.addRow(['Total Shifts', overall.shifts])
   summaryWs.addRow(['Unique Employees', Object.keys(staffSummary).length])
   if (startDate && endDate) {
     summaryWs.addRow(['Date Range', `${startDate.toISOString().slice(0, 10)} to ${endDate.toISOString().slice(0, 10)}`])
   }
+  summaryWs.addRow([])
+  summaryWs.addRow(['Note', breakDeductionNote])
 
   return Buffer.from(await wb.xlsx.writeBuffer())
 }

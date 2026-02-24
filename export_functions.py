@@ -319,7 +319,7 @@ def export_to_excel(entries, filename="timesheet_export.xlsx", start_date=None, 
             "Standard Hours": data["Standard"],
             "Enhanced Hours": data["Enhanced"],
             "Supervisor Hours": data["Supervisor"],
-            "Total Hours": data["total_hours"],
+            "Total Hours (net of break)": data["total_hours"],
             "Break Deducted": "",
             "Total Shifts": data["total_shifts"],
             "Pay Rate Type": "",
@@ -366,7 +366,7 @@ def export_to_excel(entries, filename="timesheet_export.xlsx", start_date=None, 
                     "Standard Hours": split["Standard"],
                     "Enhanced Hours": split["Enhanced"],
                     "Supervisor Hours": split["Supervisor"],
-                    "Total Hours": sum(split.values()),
+                    "Total Hours (net of break)": sum(split.values()),
                     "Break Deducted": break_deducted,
                     "Total Shifts": "",
                     "Pay Rate Type": shift_display,
@@ -384,7 +384,7 @@ def export_to_excel(entries, filename="timesheet_export.xlsx", start_date=None, 
             "Standard Hours": "",
             "Enhanced Hours": "",
             "Supervisor Hours": "",
-            "Total Hours": "",
+            "Total Hours (net of break)": "",
             "Break Deducted": "",
             "Total Shifts": "",
             "Pay Rate Type": "",
@@ -408,12 +408,12 @@ def export_to_excel(entries, filename="timesheet_export.xlsx", start_date=None, 
         staff_sheet.cell(
             row=note_row,
             column=1,
-            value="20 minutes unpaid break deducted for shifts of 6+ hours (deducted from majority rate type).",
+            value="Hours and pay shown are ALREADY net of the 20-minute unpaid break for shifts of 6+ hours. Do not deduct break again.",
         )
         
         # Overall summary sheet
         summary_data = {
-            'Metric': ['Total Hours', 'Total Shifts', 'Unique Employees'],
+            'Metric': ['Total Hours (net of break)', 'Total Shifts', 'Unique Employees'],
             'Value': [overall_summary['total_hours'], overall_summary['total_shifts'], overall_summary['unique_employees']]
         }
         if start_date and end_date:
@@ -422,6 +422,18 @@ def export_to_excel(entries, filename="timesheet_export.xlsx", start_date=None, 
         
         summary_df = pd.DataFrame(summary_data)
         summary_df.to_excel(writer, sheet_name='Overall Summary', index=False)
+        summary_sheet = writer.sheets['Overall Summary']
+        note_row = len(summary_df) + 3
+        summary_sheet.cell(
+            row=note_row,
+            column=1,
+            value="Note",
+        )
+        summary_sheet.cell(
+            row=note_row,
+            column=2,
+            value="Hours and pay shown are ALREADY net of the 20-minute unpaid break for shifts of 6+ hours. Do not deduct break again.",
+        )
     
     return filename
 
@@ -444,7 +456,7 @@ def export_to_pdf(entries, filename="timesheet_export.pdf"):
     summary_para = Paragraph(summary_text, styles['Normal'])
     story.append(summary_para)
     break_note_para = Paragraph(
-        "20 minutes unpaid break deducted for shifts of 6+ hours (deducted from majority rate type).",
+        "Hours and pay shown are ALREADY net of the 20-minute unpaid break for shifts of 6+ hours. Do not deduct break again.",
         styles['Normal'],
     )
     story.append(break_note_para)
