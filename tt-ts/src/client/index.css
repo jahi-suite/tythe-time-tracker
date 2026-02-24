@@ -16,6 +16,12 @@ body {
   --tt-text: #1e2a36;
   --tt-text-muted: #5f6f82;
   --tt-border: #d6dee8;
+  --tt-surface: #ffffff;
+  --tt-surface-subtle: #f8fafc;
+  --tt-surface-muted: #f4f7fb;
+  --tt-card-radius: 12px;
+  --tt-card-shadow: 0 2px 8px rgba(22, 58, 92, 0.05);
+  --tt-card-shadow-hover: 0 4px 14px rgba(22, 58, 92, 0.1);
   --tt-heading-font: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --tt-spacing-sm: 0.5rem;
   --tt-spacing-md: 1rem;
@@ -276,6 +282,12 @@ button:disabled {
   line-height: 1.2;
   color: var(--tt-primary-dark);
 }
+
+.page-dashboard {
+  display: grid;
+  gap: 1.25rem;
+}
+
 .card h3 {
   margin: 0 0 0.75rem 0;
   font-family: var(--tt-heading-font);
@@ -419,6 +431,7 @@ tbody tr:last-child td { border-bottom: 0; }
   padding: 0;
 }
 
+.stat-cards,
 .manage-users-stats .stat-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -428,9 +441,9 @@ tbody tr:last-child td { border-bottom: 0; }
 
 .stat-card {
   padding: 1rem;
-  background: #f8fafc;
+  background: var(--tt-surface-subtle);
   border: 1px solid var(--tt-border);
-  border-radius: 12px;
+  border-radius: var(--tt-card-radius);
   text-align: center;
 }
 
@@ -449,6 +462,7 @@ tbody tr:last-child td { border-bottom: 0; }
   letter-spacing: 0.04em;
 }
 
+.dashboard-toolbar,
 .manage-users-toolbar {
   display: flex;
   gap: 1rem;
@@ -478,6 +492,7 @@ tbody tr:last-child td { border-bottom: 0; }
   color: var(--tt-primary-dark);
 }
 
+.cards-grid,
 .user-cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -486,15 +501,15 @@ tbody tr:last-child td { border-bottom: 0; }
 
 .user-card {
   border: 1px solid var(--tt-border);
-  border-radius: 12px;
+  border-radius: var(--tt-card-radius);
   padding: 1.25rem;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(22, 58, 92, 0.05);
+  background: var(--tt-surface);
+  box-shadow: var(--tt-card-shadow);
   transition: box-shadow 180ms ease;
 }
 
 .user-card:hover {
-  box-shadow: 0 4px 14px rgba(22, 58, 92, 0.1);
+  box-shadow: var(--tt-card-shadow-hover);
 }
 
 .user-card-header {
@@ -570,7 +585,7 @@ tbody tr:last-child td { border-bottom: 0; }
 .user-card-edit-form {
   margin: 1rem 0;
   padding: 1rem;
-  background: #f8fafc;
+  background: var(--tt-surface-subtle);
   border-radius: 8px;
   border: 1px solid var(--tt-border);
 }
@@ -578,7 +593,7 @@ tbody tr:last-child td { border-bottom: 0; }
 .user-card-pay-rates {
   margin-top: 1rem;
   padding: 1rem;
-  background: #f8fafc;
+  background: var(--tt-surface-subtle);
   border-radius: 8px;
   border: 1px solid var(--tt-border);
 }
