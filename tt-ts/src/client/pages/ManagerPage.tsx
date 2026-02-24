@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { timesheet, shifts, users, audit, exportExcelUrl, exportPdfUrl, type User as ApiUser } from '../api'
 
@@ -319,6 +319,7 @@ export function ManagerPage() {
   const [entries, setEntries] = useState<Array<{ id: string; employee: string; clock_in: string; clock_out: string | null; pay_rate_type: string }>>([])
   const [auditLogs, setAuditLogs] = useState<Array<{ id: string; action: string; changed_by: string; created_at: string }>>([])
   const [userList, setUserList] = useState<ApiUser[]>([])
+  const [userListError, setUserListError] = useState('')
   const [tab, setTab] = useState<'entries' | 'add' | 'edit' | 'delete' | 'users' | 'audit'>('entries')
   const [addShiftForm, setAddShiftForm] = useState<AddShiftFormState>(DEFAULT_ADD_SHIFT_FORM)
   const [addShiftError, setAddShiftError] = useState('')
@@ -388,11 +389,30 @@ export function ManagerPage() {
   const activeUsers = userList.filter((u) => u.active).length
   const adminCount = userList.filter((u) => u.role === 'admin').length
 
+  const loadUsers = useCallback(async (options?: { clearError?: boolean }) => {
+    if (options?.clearError) {
+      setUserListError('')
+    }
+    try {
+      const data = await users.list()
+      setUserList(data.users)
+      setUserListError('')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      setUserListError(message)
+    }
+  }, [])
+
   useEffect(() => {
     timesheet.getAll().then((d) => setEntries(d.entries)).catch(() => setEntries([]))
     audit.list().then((d) => setAuditLogs(d.logs)).catch(() => setAuditLogs([]))
-    users.list().then((d) => setUserList(d.users)).catch(() => setUserList([]))
-  }, [])
+    void loadUsers()
+  }, [loadUsers])
+
+  useEffect(() => {
+    if (tab !== 'users') return
+    void loadUsers()
+  }, [tab, loadUsers])
 
   useEffect(() => {
     if (tab !== 'edit' || !editShiftAutoLoadPending) return
@@ -652,7 +672,7 @@ export function ManagerPage() {
       await users.create({ username, password, displayName, role })
       setCreateUserSuccess(`Created user ${displayName}.`)
       setCreateUserForm(DEFAULT_CREATE_USER_FORM)
-      users.list().then((d) => setUserList(d.users)).catch(() => setUserList([]))
+      await loadUsers()
     } catch (err) {
       setCreateUserError(err instanceof Error ? err.message : 'Failed to create user.')
     } finally {
@@ -731,7 +751,7 @@ export function ManagerPage() {
       })
       setEditUserSuccess(`Updated user ${displayName}.`)
       setEditUserForm((prev) => ({ ...prev, password: '' }))
-      users.list().then((d) => setUserList(d.users)).catch(() => setUserList([]))
+      await loadUsers()
     } catch (err) {
       setEditUserError(err instanceof Error ? err.message : 'Failed to update user.')
     } finally {
@@ -762,7 +782,7 @@ export function ManagerPage() {
         await users.activate(targetUser.id)
         setUserStatusSuccess(`Activated user ${targetUser.display_name}.`)
       }
-      users.list().then((d) => setUserList(d.users)).catch(() => setUserList([]))
+      await loadUsers()
     } catch (err) {
       setUserStatusError(err instanceof Error ? err.message : `Failed to update user status for ${targetUser.username}.`)
     } finally {
@@ -802,7 +822,7 @@ export function ManagerPage() {
         supervisor: supervisor ? Number(supervisor) : undefined,
       })
       setUserPayRatesSuccess((prev) => ({ ...prev, [targetUser.id]: `Saved pay rates for ${targetUser.display_name}.` }))
-      users.list().then((d) => setUserList(d.users)).catch(() => setUserList([]))
+      await loadUsers()
     } catch (err) {
       setUserPayRatesError((prev) => ({
         ...prev,
@@ -1093,6 +1113,22 @@ export function ManagerPage() {
             </div>
             {userStatusError && <p className="message-error">{userStatusError}</p>}
             {userStatusSuccess && <p className="message-success">{userStatusSuccess}</p>}
+            {userListError && (
+              <div>
+                <p className="message-error">Could not load users. {userListError}. Try refreshing.</p>
+                <div className="btn-row">
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => {
+                      void loadUsers({ clearError: true })
+                    }}
+                  >
+                    Retry
+                  </button>
+                </div>
+              </div>
+            )}
 
             {adminUsers.length > 0 && (
               <details open className="manage-users-section">
@@ -1126,7 +1162,9 @@ export function ManagerPage() {
                       onOpenEditUser={openEditUserForm}
                       onUserStatusChange={handleUserStatusChange}
                       onUserPayRatesSave={handleUserPayRatesSave}
-                      onUserListRefresh={() => users.list().then((d) => setUserList(d.users)).catch(() => setUserList([]))}
+                      onUserListRefresh={() => {
+                        void loadUsers()
+                      }}
                     />
                   ))}
                 </div>
@@ -1165,14 +1203,16 @@ export function ManagerPage() {
                       onOpenEditUser={openEditUserForm}
                       onUserStatusChange={handleUserStatusChange}
                       onUserPayRatesSave={handleUserPayRatesSave}
-                      onUserListRefresh={() => users.list().then((d) => setUserList(d.users)).catch(() => setUserList([]))}
+                      onUserListRefresh={() => {
+                        void loadUsers()
+                      }}
                     />
                   ))}
                 </div>
               </details>
             )}
 
-            {filteredUsers.length === 0 && (
+            {!userListError && filteredUsers.length === 0 && (
               <p className="caption">No users match your search or filter.</p>
             )}
           </div>
