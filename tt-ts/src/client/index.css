@@ -645,6 +645,41 @@ tbody tr:last-child td { border-bottom: 0; }
   border: 1px solid #bfd0e2;
 }
 
+.export-dashboard .stat-card {
+  text-align: left;
+}
+
+.export-filter-grid {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  align-items: end;
+}
+
+.export-filter-grid label {
+  margin-bottom: 0;
+}
+
+.export-filter-grid label + label {
+  margin-top: 0;
+}
+
+.export-filter-grid input {
+  width: 100%;
+}
+
+.export-download-actions {
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+}
+
+.export-download-actions a {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 @media (max-width: 768px) {
   .app-layout { grid-template-columns: 1fr; }
   .app-layout nav.sidebar { border-right: none; border-bottom: 1px solid var(--tt-border); }
