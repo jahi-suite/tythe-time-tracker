@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kari Suite — Software for the real world</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --night:    #0d0b09;
+  --cream:    #f3ede3;
+  --amber:    #c8853a;
+  --amber-l:  #e8a855;
+  --muted:    #76665a;
+  --rule:     rgba(200,133,58,0.15);
+  --card:     rgba(255,255,255,0.028);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--night);
+  color: var(--cream);
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 9999; opacity: 0.35;
+}
+
+/* NAV */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+  height: 62px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 48px;
+  background: rgba(13,11,9,0.9);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--rule);
+}
+
+.logo { font-family: 'Playfair Display', serif; font-size: 1.2rem; text-decoration: none; display: flex; align-items: baseline; gap: 2px; color: inherit; }
+.logo-k { font-weight: 900; color: var(--cream); }
+.logo-s { font-weight: 400; font-style: italic; color: var(--amber); }
+
+.nav-r { display: flex; align-items: center; gap: 24px; }
+.nav-r a { font-size: 13px; color: rgba(243,237,227,0.4); text-decoration: none; transition: color 0.2s; }
+.nav-r a:hover { color: var(--cream); }
+.nav-pill { background: var(--amber) !important; color: var(--night) !important; padding: 8px 18px; border-radius: 2px; font-weight: 500; font-size: 13px !important; transition: background 0.2s !important; text-decoration: none !important; }
+.nav-pill:hover { background: var(--amber-l) !important; }
+
+@media (max-width:580px) {
+  .nav { padding: 0 20px; }
+  .nav-r a:not(.nav-pill) { display: none; }
+}
+
+/* HERO */
+.hero {
+  min-height: 100vh;
+  display: flex; align-items: center;
+  padding: 130px 48px 80px;
+  position: relative; overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(200,133,58,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200,133,58,0.035) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 40%, black 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  width: 600px; height: 600px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(200,133,58,0.07) 0%, transparent 68%);
+  top: 40%; left: 50%; transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.hero-inner { max-width: 1060px; margin: 0 auto; width: 100%; position: relative; z-index: 1; }
+
+.hero-kicker {
+  font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--amber); font-weight: 500;
+  display: flex; align-items: center; gap: 12px; margin-bottom: 28px;
+  opacity: 0; animation: up 0.7s 0.05s ease forwards;
+}
+.hero-kicker::before { content: ''; width: 24px; height: 1px; background: var(--amber); opacity: 0.5; }
+
+.hero-h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(3.2rem, 7.5vw, 7rem);
+  font-weight: 900; line-height: 1.02; letter-spacing: -0.025em;
+  color: var(--cream); margin-bottom: 28px;
+  opacity: 0; animation: up 0.8s 0.18s ease forwards;
+}
+.hero-h1 em { font-style: italic; color: var(--amber-l); font-weight: 700; }
+
+.hero-p {
+  font-size: clamp(1rem, 1.8vw, 1.15rem);
+  color: rgba(243,237,227,0.55); max-width: 50ch; line-height: 1.75; margin-bottom: 44px;
+  opacity: 0; animation: up 0.8s 0.32s ease forwards;
+}
+
+.hero-btns {
+  display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
+  opacity: 0; animation: up 0.8s 0.46s ease forwards;
+}
+
+.btn { display: inline-block; text-decoration: none; padding: 14px 28px; border-radius: 2px; font-size: 14.5px; font-weight: 500; transition: background 0.2s, transform 0.15s; }
+.btn-solid { background: var(--amber); color: var(--night); }
+.btn-solid:hover { background: var(--amber-l); transform: translateY(-1px); }
+.btn-line { color: rgba(243,237,227,0.45); border-bottom: 1px solid rgba(243,237,227,0.2); padding: 0 0 2px; font-size: 14px; transition: color 0.2s, border-color 0.2s; }
+.btn-line:hover { color: var(--cream); border-color: var(--amber); }
+
+.hero-badge {
+  margin-top: 64px; padding-top: 36px; border-top: 1px solid var(--rule);
+  display: flex; flex-wrap: wrap; gap: 28px; align-items: center;
+  opacity: 0; animation: up 0.8s 0.6s ease forwards;
+}
+.badge-item { font-size: 13px; color: rgba(243,237,227,0.32); display: flex; align-items: center; gap: 8px; }
+.badge-item::before { content: '·'; color: var(--amber); font-size: 20px; line-height: 0; }
+
+/* SECTION SHELL */
+section { padding: 96px 48px; border-top: 1px solid var(--rule); }
+.container { max-width: 1060px; margin: 0 auto; }
+
+.s-label { font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--amber); font-weight: 500; margin-bottom: 20px; display: block; }
+.s-h2 { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; line-height: 1.15; color: var(--cream); margin-bottom: 14px; }
+.s-intro { font-size: 1.02rem; color: rgba(243,237,227,0.52); max-width: 52ch; line-height: 1.78; margin-bottom: 52px; }
+
+/* ABOUT */
+.about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+@media (max-width: 760px) { .about-grid { grid-template-columns: 1fr; gap: 40px; } }
+
+.about-pull {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.4rem, 2.5vw, 1.9rem); font-style: italic; line-height: 1.45;
+  color: var(--cream); border-left: 3px solid var(--amber); padding-left: 24px;
+}
+
+.about-body p { font-size: 15px; color: rgba(243,237,227,0.6); line-height: 1.82; margin-bottom: 16px; }
+.about-body p:last-child { margin-bottom: 0; }
+
+.team-line {
+  margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--rule);
+  font-size: 13px; color: rgba(243,237,227,0.32);
+  display: flex; align-items: center; gap: 10px;
+}
+.team-line::before {
+  content: '2';
+  font-family: 'Playfair Display', serif; font-size: 1.8rem; font-style: italic;
+  color: var(--amber); opacity: 0.5; line-height: 1;
+}
+
+/* PRODUCTS */
+.products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2px; }
+
+.p-card {
+  padding: 40px 36px; background: var(--card); border: 1px solid var(--rule);
+  text-decoration: none; display: flex; flex-direction: column;
+  position: relative; overflow: hidden; transition: background 0.25s, border-color 0.25s;
+}
+.p-card::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--amber), transparent);
+  opacity: 0; transition: opacity 0.3s;
+}
+.p-card:not(.p-dim):hover { background: rgba(200,133,58,0.05); border-color: rgba(200,133,58,0.28); }
+.p-card:not(.p-dim):hover::after { opacity: 1; }
+.p-dim { opacity: 0.4; cursor: default; }
+
+.p-status { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 500; margin-bottom: 18px; display: flex; align-items: center; gap: 7px; }
+.p-status.live { color: var(--amber); }
+.p-status.soon { color: var(--muted); }
+.p-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.p-dot.live { background: var(--amber); }
+.p-dot.soon { background: var(--muted); }
+
+.p-name { font-family: 'Playfair Display', serif; font-size: 1.9rem; font-weight: 700; color: var(--cream); line-height: 1.1; margin-bottom: 12px; }
+.p-name em { font-style: italic; color: var(--amber-l); }
+
+.p-desc { font-size: 14px; color: rgba(243,237,227,0.48); line-height: 1.7; margin-bottom: 24px; flex: 1; }
+
+.p-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 28px; }
+.p-tag { font-size: 11px; color: rgba(243,237,227,0.32); border: 1px solid rgba(243,237,227,0.1); padding: 3px 9px; border-radius: 1px; }
+
+.p-arrow { font-size: 13px; font-weight: 500; color: var(--amber-l); display: flex; align-items: center; gap: 7px; margin-top: auto; }
+.p-arrow::after { content: '→'; transition: transform 0.2s; }
+.p-card:hover .p-arrow::after { transform: translateX(4px); }
+
+/* SUITE VISION */
+.suite-flow {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  gap: 0;
+  align-items: center;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 32px;
+}
+
+@media (max-width: 760px) {
+  .suite-flow {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto auto auto;
+  }
+}
+
+.suite-step {
+  padding: 36px 32px;
+  background: var(--card);
+  height: 100%;
+}
+
+.suite-step-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.suite-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--cream);
+  line-height: 1;
+}
+.suite-name em { font-style: italic; color: var(--amber-l); }
+
+.suite-badge {
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+.suite-badge.live { background: rgba(200,133,58,0.15); color: var(--amber); border: 1px solid rgba(200,133,58,0.3); }
+.suite-badge.soon { background: rgba(118,102,90,0.15); color: var(--muted); border: 1px solid rgba(118,102,90,0.3); }
+.suite-badge.pipeline { background: rgba(118,102,90,0.1); color: rgba(118,102,90,0.7); border: 1px solid rgba(118,102,90,0.2); }
+
+.suite-step p {
+  font-size: 13.5px;
+  color: rgba(243,237,227,0.45);
+  line-height: 1.65;
+}
+
+.suite-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 0 4px;
+  border-left: 1px solid var(--rule);
+  border-right: 1px solid var(--rule);
+  height: 100%;
+  justify-content: center;
+  min-width: 80px;
+  background: rgba(200,133,58,0.02);
+}
+
+@media (max-width: 760px) {
+  .suite-connector {
+    flex-direction: row;
+    border-left: none;
+    border-right: none;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    padding: 12px 32px;
+    min-width: unset;
+    height: auto;
+  }
+  .suite-line { width: 30px; height: 1px; }
+}
+
+.suite-line {
+  width: 1px;
+  height: 24px;
+  background: linear-gradient(to bottom, transparent, var(--amber), transparent);
+  opacity: 0.35;
+}
+
+@media (max-width: 760px) {
+  .suite-line {
+    width: 30px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--amber), transparent);
+  }
+}
+
+.suite-arrow-label {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(200,133,58,0.45);
+  font-weight: 500;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+@media (max-width: 760px) {
+  .suite-arrow-label { writing-mode: horizontal-tb; }
+}
+
+.suite-endnote {
+  padding: 24px 28px;
+  background: rgba(200,133,58,0.05);
+  border: 1px solid rgba(200,133,58,0.15);
+  border-radius: 2px;
+  margin-top: 16px;
+}
+.suite-endnote p {
+  font-size: 14.5px;
+  color: rgba(243,237,227,0.52);
+  line-height: 1.75;
+  max-width: 80ch;
+  margin: 0;
+}
+
+/* HOW WE WORK */
+.how-grid { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--rule); }
+@media (max-width: 680px) { .how-grid { grid-template-columns: 1fr; } }
+
+.how-item { padding: 40px 32px; border-right: 1px solid var(--rule); }
+.how-item:last-child { border-right: none; }
+@media (max-width: 680px) { .how-item { border-right: none; border-bottom: 1px solid var(--rule); } .how-item:last-child { border-bottom: none; } }
+
+.how-n { font-family: 'Playfair Display', serif; font-size: 3rem; font-style: italic; color: var(--amber); opacity: 0.2; line-height: 1; margin-bottom: 18px; }
+.how-item h3 { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 700; color: var(--cream); margin-bottom: 10px; line-height: 1.3; }
+.how-item p { font-size: 13.5px; color: rgba(243,237,227,0.48); line-height: 1.7; }
+
+/* CTA */
+.cta-wrap { padding: 0 48px 96px; }
+@media (max-width: 580px) { .cta-wrap { padding: 0 20px 64px; } }
+
+.cta-box {
+  max-width: 1060px; margin: 0 auto;
+  padding: 60px 56px;
+  background: rgba(200,133,58,0.06); border: 1px solid rgba(200,133,58,0.2); border-radius: 3px;
+  display: grid; grid-template-columns: 1fr auto; gap: 40px; align-items: center;
+}
+@media (max-width: 680px) { .cta-box { grid-template-columns: 1fr; padding: 36px 28px; gap: 24px; } }
+
+.cta-box h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.5rem, 2.8vw, 2.1rem); font-weight: 700; line-height: 1.2; color: var(--cream); margin-bottom: 10px; }
+.cta-box p { font-size: 14.5px; color: rgba(243,237,227,0.5); max-width: 48ch; line-height: 1.65; }
+.cta-side { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; white-space: nowrap; }
+.cta-note { font-size: 12px; color: rgba(243,237,227,0.25); }
+
+/* FOOTER */
+footer { border-top: 1px solid var(--rule); padding: 36px 48px; }
+.foot-inner { max-width: 1060px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: start; gap: 28px; }
+.foot-brand { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 900; color: var(--cream); margin-bottom: 4px; }
+.foot-brand span { font-weight: 400; font-style: italic; color: var(--amber); }
+.foot-sub { font-size: 12.5px; color: rgba(243,237,227,0.25); margin-bottom: 14px; }
+.foot-copy { font-size: 11.5px; color: rgba(243,237,227,0.18); }
+.foot-links { display: flex; flex-direction: column; gap: 7px; align-items: flex-end; }
+.foot-links a { font-size: 12.5px; color: rgba(243,237,227,0.3); text-decoration: none; transition: color 0.2s; }
+.foot-links a:hover { color: var(--cream); }
+
+/* ANIMATIONS */
+@keyframes up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: none; }
+}
+.r { opacity: 0; transform: translateY(18px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.r.in { opacity: 1; transform: none; }
+.r.d1 { transition-delay: 0.08s; }
+.r.d2 { transition-delay: 0.18s; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="logo">
+    <span class="logo-k">Kari</span>
+    <span class="logo-s">Suite</span>
+  </a>
+  <div class="nav-r">
+    <a href="#products">Products</a>
+    <a href="#about">About</a>
+    <a href="privacy.html">Privacy</a>
+    <a href="https://time.karisuite.com/" class="nav-pill">Try Kari Time →</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-kicker">Kari Suite</div>
+    <h1 class="hero-h1">Small team.<br><em>Real software.</em></h1>
+    <p class="hero-p">
+      We're two people who build practical software for real-world problems. Not demos. Not MVPs that go nowhere. Tools that people actually use, every day, to make their work easier.
+    </p>
+    <div class="hero-btns">
+      <a href="#products" class="btn btn-solid">See what we've built</a>
+      <a href="#about" class="btn btn-line">About us</a>
+    </div>
+    <div class="hero-badge">
+      <span class="badge-item">Independent &amp; self-funded</span>
+      <span class="badge-item">2-person team</span>
+      <span class="badge-item">Built from real problems</span>
+      <span class="badge-item">No VC. No roadmap theatre.</span>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="container">
+    <span class="s-label r">Who we are</span>
+    <div class="about-grid">
+      <div class="about-pull r">
+        "We build things we wish existed — then we make them available to everyone who needs them."
+      </div>
+      <div class="about-body r d1">
+        <p>Kari Suite is a two-person independent software company. We build focused, practical tools — each one starting with a real frustration, a specific moment where the existing options were too expensive, too complicated, or just completely wrong for the job.</p>
+        <p>We're not a startup chasing a series A. We're not building features to impress investors. We build things we need, make them work properly, and put them in front of the people who need them too.</p>
+        <p>Right now we're focused on hospitality — one industry, one live product, one real problem solved. Where we go next depends on where the next real problem is. We're not mapping that out in advance.</p>
+        <div class="team-line">person team, building software that actually ships</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="products">
+  <div class="container">
+    <span class="s-label r">Products</span>
+    <h2 class="s-h2 r">One product live.<br>More being figured out.</h2>
+    <p class="s-intro r">We started in hospitality because that's where the first real problem was. Kari Time is live and in use. What comes next is still taking shape — but the direction is clear.</p>
+
+    <div class="products-grid">
+      <a href="https://time.karisuite.com/" class="p-card r">
+        <div class="p-status live"><span class="p-dot live"></span>Live now</div>
+        <div class="p-name">Kari <em>Time</em></div>
+        <p class="p-desc">Shift tracking and payroll-ready exports for hospitality venues and small teams. Clock in, set your rates, export. No paper, no spreadsheets, no month-end chaos.</p>
+        <div class="p-tags">
+          <span class="p-tag">Hospitality</span>
+          <span class="p-tag">Shift tracking</span>
+          <span class="p-tag">Payroll exports</span>
+        </div>
+        <span class="p-arrow">See Kari Time</span>
+      </a>
+
+      <div class="p-card p-dim r d1">
+        <div class="p-status soon"><span class="p-dot soon"></span>Being explored</div>
+        <div class="p-name" style="color:rgba(243,237,227,0.35);">Kari <em style="color:rgba(232,168,85,0.35);">Rota</em></div>
+        <p class="p-desc">The idea: staff scheduling that connects directly to Kari Time so your rota feeds your timesheets automatically. Still early — but it's the obvious next problem to solve.</p>
+        <div class="p-tags">
+          <span class="p-tag">Hospitality</span>
+          <span class="p-tag">Scheduling</span>
+          <span class="p-tag">Idea stage</span>
+        </div>
+      </div>
+
+      <div class="p-card p-dim r d2">
+        <div class="p-status soon"><span class="p-dot soon"></span>On the radar</div>
+        <div class="p-name" style="color:rgba(243,237,227,0.35);">Kari <em style="color:rgba(232,168,85,0.35);">Stock</em></div>
+        <p class="p-desc">The idea: simple stock and wastage tracking for bars and kitchens. No spreadsheets, no clipboards. Nothing we'd build until Kari Time is where it needs to be.</p>
+        <div class="p-tags">
+          <span class="p-tag">Hospitality</span>
+          <span class="p-tag">Stock control</span>
+          <span class="p-tag">Idea stage</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="suite">
+  <div class="container">
+    <span class="s-label r">Where this is going</span>
+    <h2 class="s-h2 r">The bigger picture.</h2>
+    <p class="s-intro r">One industry for now. But the long-term idea is a hospitality suite where shifts, rotas, and stock all talk to each other — and eventually, tools for other industries too. We're not promising a roadmap. We're building one thing at a time, properly.</p>
+
+    <div class="suite-flow r">
+      <div class="suite-step">
+        <div class="suite-step-top">
+          <div class="suite-badge live">Live now</div>
+          <div class="suite-name">Kari <em>Time</em></div>
+        </div>
+        <p>Shift tracking and payroll exports for hospitality venues. Real people using it today.</p>
+      </div>
+
+      <div class="suite-connector">
+        <div class="suite-line"></div>
+        <div class="suite-arrow-label">then</div>
+        <div class="suite-line"></div>
+      </div>
+
+      <div class="suite-step" style="opacity:0.55;">
+        <div class="suite-step-top">
+          <div class="suite-badge soon">Idea</div>
+          <div class="suite-name">Kari <em>Rota</em></div>
+        </div>
+        <p>Scheduling that feeds directly into timesheets. Eliminate the gap between rota and payroll.</p>
+      </div>
+
+      <div class="suite-connector" style="opacity:0.4;">
+        <div class="suite-line"></div>
+        <div class="suite-arrow-label">then</div>
+        <div class="suite-line"></div>
+      </div>
+
+      <div class="suite-step" style="opacity:0.35;">
+        <div class="suite-step-top">
+          <div class="suite-badge pipeline">Radar</div>
+          <div class="suite-name">Kari <em>Stock</em></div>
+        </div>
+        <p>Stock and wastage tracking that understands your shifts and covers. One less clipboard.</p>
+      </div>
+    </div>
+
+    <div class="suite-endnote r">
+      <p>The goal isn't to build three products quickly. It's to build one product well, then the next one well, until they connect into something genuinely useful — a suite that understands how a venue actually operates. Beyond hospitality, we're open. Good problems exist everywhere.</p>
+    </div>
+
+  </div>
+</section>
+
+<section id="how">
+  <div class="container">
+    <span class="s-label r">How we work</span>
+    <h2 class="s-h2 r">The way we build things.</h2>
+    <p class="s-intro r">Two people, no process theatre. Just a clear way of deciding what to build and how to build it.</p>
+
+    <div class="how-grid r">
+      <div class="how-item">
+        <div class="how-n">1</div>
+        <h3>Start with a real problem</h3>
+        <p>Every product begins with a specific, felt frustration — something one of us or someone we know has actually experienced. Not a gap in the market. A genuine pain point.</p>
+      </div>
+      <div class="how-item">
+        <div class="how-n">2</div>
+        <h3>Build tight. Ship it.</h3>
+        <p>We scope it small and make it work. No feature lists to impress investors, no roadmap that grows indefinitely. One problem, solved properly, shipped to real users.</p>
+      </div>
+      <div class="how-item">
+        <div class="how-n">3</div>
+        <h3>Works in the real world</h3>
+        <p>Software that only works in ideal conditions isn't finished. We test against the messy reality of how people actually work — then we ship it.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="cta-wrap">
+  <div class="cta-box r">
+    <div>
+      <h2>Got a problem worth solving?<br>We're listening.</h2>
+      <p>If you've found something broken in your world that software could fix, we genuinely want to hear about it. Or start with Kari Time if shift tracking is your problem right now.</p>
+    </div>
+    <div class="cta-side">
+      <a href="https://time.karisuite.com/" class="btn btn-solid">Try Kari Time</a>
+      <a href="mailto:hello@karisuite.com" class="btn btn-line">Get in touch</a>
+      <span class="cta-note">hello@karisuite.com</span>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-inner">
+    <div>
+      <div class="foot-brand">Kari<span> Suite</span></div>
+      <div class="foot-sub">Software for the real world</div>
+      <div class="foot-copy">© 2026 Kari Suite. Independent &amp; self-funded.</div>
+    </div>
+    <div class="foot-links">
+      <a href="https://time.karisuite.com/">Kari Time</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="mailto:hello@karisuite.com">hello@karisuite.com</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); obs.unobserve(e.target); } });
+  }, { threshold: 0.07, rootMargin: '0px 0px -36px 0px' });
+  document.querySelectorAll('.r').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
