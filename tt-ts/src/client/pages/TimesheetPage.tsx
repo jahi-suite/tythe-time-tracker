@@ -4,7 +4,7 @@ import { timesheet } from '../api'
 
 export function TimesheetPage() {
   const { user } = useAuth()
-  const displayName = user?.display_name || user?.username || 'Unknown user'
+  const displayName = user?.display_name || user?.username || 'User'
   const [entries, setEntries] = useState<Array<{ id: string; clock_in: string; clock_out: string | null; pay_rate_type: string }>>([])
 
   useEffect(() => {

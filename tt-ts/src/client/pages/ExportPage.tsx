@@ -4,7 +4,7 @@ import { exportExcelUrl, exportPdfUrl } from '../api'
 
 export function ExportPage() {
   const { user } = useAuth()
-  const displayName = user?.display_name || user?.username || 'Unknown user'
+  const displayName = user?.display_name || user?.username || 'User'
   const isManager = user?.role === 'manager' || user?.role === 'admin'
   const [employee, setEmployee] = useState('')
   const [start, setStart] = useState('')

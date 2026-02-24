@@ -4,7 +4,7 @@ import { clock } from '../api'
 
 export function ClockPage() {
   const { user } = useAuth()
-  const displayName = user?.display_name || user?.username || 'Unknown user'
+  const displayName = user?.display_name || user?.username || 'User'
   const [openShift, setOpenShift] = useState<{ id: string; clock_in: string; pay_rate_type: string } | null>(null)
   const [isSupervisor, setIsSupervisor] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
