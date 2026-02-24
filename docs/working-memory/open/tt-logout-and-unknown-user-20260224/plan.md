@@ -2,29 +2,40 @@
 
 ## Goal
 
-1. **Logout** — After logout, navigate to /login instead of / (marketing page).
-2. **Unknown user** — Ensure incomplete users are rejected. If still occurring, tighten the check (e.g. reject when display_name is empty even if username exists, or vice versa).
+1. **Logout** — After logout, user lands on /login and stays there (no "Unknown user" flash).
+2. **Unknown user** — Reject incomplete users at login and in getAuthUserById.
 
-## Key Files
+## Root Cause
 
-- tt-ts/src/client/pages/Layout.tsx — handleLogout, navigate('/') → navigate('/login')
-- tt-ts/src/server/auth/index.ts — getAuthUserById incomplete-user check
+Logout was redirecting to /login but the session cookie was not being cleared on Netlify, so /me still returned the user. Likely causes: clearCookie options mismatch (secure/path), redirect race (browser hadn't processed Set-Cookie), or NODE_ENV mismatch at runtime.
 
-## Implementation
+## Implementation Phases
 
-### 1. Logout → /login
+### Phase 1: Harden Logout (Server)
 
-In Layout.tsx handleLogout: change `navigate('/')` to `navigate('/login')`.
+- `tt-ts/src/server/sessionConfig.ts` — shared cookie options
+- `tt-ts/src/server/index.ts` — use getSessionCookieOptions for session
+- `tt-ts/src/server/routes/auth.ts` — use getSessionCookieOptions for clearCookie; clear with both secure:true and secure:false when in prod to cover env mismatch
 
-### 2. Stricter incomplete-user check
+### Phase 2: Harden Logout (Client)
 
-In getAuthUserById: reject if display_name is empty OR username is empty (require both to be non-empty):
-- `if (!row.display_name?.trim() || !row.username?.trim()) return null`
+- `tt-ts/src/client/pages/Layout.tsx` — 150ms delay after logout before window.location.href = '/login'
 
-This ensures we never return a user missing either identifier.
+### Phase 3: Reject Incomplete Users
+
+- `tt-ts/src/server/auth/index.ts` — authenticateUser: reject if display_name or username empty (same as getAuthUserById)
+
+### Phase 4: Verification
+
+- `tt-ts/scripts/verify-logout-flow.sh` — run server, run curl login→me→logout→me, assert 401 on final /me
+- Optional: VERIFY_LOGIN_USER, VERIFY_LOGIN_PASSWORD when DB has existing users
+
+### Phase 5: Ralph Artifacts
+
+- This plan, prompt, verify script
 
 ## Verification
 
-- Layout.tsx has navigate('/login') in handleLogout
-- getAuthUserById returns null when display_name or username is empty
-- npm run build passes
+- `./tt-ts/scripts/verify-logout-flow.sh` — passes when logout clears session
+- `./ralph/verify-tt-logout-and-unknown-user-20260224.sh` — runs verify-logout-flow + static checks + build
+- Manual: log in, log out, confirm /login and no connect.sid cookie

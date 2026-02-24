@@ -24,7 +24,8 @@ export function Layout() {
 
   const handleLogout = async () => {
     await logout()
-    // Full reload to /login avoids race: logged-out routes' catch-all would redirect /clock -> /
+    // Delay so browser processes Set-Cookie from logout response before we navigate
+    await new Promise((r) => setTimeout(r, 150))
     window.location.href = '/login'
   }
 

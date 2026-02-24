@@ -1,4 +1,4 @@
-You are a Ralph execution agent. Fix logout destination and tighten unknown-user rejection. Fresh context — everything you need is on disk.
+You are a Ralph execution agent. Fix logout session persistence and unknown-user rejection. Fresh context — everything you need is on disk.
 
 ## Orient
 
@@ -9,30 +9,49 @@ git status
 
 Read:
 - docs/working-memory/open/tt-logout-and-unknown-user-20260224/plan.md
+- tt-ts/src/server/routes/auth.ts
+- tt-ts/src/server/sessionConfig.ts
 - tt-ts/src/client/pages/Layout.tsx
-- tt-ts/src/server/auth/index.ts (getAuthUserById)
+- tt-ts/src/server/auth/index.ts
+- tt-ts/scripts/verify-logout-flow.sh
 
 ## Task
 
-### 1. Logout → /login
+### Phase 1: Harden logout server-side
 
-In Layout.tsx, in handleLogout, change `navigate('/')` to `navigate('/login')` so after logout the user goes to the login page, not the marketing page.
+1. Ensure `tt-ts/src/server/sessionConfig.ts` exports `getSessionCookieOptions()` with path, httpOnly, sameSite, secure (from NODE_ENV).
+2. In `auth.ts` logout handler: use getSessionCookieOptions for clearCookie. Clear with both secure:true and secure:false when opts.secure is true (covers Netlify NODE_ENV mismatch).
+3. Add comment: must not send response until destroy completes.
 
-### 2. Stricter incomplete-user check
+### Phase 2: Harden logout client-side
 
-In getAuthUserById (auth/index.ts), change the check from:
-- `if (!row.display_name?.trim() && !row.username?.trim()) return null`
-to:
-- `if (!row.display_name?.trim() || !row.username?.trim()) return null`
+In Layout.tsx handleLogout: after `await logout()`, add `await new Promise((r) => setTimeout(r, 150))` before `window.location.href = '/login'`.
 
-Reject if EITHER display_name OR username is empty. Require both to be non-empty.
+### Phase 3: Reject incomplete users at login
+
+In `authenticateUser` (auth/index.ts): add `if (!row.display_name?.trim() || !row.username?.trim()) return null` before returning the user.
+
+### Phase 4: Verification script
+
+Ensure `tt-ts/scripts/verify-logout-flow.sh` exists and:
+- Builds, starts server on PORT (default 3847), waits for /api/health
+- If first-setup needsSetup, creates verify-test user
+- Login, GET /me (200), POST logout, GET /me (401)
+- Exits 0 only if final /me returns 401
+
+### Phase 5: Ralph verify script
+
+Ensure `ralph/verify-tt-logout-and-unknown-user-20260224.sh`:
+- Runs tt-ts/scripts/verify-logout-flow.sh
+- Runs npm run build in tt-ts
+- Static checks: Layout redirect, getAuthUserById ||, authenticateUser ||
 
 ## Verify
 
 - Run ./ralph/verify-tt-logout-and-unknown-user-20260224.sh
-- npm run build in tt-ts
+- Do NOT skip verification. The verify script must pass.
 
 ## Rules
 
-- One commit: `fix: logout to /login and reject users missing display_name or username`
+- Conventional commit: `fix: harden logout session clear and reject incomplete users`
 - Update docs/working-memory/open/tt-logout-and-unknown-user-20260224/updates.md

@@ -3,6 +3,7 @@ import * as auth from '../auth/index.js'
 import { logChange } from '../audit.js'
 import { requireAuth } from '../middleware/auth.js'
 import { createIpRateLimit } from '../middleware/rateLimit.js'
+import { getSessionCookieOptions } from '../sessionConfig.js'
 import { DB } from '../../shared/constants.js'
 import type { User } from '../../shared/types.js'
 
@@ -73,17 +74,18 @@ router.post('/login', loginRateLimit, async (req, res) => {
 })
 
 router.post('/logout', (req, res) => {
+  // Must not send response until destroy completes — session store must persist deletion
   req.session.destroy((err: Error | null) => {
     if (err) {
       res.status(500).json({ error: 'Logout failed' })
       return
     }
-    res.clearCookie('connect.sid', {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      path: '/',
-    })
+    const opts = getSessionCookieOptions()
+    res.clearCookie('connect.sid', { ...opts, path: '/', httpOnly: true, sameSite: 'lax', secure: opts.secure })
+    // Cover Netlify env mismatch: cookie may have been set with secure:false if NODE_ENV was wrong
+    if (opts.secure) {
+      res.clearCookie('connect.sid', { ...opts, path: '/', httpOnly: true, sameSite: 'lax', secure: false })
+    }
     res.json({ ok: true })
   })
 })

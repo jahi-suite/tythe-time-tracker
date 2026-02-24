@@ -14,6 +14,7 @@ import usersRoutes from './routes/users.js'
 import auditRoutes from './routes/audit.js'
 import exportRoutes from './routes/export.js'
 import { requireSameOriginForMutations } from './middleware/csrf.js'
+import { getSessionCookieOptions } from './sessionConfig.js'
 import { getPool } from './db/connection.js'
 import { runMigrations } from './db/migrate.js'
 
@@ -125,6 +126,7 @@ export async function createApp() {
     res.json({ status: 'ok', message: 'Tythe Time Tracker API' })
   })
 
+  const cookieOpts = getSessionCookieOptions()
   app.use(
     session({
       secret: sessionSecret || 'tythe-dev-secret-change-in-production',
@@ -132,9 +134,7 @@ export async function createApp() {
       saveUninitialized: false,
       store,
       cookie: {
-        secure: process.env.NODE_ENV === 'production',
-        httpOnly: true,
-        sameSite: 'lax',
+        ...cookieOpts,
         maxAge: 24 * 60 * 60 * 1000,
       },
     })
