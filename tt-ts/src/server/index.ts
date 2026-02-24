@@ -113,6 +113,7 @@ async function createSessionStore(): Promise<session.Store | undefined> {
 
 export async function createApp() {
   const app = express()
+  app.set('trust proxy', 1)
 
   app.use(cookieParser())
   app.use(express.json())
@@ -137,6 +138,18 @@ export async function createApp() {
 
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', message: 'Tythe Time Tracker API' })
+  })
+
+  app.get('/api/health/db', async (_req, res) => {
+    try {
+      const pool = getPool()
+      await pool.query('SELECT 1')
+      res.json({ db: 'ok' })
+    } catch (err) {
+      res
+        .status(500)
+        .json({ db: 'error', message: err instanceof Error ? err.message : 'Unknown error' })
+    }
   })
 
   app.use('/api', requireSameOriginForMutations)
