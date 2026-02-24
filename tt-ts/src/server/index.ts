@@ -111,6 +111,8 @@ async function createSessionStore(): Promise<session.Store | undefined> {
   )
 }
 
+let startupError: string | null = null
+
 export async function createApp() {
   const app = express()
   app.set('trust proxy', 1)
@@ -118,41 +120,12 @@ export async function createApp() {
   app.use(cookieParser())
   app.use(express.json())
 
-  await runMigrations()
-  const store = await createSessionStore()
-
-  app.use(
-    session({
-      secret: sessionSecret || 'tythe-dev-secret-change-in-production',
-      resave: false,
-      saveUninitialized: false,
-      store,
-      cookie: {
-        secure: process.env.NODE_ENV === 'production',
-        httpOnly: true,
-        sameSite: 'lax',
-        maxAge: 24 * 60 * 60 * 1000,
-      },
-    })
-  )
-
+  // Mount debug + health BEFORE DB init — so they respond even when DB fails (avoids 502)
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', message: 'Tythe Time Tracker API' })
   })
 
-  app.get('/api/health/db', async (_req, res) => {
-    try {
-      const pool = getPool()
-      await pool.query('SELECT 1')
-      res.json({ db: 'ok' })
-    } catch (err) {
-      res
-        .status(500)
-        .json({ db: 'error', message: err instanceof Error ? err.message : 'Unknown error' })
-    }
-  })
-
-  app.get("/api/debug", (req, res) => {
+  app.get('/api/debug', (req, res) => {
     res.json({
       env: {
         hasSupabaseHost: !!process.env.SUPABASE_HOST,
@@ -171,7 +144,45 @@ export async function createApp() {
         origin: req.get('origin'),
         forwardedProto: req.get('x-forwarded-proto'),
       },
+      startupError: startupError,
     })
+  })
+
+  let store: session.Store | undefined
+  try {
+    await runMigrations()
+    store = await createSessionStore()
+  } catch (err) {
+    startupError = err instanceof Error ? err.message : String(err)
+    console.error('[startup] DB init failed:', startupError)
+    store = undefined
+  }
+
+  app.use(
+    session({
+      secret: sessionSecret || 'tythe-dev-secret-change-in-production',
+      resave: false,
+      saveUninitialized: false,
+      store,
+      cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        sameSite: 'lax',
+        maxAge: 24 * 60 * 60 * 1000,
+      },
+    })
+  )
+
+  app.get('/api/health/db', async (_req, res) => {
+    try {
+      const pool = getPool()
+      await pool.query('SELECT 1')
+      res.json({ db: 'ok' })
+    } catch (err) {
+      res
+        .status(500)
+        .json({ db: 'error', message: err instanceof Error ? err.message : 'Unknown error' })
+    }
   })
 
   app.use('/api', requireSameOriginForMutations)
