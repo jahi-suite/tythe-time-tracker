@@ -152,7 +152,7 @@ function pageSize() {
 }
 
 function fullBleed(color) {
-  const { w, h } = pageSize()
+  const { w } = pageSize()
   doc.save()
   doc.rect(0, 0, w, h).fill(color)
   doc.restore()
@@ -225,11 +225,15 @@ function drawCoverPage() {
   const { w, h } = pageSize()
   const left = 42
   const contentW = w - 84
+  const coverCardsY = 68
+  const coverCardsH = 370
+  const contentBottom = coverCardsY + coverCardsH
+  const ctaY = contentBottom + 28
 
   pageChrome('Constance story', 1)
   sectionBar(copy.hero.eyebrow, left, 34, 220)
 
-  card({ x: left, y: 68, w: 332, h: 370, fill: '#11192a', stroke: '#364159', radius: 18 })
+  card({ x: left, y: coverCardsY, w: 332, h: coverCardsH, fill: '#11192a', stroke: '#364159', radius: 18 })
   doc.roundedRect(left + 214, 80, 108, 20, 10).fill('#3a2507')
   doc.font('Helvetica-Bold').fontSize(8).fillColor(palette.gold).text(copy.hero.chip.toUpperCase(), left + 224, 87)
 
@@ -246,7 +250,7 @@ function drawCoverPage() {
   doc.font('Helvetica-Bold').fontSize(16).fillColor(palette.cream).text(copy.hero.byline, left + 16, 376)
   textBlock(copy.hero.role, left + 16, 396, 220, { fontSize: 10, color: palette.haze })
 
-  card({ x: left + 346, y: 68, w: contentW - 346, h: 370, fill: '#0e1626', stroke: '#303a4f', radius: 18 })
+  card({ x: left + 346, y: coverCardsY, w: contentW - 346, h: coverCardsH, fill: '#0e1626', stroke: '#303a4f', radius: 18 })
   sectionBar(copy.hero.managerLabel, left + 358, 84, contentW - 370)
   textBlock(copy.hero.managerBody, left + 358, 116, contentW - 370, { fontSize: 11, lineGap: 4 })
   textBlock(copy.hero.managerBody2, left + 358, 188, contentW - 370, {
@@ -262,13 +266,13 @@ function drawCoverPage() {
     bulletY += 28
   })
 
-  doc.roundedRect(left, h - 118, contentW, 54, 14).fillAndStroke('#1a2235', '#33415b')
-  doc.roundedRect(left + 14, h - 104, 230, 28, 10).fill(palette.amber)
-  doc.font('Helvetica-Bold').fontSize(11).fillColor(palette.charcoal).text(copy.cta.button, left + 24, h - 94, {
+  doc.roundedRect(left, ctaY, contentW, 54, 14).fillAndStroke('#1a2235', '#33415b')
+  doc.roundedRect(left + 14, ctaY + 14, 230, 28, 10).fill(palette.amber)
+  doc.font('Helvetica-Bold').fontSize(11).fillColor(palette.charcoal).text(copy.cta.button, left + 24, ctaY + 24, {
     width: 210,
     align: 'center',
   })
-  textBlock('Built for real shifts, not demos.', left + 258, h - 96, contentW - 272, {
+  textBlock('Built for real shifts, not demos.', left + 258, ctaY + 22, contentW - 272, {
     fontSize: 10.5,
     color: palette.smoke,
   })
