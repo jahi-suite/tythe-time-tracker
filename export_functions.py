@@ -320,6 +320,7 @@ def export_to_excel(entries, filename="timesheet_export.xlsx", start_date=None, 
             "Enhanced Hours": data["Enhanced"],
             "Supervisor Hours": data["Supervisor"],
             "Total Hours": data["total_hours"],
+            "Break Deducted": "",
             "Total Shifts": data["total_shifts"],
             "Pay Rate Type": "",
             "Supervisor Flag": "",
@@ -342,9 +343,10 @@ def export_to_excel(entries, filename="timesheet_export.xlsx", start_date=None, 
             
             if emp.strip().lower() == employee.strip().lower():
                 is_supervisor = (pay_rate_type == 'Supervisor')
-                split = apply_break_deduction(
-                    split_shift_by_rate(clock_in, clock_out, is_supervisor)
-                )
+                gross_split = split_shift_by_rate(clock_in, clock_out, is_supervisor)
+                split = apply_break_deduction(gross_split)
+                gross_total_hours = round(sum(gross_split.values()), 2)
+                break_deducted = "20 min" if gross_total_hours >= 6 else "—"
                 
                 # Create a display string for the shift
                 if is_supervisor:
@@ -365,6 +367,7 @@ def export_to_excel(entries, filename="timesheet_export.xlsx", start_date=None, 
                     "Enhanced Hours": split["Enhanced"],
                     "Supervisor Hours": split["Supervisor"],
                     "Total Hours": sum(split.values()),
+                    "Break Deducted": break_deducted,
                     "Total Shifts": "",
                     "Pay Rate Type": shift_display,
                     "Supervisor Flag": "Yes" if pay_rate_type == "Supervisor" else "No",
@@ -382,6 +385,7 @@ def export_to_excel(entries, filename="timesheet_export.xlsx", start_date=None, 
             "Enhanced Hours": "",
             "Supervisor Hours": "",
             "Total Hours": "",
+            "Break Deducted": "",
             "Total Shifts": "",
             "Pay Rate Type": "",
             "Supervisor Flag": "",
@@ -399,6 +403,13 @@ def export_to_excel(entries, filename="timesheet_export.xlsx", start_date=None, 
     with pd.ExcelWriter(filename, engine='openpyxl') as writer:
         # Hierarchical view (main sheet)
         df_hierarchical.to_excel(writer, sheet_name='Staff Hours & Shifts', index=False)
+        staff_sheet = writer.sheets['Staff Hours & Shifts']
+        note_row = len(df_hierarchical) + 3  # header row + one blank row + note
+        staff_sheet.cell(
+            row=note_row,
+            column=1,
+            value="20 minutes unpaid break deducted for shifts of 6+ hours (deducted from majority rate type).",
+        )
         
         # Overall summary sheet
         summary_data = {
