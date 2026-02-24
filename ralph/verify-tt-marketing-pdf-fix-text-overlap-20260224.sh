@@ -12,9 +12,14 @@ if [ ! -f "$SCRIPT" ]; then
   exit 1
 fi
 
-# Script must use heightOfString or similar to calculate text height before next block
-if ! grep -q "heightOfString" "$SCRIPT" 2>/dev/null; then
-  echo "FAIL: Script should use heightOfString to prevent text overlap"
+# Cover right panel MUST use measure/heightOfString for managerBody and managerBody2
+if ! grep -q "measure" "$SCRIPT" 2>/dev/null; then
+  echo "FAIL: Script should use measure() for text height"
+  exit 1
+fi
+# managerBody2 must NOT be at fixed y=188 — must use dynamic y
+if grep -q "managerBody2.*188\|188.*managerBody2" "$SCRIPT" 2>/dev/null; then
+  echo "FAIL: managerBody2 must use dynamic y positioning, not fixed 188"
   exit 1
 fi
 

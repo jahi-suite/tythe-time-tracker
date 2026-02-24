@@ -13,22 +13,46 @@ Read:
 
 ## Task
 
-Text blocks in the PDF are overlapping. The right panel of the cover page shows "managerBody" and "managerBody2" printed on top of each other. This happens because blocks are drawn at fixed y positions — when text wraps, it overflows into the next block.
+Text blocks are STILL overlapping. The right panel of the cover page shows managerBody and managerBody2 on top of each other. Other sections may overlap too. You MUST fix this properly.
 
-### Fix
+### Root cause
 
-1. **Modify textBlock** to return the final y position after the text (y + height of rendered text). Or add a variant that does this.
+Blocks use fixed y positions. managerBody at y=116 and managerBody2 at y=188 — when managerBody wraps to 3+ lines, it extends past 188 and overlaps. Same for bullets.
 
-2. **Use heightOfString** before drawing: `const h = doc.heightOfString(text, { width, lineGap })` — then the next block starts at `y + h + gap`.
+### Required fix (cover right panel)
 
-3. **Apply to all multi-block sections**:
-   - Cover right panel: managerBody, managerBody2, bullets — each must start below the previous
-   - Pain page: moments — ensure no overlap
-   - Outcomes: cards
-   - Mechanics: steps and side panel
-   - Testimonial: quote, body, payoff, name
+**Replace the fixed-y approach with dynamic positioning:**
 
-4. **Run the script** and open the PDF to verify no overlapping text.
+```javascript
+let y = 116
+const panelW = contentW - 370
+const opts = { fontSize: 11, lineGap: 4 }
+
+const h1 = measure(copy.hero.managerBody, panelW, opts)
+textBlock(copy.hero.managerBody, left + 358, y, panelW, opts)
+y += h1 + 12
+
+const h2 = measure(copy.hero.managerBody2, panelW, { ...opts, color: palette.cream })
+textBlock(copy.hero.managerBody2, left + 358, y, panelW, { ...opts, color: palette.cream })
+y += h2 + 16
+
+copy.hero.bullets.forEach((line) => {
+  doc.circle(left + 366, y + 5, 2.3).fill(palette.amber)
+  const lineH = measure(line, panelW - 10, { fontSize: 10.2 })
+  textBlock(line, left + 376, y, panelW - 10, { fontSize: 10.2, color: palette.cream })
+  y += lineH + 2
+})
+```
+
+### Apply same pattern everywhere
+
+- **Left panel (Constance card)**: subhead, byline, role — use measure() and chain y
+- **Pain page**: intro, moments — ensure each moment's y is below the previous
+- **Outcomes, mechanics, testimonial**: every text block that has another below it must use heightOfString/measure to position the next
+
+### Critical
+
+Do NOT use any fixed y for a block that comes after another block of variable height. Always: `y += measure(previousText) + gap` before drawing the next.
 
 ## Rules
 
