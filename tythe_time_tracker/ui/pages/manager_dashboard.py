@@ -28,7 +28,7 @@ from ...database.repository import TimeEntryRepository
 from ...utils.time_utils import TimeUtils
 from ..components.footer import render_footer
 from export_functions import (
-    export_to_excel, export_to_pdf, split_shift_by_rate
+    apply_break_deduction, export_to_excel, export_to_pdf, split_shift_by_rate
 )
 
 
@@ -99,7 +99,9 @@ def show_all_entries_tab() -> None:
             total_std = total_enh = total_sup = total_hours = 0
             for entry in shifts:
                 is_supervisor = (entry.pay_rate_type == 'Supervisor')
-                split = split_shift_by_rate(entry.clock_in, entry.clock_out, is_supervisor)
+                split = apply_break_deduction(
+                    split_shift_by_rate(entry.clock_in, entry.clock_out, is_supervisor)
+                )
                 total_std += split['Standard']
                 total_enh += split['Enhanced']
                 total_sup += split['Supervisor']
@@ -112,7 +114,9 @@ def show_all_entries_tab() -> None:
             # List shifts
             for entry in sorted(shifts, key=lambda e: e.clock_in, reverse=True):
                 is_supervisor = (entry.pay_rate_type == 'Supervisor')
-                split = split_shift_by_rate(entry.clock_in, entry.clock_out, is_supervisor)
+                split = apply_break_deduction(
+                    split_shift_by_rate(entry.clock_in, entry.clock_out, is_supervisor)
+                )
                 
                 if is_supervisor:
                     rate_display = f"Supervisor ({split['Supervisor']}h)"

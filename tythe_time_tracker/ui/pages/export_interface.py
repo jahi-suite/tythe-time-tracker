@@ -12,7 +12,7 @@ from ...utils.time_utils import TimeUtils
 from ..components.footer import render_footer
 from export_functions import (
     get_date_range, get_timesheet_data, export_to_excel, 
-    export_to_pdf, calculate_summary, split_shift_by_rate
+    export_to_pdf, calculate_summary, apply_break_deduction, split_shift_by_rate
 )
 
 
@@ -166,7 +166,9 @@ def show_preview_data(entries: list, start_date: date, end_date: date) -> None:
             for entry in entries[:20]:  # Show first 20 entries
                 entry_id, emp, clock_in, clock_out, pay_rate_type, created_at = entry
                 is_supervisor = (pay_rate_type == 'Supervisor')
-                split = split_shift_by_rate(clock_in, clock_out, is_supervisor)
+                split = apply_break_deduction(
+                    split_shift_by_rate(clock_in, clock_out, is_supervisor)
+                )
                 
                 # Convert UTC times to BST for display
                 bst_clock_in = TimeUtils.convert_to_bst(clock_in)

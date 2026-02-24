@@ -217,7 +217,9 @@ def calculate_staff_summary(entries, user_rates_map=None):
             entry_id, employee, clock_in, clock_out, pay_rate_type, created_at = entry
 
         is_supervisor = pay_rate_type == "Supervisor"
-        split = split_shift_by_rate(clock_in, clock_out, is_supervisor)
+        split = apply_break_deduction(
+            split_shift_by_rate(clock_in, clock_out, is_supervisor)
+        )
 
         if employee not in staff_summary:
             staff_summary[employee] = {
@@ -338,7 +340,9 @@ def export_to_excel(entries, filename="timesheet_export.xlsx", start_date=None, 
             
             if emp.strip().lower() == employee.strip().lower():
                 is_supervisor = (pay_rate_type == 'Supervisor')
-                split = split_shift_by_rate(clock_in, clock_out, is_supervisor)
+                split = apply_break_deduction(
+                    split_shift_by_rate(clock_in, clock_out, is_supervisor)
+                )
                 
                 # Create a display string for the shift
                 if is_supervisor:
@@ -489,7 +493,9 @@ def export_to_pdf(entries, filename="timesheet_export.pdf"):
             
             if emp.strip().lower() == employee.strip().lower():
                 is_supervisor = (pay_rate_type == 'Supervisor')
-                split = split_shift_by_rate(clock_in, clock_out, is_supervisor)
+                split = apply_break_deduction(
+                    split_shift_by_rate(clock_in, clock_out, is_supervisor)
+                )
                 if is_supervisor:
                     shift_display = f"Supervisor ({split['Supervisor']}h)"
                 elif split['Standard'] > 0 and split['Enhanced'] > 0:
@@ -569,7 +575,9 @@ def get_hierarchical_staff_shift_data(entries):
             entry_id, emp, clock_in, clock_out, pay_rate_type, created_at = entry
             if emp.strip().lower() == employee.strip().lower():
                 is_supervisor = (pay_rate_type == 'Supervisor')
-                split = split_shift_by_rate(clock_in, clock_out, is_supervisor)
+                split = apply_break_deduction(
+                    split_shift_by_rate(clock_in, clock_out, is_supervisor)
+                )
                 if is_supervisor:
                     shift_display = f"Supervisor ({split['Supervisor']}h)"
                 elif split['Standard'] > 0 and split['Enhanced'] > 0:

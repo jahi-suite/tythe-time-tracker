@@ -8,7 +8,12 @@ from typing import List
 from ...core.services import TimeTrackingService
 from ...core.models import TimeEntry
 from ...utils.time_utils import TimeUtils
-from export_functions import split_shift_by_rate, calculate_staff_summary, _get_user_rates_map
+from export_functions import (
+    apply_break_deduction,
+    split_shift_by_rate,
+    calculate_staff_summary,
+    _get_user_rates_map,
+)
 from ..components.footer import render_footer
 
 
@@ -19,7 +24,9 @@ def format_timesheet_data(entries: List[TimeEntry]) -> List[dict]:
     for entry in entries:
         # Calculate the actual split using our logic
         is_supervisor = (entry.pay_rate_type == 'Supervisor')
-        split = split_shift_by_rate(entry.clock_in, entry.clock_out, is_supervisor)
+        split = apply_break_deduction(
+            split_shift_by_rate(entry.clock_in, entry.clock_out, is_supervisor)
+        )
 
         # Create a display string showing the split
         if is_supervisor:
