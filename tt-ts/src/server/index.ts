@@ -107,8 +107,6 @@ async function createSessionStore(): Promise<session.Store | undefined> {
   )
 }
 
-let startupError: string | null = null
-
 export async function createApp() {
   const app = express()
   app.set('trust proxy', 1)
@@ -116,47 +114,16 @@ export async function createApp() {
   app.use(cookieParser())
   app.use(express.json())
 
-  // Mount debug + health BEFORE DB init — so they respond even when DB fails (avoids 502)
-  app.get('/api/health', (_req, res) => {
-    res.json({ status: 'ok', message: 'Tythe Time Tracker API' })
-  })
-
-  app.get('/api/debug', (req, res) => {
-    res.json({
-      env: {
-        hasSupabaseHost: !!process.env.SUPABASE_HOST,
-        hasSessionSecret: !!process.env.SESSION_SECRET,
-        nodeEnv: process.env.NODE_ENV,
-        supabasePort: Number.parseInt(process.env.SUPABASE_PORT ?? '', 10) || 0,
-      },
-      session: {
-        store: process.env.SESSION_STORE?.trim() || (isProduction ? 'pg' : 'memory'),
-        cookieSecure: process.env.NODE_ENV === 'production',
-        cookieSameSite: 'lax',
-      },
-      request: {
-        protocol: req.protocol,
-        host: req.get('host'),
-        origin: req.get('origin'),
-        forwardedProto: req.get('x-forwarded-proto'),
-      },
-      startupError: startupError,
-    })
-  })
-
   if (isProduction && !sessionSecret) {
     throw new Error('SESSION_SECRET is required when NODE_ENV=production')
   }
 
-  let store: session.Store | undefined
-  try {
-    await runMigrations()
-    store = await createSessionStore()
-  } catch (err) {
-    startupError = err instanceof Error ? err.message : String(err)
-    console.error('[startup] DB init failed:', startupError)
-    store = undefined
-  }
+  await runMigrations()
+  const store = await createSessionStore()
+
+  app.get('/api/health', (_req, res) => {
+    res.json({ status: 'ok', message: 'Tythe Time Tracker API' })
+  })
 
   app.use(
     session({
@@ -172,18 +139,6 @@ export async function createApp() {
       },
     })
   )
-
-  app.get('/api/health/db', async (_req, res) => {
-    try {
-      const pool = getPool()
-      await pool.query('SELECT 1')
-      res.json({ db: 'ok' })
-    } catch (err) {
-      res
-        .status(500)
-        .json({ db: 'error', message: err instanceof Error ? err.message : 'Unknown error' })
-    }
-  })
 
   app.use('/api', requireSameOriginForMutations)
 

@@ -9,27 +9,6 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [debugOpen, setDebugOpen] = useState(false)
-  const [debugData, setDebugData] = useState<Record<string, unknown> | null>(null)
-  const [debugLoading, setDebugLoading] = useState(false)
-
-  const fetchDebug = async () => {
-    setDebugLoading(true)
-    setDebugData(null)
-    try {
-      const [debugRes, healthRes] = await Promise.all([
-        fetch('/api/debug', { credentials: 'include' }),
-        fetch('/api/health/db', { credentials: 'include' }),
-      ])
-      const debug = debugRes.ok ? await debugRes.json() : { error: debugRes.status }
-      const health = healthRes.ok ? await healthRes.json() : { error: healthRes.status }
-      setDebugData({ debug, health })
-    } catch (e) {
-      setDebugData({ error: e instanceof Error ? e.message : 'Failed to fetch' })
-    } finally {
-      setDebugLoading(false)
-    }
-  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -75,28 +54,6 @@ export function LoginPage() {
           Log In
         </button>
       </form>
-      <div className="mt-6 pt-4 border-t border-gray-600/40">
-        <button
-          type="button"
-          onClick={() => {
-            setDebugOpen(!debugOpen)
-            if (!debugOpen && !debugData) void fetchDebug()
-          }}
-          className="text-xs text-gray-500 hover:text-gray-400"
-        >
-          {debugOpen ? '▼' : '▶'} Debug / connection check
-        </button>
-        {debugOpen && (
-          <div className="mt-2 text-left">
-            {debugLoading && <p className="text-xs text-gray-500">Loading…</p>}
-            {debugData && !debugLoading && (
-              <pre className="text-xs text-gray-400 bg-black/30 p-3 rounded overflow-auto max-h-48 font-mono">
-                {JSON.stringify(debugData, null, 2)}
-              </pre>
-            )}
-          </div>
-        )}
-      </div>
     </div>
   )
 }
