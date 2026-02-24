@@ -50,6 +50,16 @@ export async function runMigrations(): Promise<void> {
       console.log('[migrate] Added time_entries.user_id foreign key')
     }
 
+    // Fix users with empty display_name (prevents "Unknown user")
+    const fixUsers = await client.query(
+      `UPDATE ${DB.USERS_TABLE}
+       SET display_name = COALESCE(NULLIF(TRIM(username), ''), 'User')
+       WHERE display_name IS NULL OR TRIM(display_name) = ''`
+    )
+    if (fixUsers.rowCount && fixUsers.rowCount > 0) {
+      console.log(`[migrate] Fixed ${fixUsers.rowCount} user(s) with empty display_name/username`)
+    }
+
     // Backfill user_id from display_name where only one user has that name
     await client.query(
       `WITH unique_display_users AS (

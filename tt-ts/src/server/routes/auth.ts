@@ -63,6 +63,10 @@ router.post('/login', loginRateLimit, async (req, res) => {
     res.status(401).json({ error: 'Invalid username or password' })
     return
   }
+  if (!user.display_name?.trim() || !user.username?.trim()) {
+    res.status(401).json({ error: 'Invalid username or password' })
+    return
+  }
   req.session!.regenerate((err: Error | null) => {
     if (err) {
       res.status(500).json({ error: 'Login failed' })
