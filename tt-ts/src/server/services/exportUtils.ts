@@ -55,6 +55,37 @@ export function splitShiftByRate(
   }
 }
 
+export function applyBreakDeduction(split: ShiftSplit): ShiftSplit {
+  const adjusted: ShiftSplit = {
+    Standard: Math.round((Number(split.Standard) || 0) * 100) / 100,
+    Enhanced: Math.round((Number(split.Enhanced) || 0) * 100) / 100,
+    Supervisor: Math.round((Number(split.Supervisor) || 0) * 100) / 100,
+  }
+
+  const totalHours = adjusted.Standard + adjusted.Enhanced + adjusted.Supervisor
+  if (totalHours < 6) return adjusted
+
+  const breakHours = 20 / 60
+  const order: Array<keyof ShiftSplit> = ['Standard', 'Enhanced', 'Supervisor']
+  let majority: keyof ShiftSplit = 'Standard'
+  let maxHours = adjusted.Standard
+
+  for (const key of order.slice(1)) {
+    if (adjusted[key] > maxHours) {
+      majority = key
+      maxHours = adjusted[key]
+    }
+  }
+
+  adjusted[majority] = Math.max(0, adjusted[majority] - Math.min(adjusted[majority], breakHours))
+
+  return {
+    Standard: Math.round(adjusted.Standard * 100) / 100,
+    Enhanced: Math.round(adjusted.Enhanced * 100) / 100,
+    Supervisor: Math.round(adjusted.Supervisor * 100) / 100,
+  }
+}
+
 export interface StaffSummaryData {
   employee_label: string
   Standard: number
@@ -99,7 +130,9 @@ export function calculateStaffSummary(
   const staffSummary: Record<string, StaffSummaryData> = {}
   for (const entry of entries) {
     const isSupervisor = entry.pay_rate_type === 'Supervisor'
-    const split = splitShiftByRate(entry.clock_in, entry.clock_out, isSupervisor)
+    const split = applyBreakDeduction(
+      splitShiftByRate(entry.clock_in, entry.clock_out, isSupervisor)
+    )
     const emp = entry.employee
     const key = getStaffSummaryKey(entry)
     if (!staffSummary[key]) {

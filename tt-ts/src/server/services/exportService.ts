@@ -3,6 +3,7 @@ import PDFDocument from 'pdfkit'
 import type { TimeEntry } from '../../shared/types.js'
 import { convertToBst } from '../utils/timeUtils.js'
 import {
+  applyBreakDeduction,
   splitShiftByRate,
   calculateStaffSummary,
   formatPay,
@@ -92,7 +93,9 @@ export async function exportToExcel(
     for (const entry of sortedEntries) {
       if (getStaffSummaryKey(entry) !== summaryKey) continue
       const isSupervisor = entry.pay_rate_type === 'Supervisor'
-      const split = splitShiftByRate(entry.clock_in, entry.clock_out, isSupervisor)
+      const split = applyBreakDeduction(
+        splitShiftByRate(entry.clock_in, entry.clock_out, isSupervisor)
+      )
       const bstIn = convertToBst(entry.clock_in)
       const bstOut = entry.clock_out ? convertToBst(entry.clock_out) : null
       let shiftDisplay: string
@@ -199,7 +202,9 @@ export async function exportToPdf(entries: TimeEntry[]): Promise<Buffer> {
     for (const entry of sortedEntries) {
       if (getStaffSummaryKey(entry) !== summaryKey) continue
       const isSupervisor = entry.pay_rate_type === 'Supervisor'
-      const split = splitShiftByRate(entry.clock_in, entry.clock_out, isSupervisor)
+      const split = applyBreakDeduction(
+        splitShiftByRate(entry.clock_in, entry.clock_out, isSupervisor)
+      )
       const bstIn = convertToBst(entry.clock_in)
       const bstOut = entry.clock_out ? convertToBst(entry.clock_out) : null
       let shiftDisplay: string
