@@ -29,8 +29,11 @@ cd "$REPO_ROOT/tt-ts" && npm run build 2>/dev/null || {
   exit 1
 }
 
-# Python tests pass
-cd "$REPO_ROOT" && python -m pytest tests/unit/test_shift_splitting.py -q 2>/dev/null || {
+# Python tests pass (use venv if present)
+cd "$REPO_ROOT"
+PYTHON="${REPO_ROOT}/.venv/bin/python"
+[[ -x "$PYTHON" ]] || PYTHON=python
+$PYTHON -m pytest tests/unit/test_shift_splitting.py -q 2>/dev/null || {
   echo "FAIL: break-05 — Python shift splitting tests failed"
   exit 1
 }
