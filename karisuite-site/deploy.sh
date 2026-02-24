@@ -5,7 +5,7 @@ set -e
 
 cd "$(dirname "$0")"
 PROJECT="${GCP_PROJECT_ID:-karitime}"
-REGION="europe-west2"
+REGION="europe-west1"
 SERVICE="karisuite-site"
 
 echo "Deploying $SERVICE to Cloud Run ($REGION, project $PROJECT)..."

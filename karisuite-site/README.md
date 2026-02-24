@@ -24,7 +24,7 @@ In Google Cloud Console → Cloud Run → **Deploy from repository**:
 2. **Build context**: `karisuite-site` (or path to this folder)
 3. **Dockerfile path**: `karisuite-site/Dockerfile`
 4. **Service name**: `karisuite-site`
-5. **Region**: `europe-west2`
+5. **Region**: `europe-west1`
 
 Push to main will then deploy both the Kari Time app and the Kari Suite site.
 
@@ -36,4 +36,4 @@ After deploy, map karisuite.com and www.karisuite.com to the `karisuite-site` se
 - Add `karisuite.com` and `www.karisuite.com`
 - Update DNS with the records Cloud Run provides (A/AAAA, not ghs.googlehosted.com)
 
-**Live URL**: https://karisuite-site-144765655694.europe-west2.run.app
+**Live URL**: https://karisuite-site-144765655694.europe-west1.run.app
