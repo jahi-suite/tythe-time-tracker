@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { auth } from '../api'
 
@@ -24,6 +25,9 @@ export function LoginPage() {
 
   return (
     <div className="login-page">
+      <Link to="/" className="block text-center text-sm mb-4" style={{ color: 'var(--tt-text-muted)' }}>
+        ← Back to home
+      </Link>
       <img src="/tythe-logo.png" alt="Tythe Barn" width={200} style={{ display: 'block', margin: '0 auto 1rem' }} />
       <div className="login-hero">
         <p className="login-eyebrow">Secure Access</p>

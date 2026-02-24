@@ -2,6 +2,7 @@ import React from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 
+import { MarketingLandingPage } from './pages/MarketingLandingPage'
 import { LoginPage, FirstSetupPage } from './pages/LoginPage'
 import { Layout } from './pages/Layout'
 import { ClockPage } from './pages/ClockPage'
@@ -54,10 +55,17 @@ function AppRoutes() {
       </Routes>
     )
   }
-  if (needsSetup) return <FirstSetupPage />
+  if (needsSetup)
+    return (
+      <Routes>
+        <Route path="/login" element={<FirstSetupPage />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    )
   return (
     <Routes>
-      <Route path="/" element={<LoginPage />} />
+      <Route path="/" element={<MarketingLandingPage />} />
+      <Route path="/login" element={<LoginPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
