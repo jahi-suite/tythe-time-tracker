@@ -8,6 +8,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Checkout
@@ -16,7 +19,8 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          workload_identity_provider: projects/144765655694/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+          service_account: github-cloudrun-deployer@karitime.iam.gserviceaccount.com
 
       - name: Set up gcloud
         uses: google-github-actions/setup-gcloud@v2
@@ -27,4 +31,5 @@ jobs:
           gcloud run deploy tythe-time-tracker \
             --source . \
             --region us-central1 \
+            --allow-unauthenticated \
             --project "${{ secrets.GCP_PROJECT_ID }}"

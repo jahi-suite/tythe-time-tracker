@@ -7,8 +7,8 @@ This project deploys `tt-ts` to Google Cloud Run when code is pushed to `main`.
 - GitHub Actions workflow: `.github/workflows/deploy-cloudrun.yml`
 - Cloud Run service: `tythe-time-tracker`
 - Region: `us-central1`
+- **Auth**: Workload Identity Federation (OIDC) — no service account keys
 - GitHub secrets:
-  - `GCP_SA_KEY` (service account JSON key)
   - `GCP_PROJECT_ID` (target GCP project ID)
 
 ## 1. Enable Required GCP APIs
@@ -36,27 +36,39 @@ Notes:
 - `Cloud Build` and source-based deploys may also require additional permissions depending on project policy.
 - If your org restricts broad roles, create a narrower custom role set and test the deployment.
 
-## 3. Create and Store the Service Account Key
+## 3. Configure Workload Identity Federation (OIDC)
 
-1. Create a JSON key for the service account.
-2. In GitHub, open the repository settings.
-3. Go to `Settings -> Secrets and variables -> Actions`.
-4. Add a new repository secret:
-   - Name: `GCP_SA_KEY`
-   - Value: paste the full JSON key contents
+No keys needed. GitHub Actions authenticates via OIDC tokens.
+
+```bash
+# Create pool and provider (already done for jahi-suite/tythe-time-tracker)
+gcloud iam workload-identity-pools create "github-pool" \
+  --location="global" --display-name="GitHub Actions Pool" --project=karitime
+
+gcloud iam workload-identity-pools providers create-oidc "github-provider" \
+  --location="global" --workload-identity-pool="github-pool" \
+  --issuer-uri="https://token.actions.githubusercontent.com" \
+  --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository,attribute.repository_owner=assertion.repository_owner" \
+  --attribute-condition="assertion.repository_owner == 'jahi-suite'" \
+  --project=karitime
+
+# Allow repo to impersonate the service account
+gcloud iam service-accounts add-iam-policy-binding github-cloudrun-deployer@karitime.iam.gserviceaccount.com \
+  --project=karitime \
+  --role="roles/iam.workloadIdentityUser" \
+  --member="principalSet://iam.googleapis.com/projects/144765655694/locations/global/workloadIdentityPools/github-pool/attribute.repository/jahi-suite/tythe-time-tracker"
+```
 
 ## 4. Add the Project ID Secret
 
-Add another repository secret:
-
 - Name: `GCP_PROJECT_ID`
-- Value: your GCP project ID (for example, `karitime`)
+- Value: your GCP project ID (e.g. `karitime`)
 
 ## 5. Confirm Deployment Behavior
 
 On `push` to `main`, GitHub Actions will run:
 
-- `google-github-actions/auth` using `GCP_SA_KEY`
+- `google-github-actions/auth` using Workload Identity Federation (OIDC)
 - `gcloud run deploy tythe-time-tracker --source . --region us-central1 --project $GCP_PROJECT_ID` from `tt-ts/`
 
 ## 6. Cloud Run Runtime Configuration (Manual)
