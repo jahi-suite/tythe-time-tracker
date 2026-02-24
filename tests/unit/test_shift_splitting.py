@@ -2,7 +2,7 @@
 
 import pytest
 from datetime import datetime, timezone, timedelta
-from export_functions import split_shift_by_rate
+from export_functions import apply_break_deduction, split_shift_by_rate
 
 
 class TestShiftSplitting:
@@ -198,4 +198,71 @@ class TestShiftSplitting:
         assert result['Standard'] == 7.0
         assert result['Enhanced'] == 9.0
         assert result['Supervisor'] == 0.0
-        assert result['Standard'] + result['Enhanced'] == 16.0  # Total should be 16 hours 
+        assert result['Standard'] + result['Enhanced'] == 16.0  # Total should be 16 hours
+
+
+class TestBreakDeduction:
+    """Test 6h+ unpaid break deduction behavior."""
+
+    def test_break_deduction_6h_pure_standard(self):
+        result = apply_break_deduction(
+            {"Standard": 6.0, "Enhanced": 0.0, "Supervisor": 0.0}
+        )
+
+        assert result["Standard"] == 5.67
+        assert result["Enhanced"] == 0.0
+        assert result["Supervisor"] == 0.0
+
+    def test_break_deduction_7h_mixed_majority_standard(self):
+        result = apply_break_deduction(
+            {"Standard": 4.0, "Enhanced": 3.0, "Supervisor": 0.0}
+        )
+
+        assert result["Standard"] == 3.67
+        assert result["Enhanced"] == 3.0
+        assert result["Supervisor"] == 0.0
+
+    def test_break_deduction_7h_mixed_majority_enhanced(self):
+        result = apply_break_deduction(
+            {"Standard": 2.0, "Enhanced": 5.0, "Supervisor": 0.0}
+        )
+
+        assert result["Standard"] == 2.0
+        assert result["Enhanced"] == 4.67
+        assert result["Supervisor"] == 0.0
+
+    def test_break_deduction_8h_pure_enhanced(self):
+        result = apply_break_deduction(
+            {"Standard": 0.0, "Enhanced": 8.0, "Supervisor": 0.0}
+        )
+
+        assert result["Standard"] == 0.0
+        assert result["Enhanced"] == 7.67
+        assert result["Supervisor"] == 0.0
+
+    def test_break_deduction_5h_no_change(self):
+        result = apply_break_deduction(
+            {"Standard": 5.0, "Enhanced": 0.0, "Supervisor": 0.0}
+        )
+
+        assert result["Standard"] == 5.0
+        assert result["Enhanced"] == 0.0
+        assert result["Supervisor"] == 0.0
+
+    def test_break_deduction_6h_supervisor(self):
+        result = apply_break_deduction(
+            {"Standard": 0.0, "Enhanced": 0.0, "Supervisor": 6.0}
+        )
+
+        assert result["Standard"] == 0.0
+        assert result["Enhanced"] == 0.0
+        assert result["Supervisor"] == 5.67
+
+    def test_break_deduction_tie_defaults_to_standard(self):
+        result = apply_break_deduction(
+            {"Standard": 3.0, "Enhanced": 3.0, "Supervisor": 0.0}
+        )
+
+        assert result["Standard"] == 2.67
+        assert result["Enhanced"] == 3.0
+        assert result["Supervisor"] == 0.0
