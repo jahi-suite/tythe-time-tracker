@@ -20,7 +20,6 @@ import { runMigrations } from './db/migrate.js'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const require = createRequire(import.meta.url)
 
-const app = express()
 const PORT = process.env.PORT || 3000
 const isProduction = process.env.NODE_ENV === 'production'
 const sessionSecret = process.env.SESSION_SECRET?.trim()
@@ -112,10 +111,12 @@ async function createSessionStore(): Promise<session.Store | undefined> {
   )
 }
 
-app.use(cookieParser())
-app.use(express.json())
+export async function createApp() {
+  const app = express()
 
-async function startServer() {
+  app.use(cookieParser())
+  app.use(express.json())
+
   await runMigrations()
   const store = await createSessionStore()
 
@@ -148,6 +149,12 @@ async function startServer() {
   app.use('/api/audit', auditRoutes)
   app.use('/api/export', exportRoutes)
 
+  return app
+}
+
+async function startServer() {
+  const app = await createApp()
+
   // Serve static client (dist is at project root, sibling of src/server)
   const distPath = path.join(__dirname, '..', '..', 'dist')
   app.use(express.static(distPath))
@@ -161,7 +168,9 @@ async function startServer() {
   })
 }
 
-void startServer().catch((error) => {
-  console.error('Failed to start server:', error)
-  process.exit(1)
-})
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  void startServer().catch((error) => {
+    console.error('Failed to start server:', error)
+    process.exit(1)
+  })
+}

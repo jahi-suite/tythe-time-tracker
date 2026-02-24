@@ -1,0 +1,20 @@
+[build]
+  base = "tt-ts"
+  command = "npm run build:client"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[functions]
+  external_node_modules = ["express", "pg", "connect-pg-simple"]
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/server"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
