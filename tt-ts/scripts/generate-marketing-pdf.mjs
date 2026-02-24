@@ -1,334 +1,496 @@
 #!/usr/bin/env node
 /**
- * Generates a brochure-style PDF for the marketing landing page content.
+ * Generates a brochure-style PDF synced to the v2 marketing page copy.
  * Run: node tt-ts/scripts/generate-marketing-pdf.mjs
- * Output: tt-ts/marketing-page.pdf
+ * Outputs:
+ *   - tt-ts/marketing-page.pdf
+ *   - tt-ts/public/marketing-page.pdf
  */
 
 import PDFDocument from 'pdfkit'
-import { createWriteStream } from 'fs'
-import { fileURLToPath } from 'url'
+import { copyFileSync, createWriteStream, mkdirSync } from 'fs'
 import { dirname, join } from 'path'
+import { fileURLToPath } from 'url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const outPath = join(__dirname, '..', 'marketing-page.pdf')
-
-const doc = new PDFDocument({ margin: 46, size: 'A4' })
-const stream = createWriteStream(outPath)
-doc.pipe(stream)
+const rootDir = join(__dirname, '..')
+const outPath = join(rootDir, 'marketing-page.pdf')
+const publicOutPath = join(rootDir, 'public', 'marketing-page.pdf')
 
 const palette = {
-  green: '#1e3a2a',
-  tan: '#c4a574',
-  cream: '#faf8f5',
-  charcoal: '#1a1a1a',
-  muted: '#5f675f',
-  line: '#d8d2ca',
+  ink: '#070a10',
+  navy: '#0f172a',
+  panel: '#121a2b',
+  panel2: '#172033',
+  line: '#2a3347',
+  amber: '#f59e0b',
+  gold: '#fbbf24',
+  cream: '#f8f3e7',
+  smoke: '#d6d0c7',
+  haze: '#a3acbf',
+  charcoal: '#111827',
+  warmPaper: '#f4ede0',
+  warmCard: '#fff8eb',
+  wine: '#3a1022',
 }
 
-const features = [
-  ['Clock in & out', 'One tap. Staff clock in from their phone. No paper, no fuss.'],
-  [
-    'Pay rates, automatic',
-    'Add custom pay rates, enhanced rates (like night premium), and venue-specific day/night rates. Set once, calculated forever.',
-  ],
-  ['Timesheets', 'Personal and manager views. Always up to date, always accurate.'],
-  ['Export', 'Excel & PDF. One click. Payroll-ready for your accountant.'],
-  ['Manager dashboard', 'See everyone. Add, edit, approve. Quick export all staff.'],
-  ['Audit log', 'Who changed what, when. Full traceability for peace of mind.'],
-]
+const copy = {
+  hero: {
+    eyebrow: 'The first thing you should know',
+    headline: '“I built this after one too many nights hunting for a missing timesheet.”',
+    subhead:
+      'I was managing the bar, closing out events, and then trying to rebuild hours from scraps of paper. People were tired. I was tired. Hours got argued about. Rates got argued about. I was fed up, so I built the thing I wanted at 11pm on a Saturday: clock in, clock out, clear records, payroll done.',
+    byline: 'Constance',
+    role: 'Bar Manager, The Tythe Barn',
+    chip: 'Constance built this',
+    managerLabel: 'For the manager doing three jobs at once',
+    managerBody:
+      'You are not “operations” in a neat little org chart. You are on the floor, fixing rota gaps, answering staff questions, and then somehow expected to do payroll without missing a beat.',
+    managerBody2:
+      'This page is for the person who says, “I’ll deal with it Monday,” and then spends Monday untangling chaos.',
+    bullets: [
+      'No more scraps of paper',
+      'No more “whose shift was that?”',
+      'No more rebuilding weekends from memory',
+      'No more payroll guesswork',
+    ],
+  },
+  pain: {
+    bar: 'The bit that feels too accurate',
+    title: 'A normal Saturday night, if you’re still doing hours the old way',
+    intro:
+      'This is not a fake problem statement. This is the exact kind of weekend that turns into a payroll nightmare.',
+    moments: [
+      {
+        time: '11:07pm',
+        title: 'Wedding still going. Staff already asking what time they can leave.',
+        body: "You say you'll sort hours later because the bar queue is six deep and someone's till is short.",
+      },
+      {
+        time: '12:18am',
+        title: 'Someone writes their finish time on a napkin.',
+        body: "Another person says, 'I clocked out, didn't I?' Nobody remembers whose clipboard had the sheet.",
+      },
+      {
+        time: 'Monday 8:12am',
+        title: 'Payroll starts with: whose shift was that?',
+        body: 'Now you are rebuilding a weekend from messages, photos, and memory while trying to open the venue.',
+      },
+    ],
+    closer: 'Payroll should not start with “whose shift was that?”',
+  },
+  outcomes: {
+    bar: 'What you actually buy',
+    title: 'Outcomes first. Features second.',
+    intro: 'You do not need another dashboard. You need fewer Sunday-night headaches.',
+    cards: [
+      {
+        outcome: 'You close your laptop Friday knowing payroll is basically done.',
+        how: 'Hours are already there, rates are already applied, and export is ready when you need it.',
+      },
+      {
+        outcome: 'Arguments about hours stop being a 40-minute conversation.',
+        how: 'Every edit is visible. You can see who changed what and when, instead of playing detective.',
+      },
+      {
+        outcome: 'You stop carrying the whole system around in your head.',
+        how: 'Staff log their own time. You approve, fix exceptions, and move on with your night.',
+      },
+    ],
+  },
+  mechanics: {
+    bar: 'How it works in practice',
+    steps: [
+      {
+        title: 'Clock-ins that survive busy nights',
+        text: 'Phone or tablet. Quick in, quick out. No paper sheet drifting around the venue.',
+      },
+      {
+        title: 'Rates set once',
+        text: 'Day, night, enhanced, supervisor. Set your messy real-world rates and let the app do the maths.',
+      },
+      {
+        title: 'Fix the weird stuff fast',
+        text: "Missed clock-out? Wrong role? Edit it in seconds without breaking the whole week's record.",
+      },
+    ],
+    mondayTitle: 'Monday morning looks different',
+    before:
+      'Message staff. Check paper sheets. Recalculate rates. Hope nobody disputes it.',
+    after:
+      'Open portal. Review exceptions. Export. Send payroll. Go do your actual job.',
+  },
+  testimonial: {
+    bar: 'Built by someone who was done with timesheet chaos',
+    quote: '“I built this after one too many nights hunting for a missing timesheet.”',
+    body:
+      'I was managing the bar, closing out events, and then trying to rebuild hours from scraps of paper. People were tired. I was tired. Hours got argued about. Rates got argued about.',
+    payoff:
+      'I was fed up, so I built the thing I wanted at 11pm on a Saturday: clock in, clock out, clear records, payroll done.',
+    name: 'Constance',
+    role: 'Bar Manager, The Tythe Barn',
+  },
+  cta: {
+    bar: 'Last orders CTA',
+    title: 'Give yourself one less Sunday-night dread spiral.',
+    body:
+      'Start using the portal before your next busy weekend, so Monday payroll is a quick admin job instead of a reconstruction project.',
+    button: 'Set it up before this weekend',
+    note: 'No sales call. Just log in and start with your team.',
+  },
+}
 
-const painPoints = [
-  'Chasing signatures at month-end',
-  'Manual rate calculations — custom day/night, enhanced, supervisor',
-  'No audit trail when disputes arise',
-]
-
-const howItWorks = [
-  ['1. Add your team', 'Create accounts and set custom day/night + enhanced rates. One-time setup.'],
-  ['2. Staff clock in', 'From phone or tablet. Times logged automatically.'],
-  ['3. Export, done', 'One click. Excel or PDF. Send to payroll.'],
-]
+const doc = new PDFDocument({ size: 'A4', margin: 42 })
+const stream = createWriteStream(outPath)
+doc.pipe(stream)
 
 function pageSize() {
   return { w: doc.page.width, h: doc.page.height }
 }
 
-function resetBackground(color = palette.cream) {
+function fullBleed(color) {
   const { w, h } = pageSize()
   doc.save()
   doc.rect(0, 0, w, h).fill(color)
   doc.restore()
 }
 
-function footer(text, { color = palette.muted, yOffset = 30 } = {}) {
+function darkPageBackdrop() {
   const { w, h } = pageSize()
-  doc.font('Helvetica').fontSize(9).fillColor(color).text(text, 46, h - yOffset, {
-    width: w - 92,
+  fullBleed(palette.ink)
+  doc.save()
+  doc.rect(0, 0, w, h * 0.55).fill(palette.navy)
+  doc.fillOpacity(0.14).circle(90, 120, 110).fill(palette.gold)
+  doc.fillOpacity(0.08).circle(w - 60, 160, 130).fill('#f97316')
+  doc.fillOpacity(0.12).circle(w - 40, h - 110, 90).fill('#7c2d12')
+  doc.fillOpacity(1)
+  doc.restore()
+}
+
+function pageChrome(pageTitle, pageNo) {
+  const { w, h } = pageSize()
+  doc.save()
+  doc.rect(0, 0, w, 10).fill(palette.amber)
+  doc.rect(0, h - 28, w, 28).fill('#0b1220')
+  doc.font('Helvetica').fontSize(9).fillColor(palette.haze)
+  doc.text('Employee Portal - The Tythe Barn', 42, h - 18, { width: 240 })
+  doc.text(pageTitle, 42 + 240, h - 18, { width: 180, align: 'center' })
+  doc.text(String(pageNo), w - 70, h - 18, { width: 28, align: 'right' })
+  doc.restore()
+}
+
+function sectionBar(text, x, y, width) {
+  doc.save()
+  doc.roundedRect(x, y, width, 20, 8).fill('#2a1b06')
+  doc.roundedRect(x + 1, y + 1, width - 2, 18, 7).strokeColor('#5d430e').stroke()
+  doc.font('Helvetica-Bold').fontSize(9).fillColor(palette.gold)
+  doc.text(text.toUpperCase(), x + 10, y + 6, {
+    width: width - 20,
+    align: 'left',
+  })
+  doc.restore()
+}
+
+function textBlock(text, x, y, width, opts = {}) {
+  doc.font(opts.font || 'Helvetica')
+    .fontSize(opts.fontSize ?? 11)
+    .fillColor(opts.color || palette.smoke)
+    .text(text, x, y, {
+      width,
+      lineGap: opts.lineGap ?? 3,
+      align: opts.align || 'left',
+    })
+}
+
+function measure(text, width, opts = {}) {
+  doc.font(opts.font || 'Helvetica').fontSize(opts.fontSize ?? 11)
+  return doc.heightOfString(text, {
+    width,
+    lineGap: opts.lineGap ?? 3,
+    align: opts.align || 'left',
+  })
+}
+
+function card({ x, y, w, h, fill = palette.panel, stroke = palette.line, radius = 12 }) {
+  doc.save()
+  doc.roundedRect(x, y, w, h, radius).lineWidth(1).fillAndStroke(fill, stroke)
+  doc.restore()
+}
+
+function drawCoverPage() {
+  darkPageBackdrop()
+  const { w, h } = pageSize()
+  const left = 42
+  const contentW = w - 84
+
+  pageChrome('Constance story', 1)
+  sectionBar(copy.hero.eyebrow, left, 34, 220)
+
+  card({ x: left, y: 68, w: 332, h: 370, fill: '#11192a', stroke: '#364159', radius: 18 })
+  doc.roundedRect(left + 214, 80, 108, 20, 10).fill('#3a2507')
+  doc.font('Helvetica-Bold').fontSize(8).fillColor(palette.gold).text(copy.hero.chip.toUpperCase(), left + 224, 87)
+
+  doc.font('Helvetica-Bold').fontSize(22).fillColor(palette.cream).text(copy.hero.headline, left + 16, 112, {
+    width: 300,
+    lineGap: 4,
+  })
+
+  doc.moveTo(left + 16, 218).lineTo(left + 150, 218).lineWidth(2).strokeColor(palette.amber).stroke()
+
+  textBlock(copy.hero.subhead, left + 16, 232, 300, { fontSize: 10.7, lineGap: 4, color: palette.smoke })
+
+  doc.moveTo(left + 16, 362).lineTo(left + 316, 362).lineWidth(1).strokeColor('#2d3850').stroke()
+  doc.font('Helvetica-Bold').fontSize(16).fillColor(palette.cream).text(copy.hero.byline, left + 16, 376)
+  textBlock(copy.hero.role, left + 16, 396, 220, { fontSize: 10, color: palette.haze })
+
+  card({ x: left + 346, y: 68, w: contentW - 346, h: 370, fill: '#0e1626', stroke: '#303a4f', radius: 18 })
+  sectionBar(copy.hero.managerLabel, left + 358, 84, contentW - 370)
+  textBlock(copy.hero.managerBody, left + 358, 116, contentW - 370, { fontSize: 11, lineGap: 4 })
+  textBlock(copy.hero.managerBody2, left + 358, 188, contentW - 370, {
+    fontSize: 11,
+    lineGap: 4,
+    color: palette.cream,
+  })
+
+  let bulletY = 262
+  copy.hero.bullets.forEach((line) => {
+    doc.circle(left + 366, bulletY + 5, 2.3).fill(palette.amber)
+    textBlock(line, left + 376, bulletY, contentW - 388, { fontSize: 10.2, color: palette.cream })
+    bulletY += 28
+  })
+
+  doc.roundedRect(left, h - 118, contentW, 54, 14).fillAndStroke('#1a2235', '#33415b')
+  doc.roundedRect(left + 14, h - 104, 230, 28, 10).fill(palette.amber)
+  doc.font('Helvetica-Bold').fontSize(11).fillColor(palette.charcoal).text(copy.cta.button, left + 24, h - 94, {
+    width: 210,
+    align: 'center',
+  })
+  textBlock('Built for real shifts, not demos.', left + 258, h - 96, contentW - 272, {
+    fontSize: 10.5,
+    color: palette.smoke,
+  })
+}
+
+function drawPainPage() {
+  doc.addPage()
+  darkPageBackdrop()
+  pageChrome('Saturday-night pain', 2)
+
+  const { w } = pageSize()
+  const left = 42
+  const contentW = w - 84
+
+  sectionBar(copy.pain.bar, left, 34, 230)
+  doc.font('Helvetica-Bold').fontSize(23).fillColor(palette.cream).text(copy.pain.title, left, 66, {
+    width: contentW,
+    lineGap: 5,
+  })
+  textBlock(copy.pain.intro, left, 126, 430, { fontSize: 11, lineGap: 4 })
+
+  let y = 172
+  copy.pain.moments.forEach((moment, i) => {
+    const boxH = 112
+    card({ x: left, y, w: contentW, h: boxH, fill: i % 2 === 0 ? '#10192a' : '#0d1423', stroke: '#2d3850', radius: 16 })
+    doc.rect(left, y, 6, boxH).fill(i === 2 ? palette.gold : palette.amber)
+    doc.roundedRect(left + 18, y + 14, 112, 24, 12).fill('#2a1b06')
+    doc.font('Helvetica-Bold').fontSize(9).fillColor(palette.gold).text(moment.time.toUpperCase(), left + 30, y + 22, {
+      width: 88,
+      align: 'center',
+    })
+    doc.font('Helvetica-Bold').fontSize(12.5).fillColor(palette.cream).text(moment.title, left + 146, y + 16, {
+      width: contentW - 164,
+      lineGap: 3,
+    })
+    textBlock(moment.body, left + 146, y + 52, contentW - 164, { fontSize: 10.5, lineGap: 4 })
+    y += boxH + 14
+  })
+
+  doc.roundedRect(left, 550, contentW, 88, 18).fillAndStroke('#201504', '#6b4b12')
+  doc.font('Helvetica-Bold').fontSize(20).fillColor(palette.cream).text(copy.pain.closer, left + 18, 578, {
+    width: contentW - 36,
+    align: 'center',
+    lineGap: 4,
+  })
+}
+
+function drawOutcomesPage() {
+  doc.addPage()
+  darkPageBackdrop()
+  pageChrome('Outcomes first', 3)
+
+  const { w } = pageSize()
+  const left = 42
+  const contentW = w - 84
+
+  sectionBar(copy.outcomes.bar, left, 34, 190)
+  doc.font('Helvetica-Bold').fontSize(24).fillColor(palette.cream).text(copy.outcomes.title, left, 66, {
+    width: contentW,
+  })
+  textBlock(copy.outcomes.intro, left, 102, contentW, { fontSize: 11, color: palette.smoke })
+
+  const gap = 14
+  const colW = (contentW - gap) / 2
+  const cardYs = [146, 146 + 196 + gap]
+
+  copy.outcomes.cards.forEach((item, index) => {
+    const col = index % 2
+    const row = Math.floor(index / 2)
+    const x = left + col * (colW + gap)
+    const y = cardYs[row]
+    const h = index === 2 ? 238 : 196
+
+    card({ x, y, w: colW, h, fill: '#111a2b', stroke: '#303a50', radius: 16 })
+    doc.roundedRect(x + 14, y + 14, 92, 18, 9).fill('#3a2507')
+    doc.font('Helvetica-Bold').fontSize(8).fillColor(palette.gold).text('OUTCOME', x + 40, y + 20, {
+      width: 40,
+      align: 'center',
+    })
+    doc.font('Helvetica-Bold').fontSize(15).fillColor(palette.cream).text(item.outcome, x + 14, y + 44, {
+      width: colW - 28,
+      lineGap: 4,
+    })
+
+    const innerY = y + h - 84
+    doc.roundedRect(x + 14, innerY, colW - 28, 70, 10).fillAndStroke('#0b1220', '#2a3449')
+    doc.font('Helvetica-Bold').fontSize(9).fillColor(palette.haze).text('How we do it', x + 24, innerY + 10, {
+      width: colW - 48,
+      align: 'left',
+    })
+    textBlock(item.how, x + 24, innerY + 26, colW - 48, { fontSize: 9.8, color: palette.smoke })
+  })
+
+  const featureCalloutY = 594
+  card({ x: left, y: featureCalloutY, w: contentW, h: 56, fill: '#151f31', stroke: '#334059', radius: 14 })
+  doc.rect(left, featureCalloutY, contentW, 6).fill(palette.amber)
+  textBlock('Outcome-first features keep admin light: clock-ins, rate maths, edits, audit trail, and exports when you need them.', left + 14, featureCalloutY + 18, contentW - 28, {
+    fontSize: 10,
+    color: palette.cream,
     align: 'center',
   })
 }
 
-function sectionHeader(text, x, y, width) {
-  doc.font('Helvetica-Bold').fontSize(17).fillColor(palette.green).text(text, x, y, { width })
-  doc.rect(x, y + 22, Math.min(120, width), 3).fill(palette.tan)
-}
-
-function bodyText(text, x, y, width, opts = {}) {
-  doc.font('Helvetica').fontSize(opts.fontSize || 10.5).fillColor(opts.color || palette.charcoal)
-  doc.text(text, x, y, { width, lineGap: opts.lineGap ?? 3, align: opts.align || 'left' })
-}
-
-function featureCard({ x, y, w, h, title, desc }) {
-  doc.roundedRect(x, y, w, h, 8).lineWidth(1).fillAndStroke('#fffdf9', palette.line)
-  doc.rect(x, y, w, 6).fill(palette.tan)
-  doc.font('Helvetica-Bold').fontSize(11.5).fillColor(palette.charcoal).text(title, x + 12, y + 16, {
-    width: w - 24,
-  })
-  doc.font('Helvetica').fontSize(10).fillColor(palette.charcoal).text(desc, x + 12, y + 34, {
-    width: w - 24,
-    lineGap: 2,
-  })
-}
-
-function stepCard({ x, y, w, h, title, desc }) {
-  doc.roundedRect(x, y, w, h, 8).lineWidth(1).fillAndStroke(palette.cream, palette.line)
-  doc.rect(x, y, w, 5).fill(palette.green)
-  doc.font('Helvetica-Bold').fontSize(11).fillColor(palette.green).text(title, x + 10, y + 14, { width: w - 20 })
-  doc.font('Helvetica').fontSize(9.5).fillColor(palette.charcoal).text(desc, x + 10, y + 32, {
-    width: w - 20,
-    lineGap: 2,
-  })
-}
-
-function drawCoverPage() {
-  const { w, h } = pageSize()
-
-  resetBackground(palette.green)
-
-  doc.rect(0, 0, w, 16).fill(palette.tan)
-  doc.rect(0, h - 120, w, 120).fill('#173024')
-  doc.rect(w - 190, 80, 140, 140).fillAndStroke(palette.tan, palette.tan)
-  doc.rect(w - 210, 100, 140, 140).lineWidth(2).stroke('#f0e7d8')
-
-  doc.font('Helvetica-Bold').fontSize(13).fillColor(palette.tan).text('EMPLOYEE PORTAL', 46, 48)
-  doc.font('Helvetica').fontSize(10).fillColor('#e8efe9').text(
-    'For barns, wedding venues & boutique hospitality',
-    46,
-    68,
-    { width: 300 }
-  )
-
-  doc.font('Helvetica-Bold').fontSize(27).fillColor('white').text(
-    'Stop chasing timesheets.\nStart running your venue.',
-    46,
-    160,
-    { width: 340, lineGap: 4 }
-  )
-
-  doc.font('Helvetica').fontSize(11).fillColor('#e2ebe4').text(
-    'Clock in, export, done. Built by a bar manager after too many scraps of paper went missing and too many pay and rate disputes. No spreadsheets, no paper, no month-end chaos.',
-    46,
-    255,
-    { width: 330, lineGap: 4 }
-  )
-
-  doc.roundedRect(46, 350, 222, 44, 8).fillAndStroke(palette.tan, palette.tan)
-  doc.font('Helvetica-Bold').fontSize(13).fillColor(palette.green).text(
-    'Get started. No credit card.',
-    62,
-    366,
-    { width: 190 }
-  )
-
-  doc.font('Helvetica-Bold').fontSize(12).fillColor('white').text('Built by a bar manager.', 46, 425)
-  doc.font('Helvetica').fontSize(10).fillColor('#d1ddd4').text(
-    'Made for busy venue teams that need payroll-ready exports without the admin grind.',
-    46,
-    443,
-    { width: 330, lineGap: 3 }
-  )
-
-  doc.font('Helvetica').fontSize(10).fillColor('#f5f8f6').text(
-    'Employee Portal — The Tythe Barn',
-    46,
-    h - 92
-  )
-  doc.font('Helvetica').fontSize(9).fillColor('#c1d0c5').text(
-    'Built for real shifts, real rates, and real month-end deadlines.',
-    46,
-    h - 74
-  )
-}
-
-function drawPageTwo() {
+function drawMechanicsPage() {
   doc.addPage()
-  resetBackground()
+  darkPageBackdrop()
+  pageChrome('How it works', 4)
 
   const { w } = pageSize()
-  const left = 46
-  const right = w - 46
-  const contentW = right - left
+  const left = 42
+  const contentW = w - 84
 
-  doc.rect(0, 0, w, 14).fill(palette.green)
-
-  sectionHeader('Still tracking shifts on paper?', left, 38, contentW)
-  bodyText(
-    "Scattered sheets. Late submissions. Payroll headaches. The last thing you need when you're running events, managing staff, and keeping guests happy.",
-    left,
-    74,
-    250
-  )
-
-  let bulletY = 128
-  for (const point of painPoints) {
-    doc.circle(left + 5, bulletY + 6, 2.2).fill(palette.tan)
-    bodyText(point, left + 14, bulletY, 260, { fontSize: 10 })
-    bulletY += 26
-  }
-
-  doc.roundedRect(322, 58, contentW - 322 + left, 128, 8).fillAndStroke('#fffdf9', palette.line)
-  doc.rect(322, 58, contentW - 322 + left, 6).fill(palette.green)
-  doc.font('Helvetica-Bold').fontSize(12).fillColor(palette.green).text('Origin story', 336, 74)
-  bodyText(
-    'Clock in, export, done. Built by a bar manager after too many scraps of paper went missing and too many pay and rate disputes. No spreadsheets, no paper, no month-end chaos.',
-    336,
-    94,
-    right - 350,
-    { fontSize: 10 }
-  )
-
-  sectionHeader("Everything you need. Nothing you don't.", left, 210, contentW)
-  bodyText('Built for small teams. Payroll-ready in one click.', left, 246, contentW, {
-    fontSize: 10,
-    color: palette.muted,
+  sectionBar(copy.mechanics.bar, left, 34, 220)
+  doc.font('Helvetica-Bold').fontSize(22).fillColor(palette.cream).text('What changes in the week after go-live', left, 66, {
+    width: contentW,
   })
 
-  const gridTop = 278
-  const gap = 12
-  const colW = (contentW - gap) / 2
-  const rowH = 108
-
-  features.forEach(([title, desc], index) => {
-    const col = index % 2
-    const row = Math.floor(index / 2)
-    featureCard({
-      x: left + col * (colW + gap),
-      y: gridTop + row * (rowH + gap),
-      w: colW,
-      h: rowH,
-      title,
-      desc,
+  let y = 118
+  copy.mechanics.steps.forEach((step, idx) => {
+    const boxH = 116
+    card({ x: left, y, w: contentW * 0.62, h: boxH, fill: '#10182a', stroke: '#2d3951', radius: 14 })
+    doc.roundedRect(left + 14, y + 14, 32, 32, 10).fill(palette.amber)
+    doc.font('Helvetica-Bold').fontSize(14).fillColor(palette.charcoal).text(String(idx + 1), left + 26, y + 24, {
+      width: 8,
+      align: 'center',
     })
-  })
-
-  const stepsTop = gridTop + rowH * 3 + gap * 2 + 28
-  sectionHeader('How it works', left, stepsTop, contentW)
-
-  const stepY = stepsTop + 36
-  const stepGap = 10
-  const stepW = (contentW - stepGap * 2) / 3
-  const stepH = 86
-  howItWorks.forEach(([title, desc], index) => {
-    stepCard({
-      x: left + index * (stepW + stepGap),
-      y: stepY,
-      w: stepW,
-      h: stepH,
-      title,
-      desc,
+    doc.font('Helvetica-Bold').fontSize(13).fillColor(palette.cream).text(step.title, left + 58, y + 16, {
+      width: contentW * 0.62 - 72,
+      lineGap: 3,
     })
+    textBlock(step.text, left + 58, y + 46, contentW * 0.62 - 72, { fontSize: 10.3, lineGap: 4 })
+    y += boxH + 14
   })
 
-  footer('Employee Portal — The Tythe Barn · Payroll-ready exports in one click')
+  const sideX = left + contentW * 0.62 + 14
+  const sideW = contentW - contentW * 0.62 - 14
+  card({ x: sideX, y: 118, w: sideW, h: 390, fill: '#1b1407', stroke: '#5a4213', radius: 16 })
+  sectionBar(copy.mechanics.mondayTitle, sideX + 12, 132, sideW - 24)
+
+  card({ x: sideX + 12, y: 164, w: sideW - 24, h: 138, fill: '#0f1524', stroke: '#2f3950', radius: 12 })
+  doc.font('Helvetica-Bold').fontSize(10).fillColor(palette.haze).text('BEFORE', sideX + 24, 180)
+  textBlock(copy.mechanics.before, sideX + 24, 200, sideW - 48, { fontSize: 10.2, lineGap: 4 })
+
+  card({ x: sideX + 12, y: 316, w: sideW - 24, h: 152, fill: '#2a1b06', stroke: '#6b4b12', radius: 12 })
+  doc.font('Helvetica-Bold').fontSize(10).fillColor(palette.gold).text('AFTER', sideX + 24, 332)
+  textBlock(copy.mechanics.after, sideX + 24, 352, sideW - 48, { fontSize: 10.5, lineGap: 4, color: palette.cream })
 }
 
-function drawPageThree() {
+function drawTestimonialAndCtaPage() {
   doc.addPage()
-  resetBackground()
+  darkPageBackdrop()
+  pageChrome('Testimonial + CTA', 5)
 
   const { w, h } = pageSize()
-  const left = 46
-  const contentW = w - 92
+  const left = 42
+  const contentW = w - 84
 
-  doc.rect(0, 0, w, 14).fill(palette.tan)
-  doc.rect(0, 58, w, 90).fill('#f1ebe2')
+  card({ x: left, y: 38, w: contentW, h: 388, fill: '#10192a', stroke: '#36425c', radius: 20 })
+  doc.rect(left, 38, 12, 388).fill(palette.amber)
+  doc.rect(left + contentW - 12, 38, 12, 388).fill(palette.amber)
+  sectionBar(copy.testimonial.bar, left + 20, 56, 290)
 
-  sectionHeader('Built by a bar manager', left, 78, contentW)
-  bodyText(
-    '"I built this because I was sick of scraps of paper going missing and endless disputes with staff over hours and rates. Now we clock in, set our custom day and night rates, and export. No more arguments — it\'s all there."',
-    left,
-    118,
-    470,
-    { fontSize: 11, lineGap: 4 }
-  )
-
-  doc.font('Helvetica-Bold').fontSize(11).fillColor(palette.charcoal).text('— Constance', left, 206)
-  doc.font('Helvetica').fontSize(10).fillColor(palette.muted).text('Tythe Barn Bar Manager', left, 223)
-
-  doc.roundedRect(left, 280, contentW, 190, 10).fillAndStroke('#fffdf9', palette.line)
-  doc.rect(left, 280, contentW, 8).fill(palette.green)
-  doc.font('Helvetica-Bold').fontSize(16).fillColor(palette.green).text(
-    'Ready to stop chasing timesheets?',
-    left + 18,
-    302,
-    { width: 330 }
-  )
-  bodyText(
-    'Add your team, set your rates, and never chase a timesheet again.',
-    left + 18,
-    334,
-    320,
-    { fontSize: 11 }
-  )
-
-  doc.roundedRect(left + 18, 378, 255, 44, 8).fillAndStroke(palette.tan, palette.tan)
-  doc.font('Helvetica-Bold').fontSize(13).fillColor(palette.green).text(
-    'Get started. No credit card. Set up in minutes.',
-    left + 32,
-    394,
-    { width: 228 }
-  )
-
-  doc.roundedRect(left + 295, 302, contentW - 313, 120, 8).lineWidth(1).fillAndStroke(palette.cream, palette.line)
-  doc.font('Helvetica-Bold').fontSize(11).fillColor(palette.green).text('What you get', left + 308, 318)
-  ;[
-    'Clock in, export, done',
-    'Excel & PDF payroll exports',
-    'Manager dashboard + audit log',
-    'Custom day/night + enhanced rates',
-  ].forEach((item, index) => {
-    doc.circle(left + 310, 342 + index * 18, 2).fill(palette.tan)
-    bodyText(item, left + 320, 336 + index * 18, 190, { fontSize: 9.8 })
+  doc.font('Helvetica-Bold').fontSize(27).fillColor(palette.cream).text(copy.testimonial.quote, left + 24, 102, {
+    width: contentW - 48,
+    lineGap: 6,
+    align: 'center',
   })
 
-  doc.rect(0, h - 130, w, 130).fill(palette.green)
-  doc.font('Helvetica-Bold').fontSize(17).fillColor('white').text(
-    'Employee Portal — The Tythe Barn',
-    left,
-    h - 102,
-    { width: contentW, align: 'center' }
-  )
-  doc.font('Helvetica').fontSize(10).fillColor('#dfeae2').text(
-    'For barns, wedding venues & boutique hospitality',
-    left,
-    h - 76,
-    { width: contentW, align: 'center' }
-  )
-  doc.font('Helvetica').fontSize(9).fillColor('#c5d2ca').text(
-    'Powered by Kari Suite',
-    left,
-    h - 56,
-    { width: contentW, align: 'center' }
-  )
+  doc.moveTo(left + 120, 208).lineTo(left + contentW - 120, 208).lineWidth(1.5).strokeColor('#41506f').stroke()
+  textBlock(copy.testimonial.body, left + 54, 228, contentW - 108, {
+    fontSize: 11.2,
+    color: palette.smoke,
+    align: 'center',
+    lineGap: 4,
+  })
+  textBlock(copy.testimonial.payoff, left + 54, 300, contentW - 108, {
+    fontSize: 11.2,
+    color: palette.cream,
+    align: 'center',
+    lineGap: 4,
+    font: 'Helvetica-Bold',
+  })
+  doc.font('Helvetica-Bold').fontSize(14).fillColor(palette.gold).text(copy.testimonial.name, left + 24, 374, {
+    width: contentW - 48,
+    align: 'center',
+  })
+  textBlock(copy.testimonial.role, left + 24, 392, contentW - 48, {
+    fontSize: 10,
+    color: palette.haze,
+    align: 'center',
+  })
+
+  card({ x: left, y: 446, w: contentW, h: h - 446 - 44, fill: '#1d1405', stroke: '#6a4c13', radius: 18 })
+  doc.rect(left, 446, contentW, 8).fill(palette.gold)
+  sectionBar(copy.cta.bar, left + 18, 466, 150)
+  doc.font('Helvetica-Bold').fontSize(22).fillColor(palette.cream).text(copy.cta.title, left + 18, 496, {
+    width: contentW - 36,
+    lineGap: 4,
+  })
+  textBlock(copy.cta.body, left + 18, 552, contentW - 36, { fontSize: 11, color: '#efe7db', lineGap: 4 })
+
+  doc.roundedRect(left + 18, 616, 262, 34, 11).fill(palette.amber)
+  doc.font('Helvetica-Bold').fontSize(11).fillColor(palette.charcoal).text(copy.cta.button, left + 34, 628, {
+    width: 228,
+    align: 'center',
+  })
+  textBlock(copy.cta.note, left + 294, 620, contentW - 312, { fontSize: 10.2, color: palette.smoke })
 }
 
 drawCoverPage()
-drawPageTwo()
-drawPageThree()
+drawPainPage()
+drawOutcomesPage()
+drawMechanicsPage()
+drawTestimonialAndCtaPage()
 
 doc.end()
 
 stream.on('finish', () => {
+  mkdirSync(join(rootDir, 'public'), { recursive: true })
+  copyFileSync(outPath, publicOutPath)
   console.log('PDF saved to:', outPath)
+  console.log('PDF copied to:', publicOutPath)
+})
+
+stream.on('error', (err) => {
+  console.error('Failed to write marketing PDF:', err)
+  process.exitCode = 1
 })
