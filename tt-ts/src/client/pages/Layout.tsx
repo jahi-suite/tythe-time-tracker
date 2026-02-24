@@ -24,7 +24,8 @@ export function Layout() {
 
   const handleLogout = async () => {
     await logout()
-    navigate('/login')
+    // Full reload to /login avoids race: logged-out routes' catch-all would redirect /clock -> /
+    window.location.href = '/login'
   }
 
   const handleChangePassword = async (e: React.FormEvent) => {

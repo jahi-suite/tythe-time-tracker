@@ -7,9 +7,9 @@ cd "$REPO_ROOT"
 
 FAIL=0
 
-# 1. Logout navigates to /login (not /)
-if ! grep -q "navigate('/login')" "$REPO_ROOT/tt-ts/src/client/pages/Layout.tsx" 2>/dev/null; then
-  echo "FAIL: Layout handleLogout must navigate to /login"
+# 1. Logout goes to /login (window.location or navigate)
+if ! grep -qE "window\.location\.(href|assign).*login|navigate\(['\"]/login['\"]\)" "$REPO_ROOT/tt-ts/src/client/pages/Layout.tsx" 2>/dev/null; then
+  echo "FAIL: Layout handleLogout must redirect to /login"
   FAIL=1
 fi
 
