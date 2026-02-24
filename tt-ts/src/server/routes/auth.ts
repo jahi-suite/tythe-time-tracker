@@ -89,7 +89,7 @@ router.post('/logout', (req, res) => {
     }
     const opts = getSessionCookieOptions()
     res.clearCookie('connect.sid', { ...opts, path: '/', httpOnly: true, sameSite: 'lax', secure: opts.secure })
-    // Cover Netlify env mismatch: cookie may have been set with secure:false if NODE_ENV was wrong
+    // Cover env mismatch: cookie may have been set with secure:false if NODE_ENV was wrong
     if (opts.secure) {
       res.clearCookie('connect.sid', { ...opts, path: '/', httpOnly: true, sameSite: 'lax', secure: false })
     }

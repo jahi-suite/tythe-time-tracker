@@ -16,9 +16,9 @@ if [ "${UNKNOWN_COUNT:-0}" -gt 0 ]; then
   FAIL=1
 fi
 
-# 2. netlify-env.template mentions SESSION_STORE
-if ! grep -q "SESSION_STORE" "$REPO_ROOT/tt-ts/netlify-env.template" 2>/dev/null; then
-  echo "FAIL: netlify-env.template should include SESSION_STORE=pg"
+# 2. gcp-env.template mentions SESSION_STORE
+if ! grep -q "SESSION_STORE" "$REPO_ROOT/tt-ts/gcp-env.template" 2>/dev/null; then
+  echo "FAIL: gcp-env.template should include SESSION_STORE=pg"
   FAIL=1
 fi
 
