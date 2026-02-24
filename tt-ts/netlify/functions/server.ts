@@ -34,13 +34,14 @@ export const handler = async (event: unknown, context: unknown) => {
     const msg = err instanceof Error ? err.message : String(err)
     const stack = err instanceof Error ? err.stack : undefined
     console.error('[handler] startup failed:', msg, stack)
-    if (isDebugOrHealthPath(event)) {
-      return jsonResponse(200, {
-        error: 'startup_failed',
-        message: msg,
-        hint: 'Check Netlify env: SESSION_SECRET, SUPABASE_* (use port 6543 for pooler), NODE_ENV=production',
-      })
+    const diagnostic = {
+      error: 'startup_failed',
+      message: msg,
+      hint: 'Check Netlify env: SESSION_SECRET, SUPABASE_* (use port 6543 for pooler), NODE_ENV=production',
     }
-    return jsonResponse(502, { error: 'Service unavailable' })
+    if (isDebugOrHealthPath(event)) {
+      return jsonResponse(200, diagnostic)
+    }
+    return jsonResponse(502, diagnostic)
   }
 }
