@@ -30,6 +30,7 @@ Grant at least these roles:
 - `Cloud Run Admin`
 - `Service Account User`
 - `Storage Admin`
+- `Artifact Registry Admin` (required for `--source` deploy to create `cloud-run-source-deploy` repo)
 
 Notes:
 
