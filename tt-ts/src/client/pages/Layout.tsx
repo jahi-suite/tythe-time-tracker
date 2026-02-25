@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { auth } from '../api'
 import { Container, Footer } from '../components'
 
 export function Layout() {
-  const { user, logout } = useAuth()
+  const { user, logout, refresh } = useAuth()
   const venueName = user?.venue?.name ?? 'The Tythe Barn'
   const isTytheVenue = (user?.venue?.slug || '').trim().toLowerCase() === 'tythe'
   const navigate = useNavigate()
@@ -19,6 +19,7 @@ export function Layout() {
 
   const isManager = user?.role === 'manager' || user?.role === 'admin'
   const isAdmin = user?.role === 'admin'
+  const formatRate = (rate?: number | null) => (rate == null ? 'Not set' : `£${rate.toFixed(2)}/hr`)
   const pages = [
     { path: '/clock', label: 'Clock' },
     { path: '/timesheet', label: 'Timesheet' },
@@ -44,6 +45,7 @@ export function Layout() {
     }
     try {
       await auth.changePassword(currentPassword, newPassword)
+      await refresh()
       setPasswordSuccess('Password changed successfully')
       setCurrentPassword('')
       setNewPassword('')
@@ -52,6 +54,14 @@ export function Layout() {
       setPasswordError(err instanceof Error ? err.message : 'Failed to change password')
     }
   }
+
+  useEffect(() => {
+    const handleWindowFocus = () => {
+      void refresh()
+    }
+    window.addEventListener('focus', handleWindowFocus)
+    return () => window.removeEventListener('focus', handleWindowFocus)
+  }, [refresh])
 
   return (
     <div className="app-shell">
@@ -130,7 +140,11 @@ export function Layout() {
           <details className="app-shell__panel pay-rate-info">
             <summary>Pay rates</summary>
             <p>
-              <strong>Rules:</strong> Standard (4AM-7PM), Enhanced (7PM-4AM), Supervisor (when selected).
+              <strong>Standard:</strong> {formatRate(user?.standard_rate)}
+              <br />
+              <strong>Enhanced:</strong> {formatRate(user?.enhanced_rate)}
+              <br />
+              <strong>Supervisor:</strong> {formatRate(user?.supervisor_rate)}
             </p>
           </details>
         </div>
