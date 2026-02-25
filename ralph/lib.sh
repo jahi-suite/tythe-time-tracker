@@ -81,6 +81,12 @@ spawn_agent() {
       cd "$repo_root" && "$codex_bin" exec -C "$repo_root" --full-auto ${RALPH_CODEX_CLI_MODEL:+--model "$RALPH_CODEX_CLI_MODEL"} "$prompt_content"
     ) || true
   elif [ "${RALPH_BACKEND:-gemini}" = "gemini" ]; then
+    # Gemini CLI requires Node 20+; ensure nvm is loaded if available
+    if [ -s "${NVM_DIR:-$HOME/.nvm}/nvm.sh" ]; then
+      # shellcheck source=/dev/null
+      . "${NVM_DIR:-$HOME/.nvm}/nvm.sh"
+      nvm use default 2>/dev/null || nvm use 20 2>/dev/null || true
+    fi
     local gemini_bin
     gemini_bin=$(find_gemini_cli)
     if [ -z "$gemini_bin" ]; then
