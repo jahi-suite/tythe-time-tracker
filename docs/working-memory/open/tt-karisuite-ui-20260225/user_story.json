@@ -12,7 +12,7 @@
       "id": "ui-components",
       "title": "Build reusable components matching site patterns",
       "acceptance_criteria": "Create tt-ts/src/client/components/ with TopNav (Kari Suite, Products/About/Privacy, CTA), Container (centers, max-width), Hero (H1 split-line style), Section, Card (product card), Tag chips (Live now/Idea stage/On the radar), Steps (1/2/3 columns), Footer (email + copyright). Pages compose these components.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "ui-shell",
