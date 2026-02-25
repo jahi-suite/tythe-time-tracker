@@ -1,4 +1,3 @@
-// deploy trigger: ensures Netlify runs full build after display name fix
 import React, { useState } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
@@ -6,6 +5,8 @@ import { auth } from '../api'
 
 export function Layout() {
   const { user, logout } = useAuth()
+  const venueName = user?.venue?.name ?? 'The Tythe Barn'
+  const isTytheVenue = (user?.venue?.slug || '').trim().toLowerCase() === 'tythe'
   const navigate = useNavigate()
   const location = useLocation()
   const [currentPassword, setCurrentPassword] = useState('')
@@ -16,18 +17,20 @@ export function Layout() {
   const displayName = (user?.display_name?.trim() || user?.username?.trim() || 'User').trim() || 'User'
 
   const isManager = user?.role === 'manager' || user?.role === 'admin'
+  const isAdmin = user?.role === 'admin'
   const pages = [
     { path: '/clock', label: 'Employee Clock In/Out' },
     { path: '/timesheet', label: 'Personal Timesheet' },
     { path: '/export', label: 'Export Timesheet' },
     ...(isManager ? [{ path: '/manager', label: 'Manager Dashboard' }] : []),
+    ...(isAdmin ? [{ path: '/venue-settings', label: 'Venue Settings' }] : []),
   ]
 
   const handleLogout = async () => {
     await logout()
     // Delay so browser processes Set-Cookie from logout response before we navigate (deploy trigger)
     await new Promise((r) => setTimeout(r, 150))
-    window.location.href = '/login'
+    window.location.href = '/venues'
   }
 
   const handleChangePassword = async (e: React.FormEvent) => {
@@ -54,15 +57,15 @@ export function Layout() {
       <header className="app-header">
         <div className="app-header-brand">
           <img
-            src="/tythe-logo.png"
-            alt="Tythe Barn"
+            src={isTytheVenue ? '/tythe-logo.png' : '/kari-logo.png'}
+            alt={isTytheVenue ? 'Tythe Barn' : 'Kari Suite'}
             className="app-header-logo"
             width={48}
             height={48}
           />
           <div>
-            <p className="app-header-kicker">Tythe Barn</p>
-            <h1>Employee Portal — The Tythe Barn</h1>
+            <p className="app-header-kicker">{venueName}</p>
+            <h1>Employee Portal — {venueName}</h1>
           </div>
         </div>
       </header>
@@ -135,7 +138,12 @@ export function Layout() {
         <hr />
         <div className="footer-brand">
           <img src="/kari-logo.png" alt="Kari" width={14} height={14} className="footer-brand-logo" />
-          <span>Powered by Kari Suite</span>
+          <span>
+            Powered by{' '}
+            <a href="https://karisuite.com" target="_blank" rel="noopener noreferrer">
+              Kari Suite
+            </a>
+          </span>
         </div>
         <p className="footer-note">Mobile: Safari 14+ or Chrome. Legacy build for older Safari.</p>
       </footer>

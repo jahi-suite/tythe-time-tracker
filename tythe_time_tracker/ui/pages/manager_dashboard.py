@@ -153,6 +153,8 @@ def show_all_entries_tab() -> None:
 
 def show_add_shift_tab() -> None:
     """Show the 'Add Shift' tab."""
+    current_user = st.session_state.get("current_user", {})
+    changed_by = str(current_user.get("username") or "").strip()
     with st.container(border=True):
         st.subheader("Add Shift Manually")
 
@@ -187,7 +189,8 @@ def show_add_shift_tab() -> None:
                 clock_out_date if clock_out_date else None,
                 clock_out_time if clock_out_time else None,
                 is_supervisor,
-                pay_rate_override
+                pay_rate_override,
+                changed_by,
             )
             if success:
                 st.success(message)
@@ -200,6 +203,8 @@ def show_add_shift_tab() -> None:
 
 def show_edit_shift_tab() -> None:
     """Show the 'Edit Shift' tab."""
+    current_user = st.session_state.get("current_user", {})
+    changed_by = str(current_user.get("username") or "").strip()
     with st.container(border=True):
         st.subheader("Edit Shift")
         st.info("💡 **Instructions:** Copy an Entry ID from the 'View All Entries' tab above, then paste it here to edit that shift.")
@@ -274,7 +279,8 @@ def show_edit_shift_tab() -> None:
                 clock_out_date if clock_out_date else None,
                 clock_out_time if clock_out_time else None,
                 is_supervisor,
-                pay_rate_override
+                pay_rate_override,
+                changed_by,
             )
             if success:
                 st.success(message)
@@ -287,13 +293,15 @@ def show_edit_shift_tab() -> None:
 
 def show_delete_entry_tab() -> None:
     """Show the 'Delete Entry' tab."""
+    current_user = st.session_state.get("current_user", {})
+    changed_by = str(current_user.get("username") or "").strip()
     with st.container(border=True):
         st.subheader("Delete Entry")
         entry_to_delete = st.text_input("Enter Entry ID to delete:", key="delete_entry_id")
     if st.button("Delete Entry", type="secondary"):
         if entry_to_delete:
             service = TimeTrackingService()
-            success, message = service.delete_entry(entry_to_delete)
+            success, message = service.delete_entry(entry_to_delete, changed_by)
             if success:
                 st.success(message)
                 st.rerun()

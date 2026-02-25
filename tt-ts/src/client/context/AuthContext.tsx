@@ -4,7 +4,7 @@ import type { AuthUser } from '../api'
 const AuthContext = createContext<{
   user: AuthUser | null
   loading: boolean
-  login: (username: string, password: string) => Promise<void>
+  login: (username: string, password: string, venueSlug?: string) => Promise<void>
   logout: () => Promise<void>
   refresh: () => Promise<void>
 } | null>(null)
@@ -16,7 +16,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refresh = useCallback(async () => {
     try {
       const { auth } = await import('../api')
-      const u = await auth.me()
+      const pathMatch = typeof window !== 'undefined' ? window.location.pathname.match(/^\/([^/]+)\/login\/?$/) : null
+      const venueSlug = pathMatch?.[1] ?? undefined
+      const u = await auth.me(venueSlug)
       // Reject incomplete users client-side: force logout if both identifiers empty
       if (u && !(u.display_name?.trim() || u.username?.trim())) {
         await auth.logout()
@@ -35,9 +37,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refresh()
   }, [refresh])
 
-  const login = useCallback(async (username: string, password: string) => {
+  const login = useCallback(async (username: string, password: string, venueSlug?: string) => {
     const { auth } = await import('../api')
-    const u = await auth.login(username, password)
+    const u = await auth.login(username, password, venueSlug)
     setUser(u)
   }, [])
 

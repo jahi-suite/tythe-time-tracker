@@ -21,14 +21,69 @@ export interface AuthUser {
   username: string
   role: 'employee' | 'manager' | 'admin'
   display_name: string
+  venue?: { slug: string; name: string }
+}
+
+export interface VenueSearchResult {
+  slug: string
+  name: string
+}
+
+export interface CreateVenueResponse {
+  redirectUrl: string
+  venue: { slug: string; name: string }
+}
+
+export interface VenueSettings {
+  enhanced_enabled: boolean
+  enhanced_start_hour: number
+  enhanced_end_hour: number
+  break_deduct_enabled: boolean
+  break_deduct_minutes: number
+  break_threshold_hours: number
+  supervisor_enabled: boolean
+  supervisor_label: string
+  supervisor_deduct_break: boolean
+}
+
+export const venues = {
+  search: (q: string) =>
+    fetchApi<VenueSearchResult[]>(`/venues/search?q=${encodeURIComponent(q)}`),
+  getBySlug: (slug: string) =>
+    fetchApi<{ slug: string; name: string }>(`/venues/${encodeURIComponent(slug)}`),
+  getSettings: (slug: string) =>
+    fetchApi<VenueSettings>(`/venues/${encodeURIComponent(slug)}/settings`),
+  currentSettings: () =>
+    fetchApi<VenueSettings>('/venues/current/settings'),
+  updateSettings: (slug: string, settings: Partial<VenueSettings>) =>
+    fetchApi<VenueSettings>(`/venues/${encodeURIComponent(slug)}/settings`, {
+      method: 'PUT',
+      body: JSON.stringify(settings),
+    }),
+  create: (data: {
+    venueName: string
+    adminUsername: string
+    adminDisplayName: string
+    adminPassword: string
+  }) =>
+    fetchApi<CreateVenueResponse>('/venues', {
+      method: 'POST',
+      body: JSON.stringify({
+        venueName: data.venueName,
+        username: data.adminUsername,
+        displayName: data.adminDisplayName,
+        password: data.adminPassword,
+      }),
+    }),
 }
 
 export const auth = {
-  me: () => fetchApi<AuthUser>('/auth/me'),
-  login: (username: string, password: string) =>
+  me: (venueSlug?: string) =>
+    fetchApi<AuthUser>(`/auth/me${venueSlug ? `?venue_slug=${encodeURIComponent(venueSlug)}` : ''}`),
+  login: (username: string, password: string, venueSlug = 'tythe') =>
     fetchApi<AuthUser>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username, password, venue_slug: venueSlug }),
     }),
   logout: () => fetchApi<{ ok: boolean }>('/auth/logout', { method: 'POST' }),
   changePassword: (currentPassword: string, newPassword: string) =>
@@ -36,11 +91,12 @@ export const auth = {
       method: 'POST',
       body: JSON.stringify({ currentPassword, newPassword }),
     }),
-  firstSetup: () => fetchApi<{ needsSetup: boolean }>('/auth/first-setup'),
-  createFirstAdmin: (username: string, password: string, displayName: string) =>
+  firstSetup: (venueSlug = 'tythe') =>
+    fetchApi<{ needsSetup: boolean }>(`/auth/first-setup?venue_slug=${encodeURIComponent(venueSlug)}`),
+  createFirstAdmin: (username: string, password: string, displayName: string, venueSlug = 'tythe') =>
     fetchApi<{ ok: boolean }>('/auth/first-setup', {
       method: 'POST',
-      body: JSON.stringify({ username, password, displayName }),
+      body: JSON.stringify({ username, password, displayName, venue_slug: venueSlug }),
     }),
   adminCount: () => fetchApi<{ count: number }>('/auth/admin-count'),
 }

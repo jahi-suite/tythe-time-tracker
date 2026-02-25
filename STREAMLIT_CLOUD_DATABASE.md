@@ -6,17 +6,17 @@ Streamlit Cloud is **IPv4-only**. Supabase's **direct** connection (`db.xxx.supa
 
 ### 1. Get your Session pooler details from Supabase
 
-1. Open your project: **https://supabase.com/dashboard/project/nfwzrlxhjcxdznsnkhhm**
+1. Open your project: **https://supabase.com/dashboard/project/YOUR_PROJECT_REF**
 2. Click **Connect** (top right) or go to **Project Settings** → **Database**.
 3. In the connection modal, set **Method** to **Session pooler** (not "Direct connection").
 4. You’ll see a URI like:
    ```text
-   postgres://postgres.nfwzrlxhjcxdznsnkhhm:[YOUR-PASSWORD]@aws-0-eu-west-1.pooler.supabase.com:5432/postgres
+   postgres://postgres.YOUR_PROJECT_REF:[YOUR-PASSWORD]@aws-0-XX-XXXXX.pooler.supabase.com:5432/postgres
    ```
 5. From that URI note:
-   - **Host:** the part after `@` and before `:5432` (e.g. `aws-0-eu-west-1.pooler.supabase.com`)
+   - **Host:** the part after `@` and before `:5432` (e.g. `aws-0-XX-XXXXX.pooler.supabase.com`)
    - **Port:** `5432`
-   - **User:** `postgres.nfwzrlxhjcxdznsnkhhm` (postgres + your project ref)
+   - **User:** `postgres.YOUR_PROJECT_REF` (postgres + your project ref)
    - **Password:** your database password
 
 ### 2. Put this in Streamlit Cloud Secrets
@@ -25,21 +25,21 @@ In Streamlit Cloud → your app → **Settings** → **Secrets**, replace everyt
 
 ```toml
 [SUPABASE]
-HOST = "aws-0-eu-west-1.pooler.supabase.com"
+HOST = "aws-0-XX-XXXXX.pooler.supabase.com"
 DATABASE = "postgres"
-USER = "postgres.nfwzrlxhjcxdznsnkhhm"
-PASSWORD = "3Spressomartini!!"
+USER = "postgres.YOUR_PROJECT_REF"
+PASSWORD = "your-database-password"
 PORT = "5432"
 
-MANAGER_PASSWORD = "tythe2024"
+MANAGER_PASSWORD = "your-manager-password"
 ```
 
-- Replace `aws-0-eu-west-1.pooler.supabase.com` with the **exact host** Supabase shows for Session pooler (your region may differ, e.g. `aws-0-us-east-1.pooler.supabase.com`).
-- Keep **USER** as `postgres.nfwzrlxhjcxdznsnkhhm`.
+- Replace `aws-0-XX-XXXXX.pooler.supabase.com` with the **exact host** Supabase shows for Session pooler (your region may differ, e.g. `aws-0-us-east-1.pooler.supabase.com`).
+- Keep **USER** as `postgres.YOUR_PROJECT_REF`.
 - Save, then redeploy or refresh the app.
 
 ### 3. If it still fails
 
 - Confirm the **host** in Secrets matches the Session pooler host in Supabase (no typos, correct region).
-- Confirm **USER** is `postgres.nfwzrlxhjcxdznsnkhhm` (with a dot, not `postgres` only).
+- Confirm **USER** is `postgres.YOUR_PROJECT_REF` (with a dot, not `postgres` only).
 - The app will show the exact error message; use that to debug (e.g. wrong password, wrong host).

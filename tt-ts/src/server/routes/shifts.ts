@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import { Router, type Request } from 'express'
 import * as timeTracking from '../services/timeTracking.js'
 import { requireManager } from '../middleware/auth.js'
 import { convertToUtc } from '../utils/timeUtils.js'
@@ -6,6 +6,10 @@ import type { PayRateType } from '../../shared/types.js'
 
 const router = Router()
 const ALLOWED_PAY_RATE_OVERRIDES: readonly PayRateType[] = ['Standard', 'Enhanced', 'Supervisor']
+
+function getSessionVenueId(req: Request): string | null {
+  return req.session?.venue_id ?? null
+}
 
 function isValidDate(value: Date): boolean {
   return !Number.isNaN(value.getTime())
@@ -98,6 +102,11 @@ router.use(requireManager)
 
 router.post('/', async (req, res) => {
   const user = req.session!.user!
+  const venueId = getSessionVenueId(req)
+  if (!venueId) {
+    res.status(400).json({ error: 'Venue context missing' })
+    return
+  }
   let payload: ReturnType<typeof validateShiftPayload>
   try {
     payload = validateShiftPayload(req.body)
@@ -113,7 +122,8 @@ router.post('/', async (req, res) => {
     payload.clockOutTime,
     payload.isSupervisor,
     payload.payRateOverride,
-    user.username
+    user.username,
+    venueId
   )
   if (!ok) {
     res.status(400).json({ error: msg })
@@ -124,6 +134,11 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   const user = req.session!.user!
+  const venueId = getSessionVenueId(req)
+  if (!venueId) {
+    res.status(400).json({ error: 'Venue context missing' })
+    return
+  }
   let payload: ReturnType<typeof validateShiftPayload>
   try {
     payload = validateShiftPayload(req.body)
@@ -140,7 +155,8 @@ router.put('/:id', async (req, res) => {
     payload.clockOutTime,
     payload.isSupervisor,
     payload.payRateOverride,
-    user.username
+    user.username,
+    venueId
   )
   if (!ok) {
     res.status(400).json({ error: msg })
@@ -151,7 +167,12 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   const user = req.session!.user!
-  const [ok, msg] = await timeTracking.deleteEntry(req.params.id, user.username)
+  const venueId = getSessionVenueId(req)
+  if (!venueId) {
+    res.status(400).json({ error: 'Venue context missing' })
+    return
+  }
+  const [ok, msg] = await timeTracking.deleteEntry(req.params.id, user.username, venueId)
   if (!ok) {
     res.status(400).json({ error: msg })
     return
@@ -160,7 +181,12 @@ router.delete('/:id', async (req, res) => {
 })
 
 router.get('/:id', async (req, res) => {
-  const shift = await timeTracking.getShiftById(req.params.id)
+  const venueId = getSessionVenueId(req)
+  if (!venueId) {
+    res.status(400).json({ error: 'Venue context missing' })
+    return
+  }
+  const shift = await timeTracking.getShiftById(req.params.id, venueId)
   if (!shift) {
     res.status(404).json({ error: 'Shift not found' })
     return

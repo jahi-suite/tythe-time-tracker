@@ -47,8 +47,11 @@ function userAuditSnapshot(user: User | null): Record<string, unknown> | null {
   }
 }
 
-async function getUserAuditSnapshotById(userId: string): Promise<Record<string, unknown> | null> {
-  const users = await auth.getAllUsers()
+async function getUserAuditSnapshotById(
+  userId: string,
+  venueId?: string | null
+): Promise<Record<string, unknown> | null> {
+  const users = await auth.getAllUsers(venueId)
   const user = users.find((candidate) => candidate.id === userId) ?? null
   return userAuditSnapshot(user)
 }
@@ -75,7 +78,8 @@ function stripPayRatesFromUser(user: User): User {
 router.use(requireManager)
 
 router.get('/', async (req, res) => {
-  const users = await auth.getAllUsers()
+  const venueId = req.session?.venue_id ?? null
+  const users = await auth.getAllUsers(venueId)
   const actor = req.session!.user!
   res.json({
     users: actor.role === 'admin' ? users : users.map(stripPayRatesFromUser),
@@ -88,7 +92,8 @@ router.post('/', async (req, res) => {
     res.status(400).json({ error: 'username, password, displayName required' })
     return
   }
-  const [ok, msg] = await auth.createUser(username, password, displayName, role ?? 'employee')
+  const venueId = req.session?.venue_id ?? null
+  const [ok, msg] = await auth.createUser(username, password, displayName, role ?? 'employee', venueId)
   if (!ok) {
     res.status(400).json({ error: msg })
     return
@@ -98,7 +103,8 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   const user = req.session!.user!
-  const before = await getUserAuditSnapshotById(req.params.id)
+  const venueId = req.session?.venue_id ?? null
+  const before = await getUserAuditSnapshotById(req.params.id, venueId)
   const { username, displayName, role, password } = req.body ?? {}
   if (!username || !displayName) {
     res.status(400).json({ error: 'username, displayName required' })
@@ -116,7 +122,7 @@ router.put('/:id', async (req, res) => {
     res.status(400).json({ error: msg })
     return
   }
-  const after = await getUserAuditSnapshotById(req.params.id)
+  const after = await getUserAuditSnapshotById(req.params.id, venueId)
   await writeUserAuditLog('edit', user.username, req.params.id, before, {
     ...(after ?? {}),
     event: before && after && before.role !== after.role ? 'user_role_change' : 'user_update',
@@ -137,13 +143,14 @@ router.delete('/:id', async (req, res) => {
 
 router.post('/:id/activate', async (req, res) => {
   const actor = req.session!.user!
-  const before = await getUserAuditSnapshotById(req.params.id)
+  const venueId = req.session?.venue_id ?? null
+  const before = await getUserAuditSnapshotById(req.params.id, venueId)
   const [ok, msg] = await auth.setUserActive(req.params.id, true)
   if (!ok) {
     res.status(400).json({ error: msg })
     return
   }
-  const after = await getUserAuditSnapshotById(req.params.id)
+  const after = await getUserAuditSnapshotById(req.params.id, venueId)
   await writeUserAuditLog('edit', actor.username, req.params.id, before, {
     ...(after ?? {}),
     event: 'user_activated',
@@ -153,13 +160,14 @@ router.post('/:id/activate', async (req, res) => {
 
 router.post('/:id/deactivate', async (req, res) => {
   const actor = req.session!.user!
-  const before = await getUserAuditSnapshotById(req.params.id)
+  const venueId = req.session?.venue_id ?? null
+  const before = await getUserAuditSnapshotById(req.params.id, venueId)
   const [ok, msg] = await auth.setUserActive(req.params.id, false)
   if (!ok) {
     res.status(400).json({ error: msg })
     return
   }
-  const after = await getUserAuditSnapshotById(req.params.id)
+  const after = await getUserAuditSnapshotById(req.params.id, venueId)
   await writeUserAuditLog('edit', actor.username, req.params.id, before, {
     ...(after ?? {}),
     event: 'user_deactivated',
@@ -169,7 +177,8 @@ router.post('/:id/deactivate', async (req, res) => {
 
 router.post('/:id/pay-rates', requireAdmin, async (req, res) => {
   const actor = req.session!.user!
-  const before = await getUserAuditSnapshotById(req.params.id)
+  const venueId = req.session?.venue_id ?? null
+  const before = await getUserAuditSnapshotById(req.params.id, venueId)
   const { standard, enhanced, supervisor } = req.body ?? {}
   let parsedStandard: number | null
   let parsedEnhanced: number | null
@@ -192,7 +201,7 @@ router.post('/:id/pay-rates', requireAdmin, async (req, res) => {
     res.status(400).json({ error: msg })
     return
   }
-  const after = await getUserAuditSnapshotById(req.params.id)
+  const after = await getUserAuditSnapshotById(req.params.id, venueId)
   await writeUserAuditLog('edit', actor.username, req.params.id, before, {
     ...(after ?? {}),
     event: 'pay_rates_updated',
@@ -202,7 +211,7 @@ router.post('/:id/pay-rates', requireAdmin, async (req, res) => {
 
 router.post('/:id/reset-password', resetPasswordRateLimit, async (req, res) => {
   const actor = req.session!.user!
-  const target = await getUserAuditSnapshotById(req.params.id)
+  const target = await getUserAuditSnapshotById(req.params.id, req.session?.venue_id ?? null)
   const { newPassword } = req.body ?? {}
   if (!newPassword) {
     res.status(400).json({ error: 'newPassword required' })

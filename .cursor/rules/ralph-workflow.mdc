@@ -59,3 +59,7 @@ When a story does not pass: record in updates.md what you tried, what worked, wh
 ## If No Active Task
 
 If docs/working-memory/open/ is empty: report what you found, ask for direction, do NOT invent work.
+
+## Planning vs Execution
+
+When **creating** a Ralph task (plan, prompt, verify, user_story.json): create the artifacts ONLY. Do NOT implement the solution. See `ralph-planning.mdc` for details. The user runs `./ralph/run.sh <task-id>` to spawn Ralph, who does the implementation.

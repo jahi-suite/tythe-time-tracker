@@ -3,24 +3,31 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 
 import { MarketingLandingPage } from './pages/MarketingLandingPage'
+import { VenueLandingPage } from './pages/VenueLandingPage'
 import { LoginPage, FirstSetupPage } from './pages/LoginPage'
 import { Layout } from './pages/Layout'
 import { ClockPage } from './pages/ClockPage'
 import { TimesheetPage } from './pages/TimesheetPage'
 import { ExportPage } from './pages/ExportPage'
 import { ManagerPage } from './pages/ManagerPage'
+import { VenueSettingsPage } from './pages/VenueSettingsPage'
 import { TermsPage } from './pages/TermsPage'
 import { PrivacyPage } from './pages/PrivacyPage'
+import { DevVenuesPage } from './pages/DevVenuesPage'
 
 function AppRoutes() {
   const { user, loading } = useAuth()
   const [needsSetup, setNeedsSetup] = React.useState<boolean | null>(null)
   const [apiReachable, setApiReachable] = React.useState<boolean | null>(null)
+  const venueSlug =
+    (typeof window !== 'undefined'
+      ? window.location.pathname.match(/^\/([^/]+)\/login\/?$/)?.[1]
+      : null) ?? 'tythe'
 
   React.useEffect(() => {
     if (loading) return
     if (user) return
-    fetch('/api/auth/first-setup', { credentials: 'include' })
+    fetch(`/api/auth/first-setup?venue_slug=${encodeURIComponent(venueSlug)}`, { credentials: 'include' })
       .then((r) => {
         setApiReachable(true)
         return r.json()
@@ -48,12 +55,14 @@ function AppRoutes() {
       <Routes>
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/dev/venues" element={<DevVenuesPage />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<Navigate to="/clock" replace />} />
           <Route path="clock" element={<ClockPage />} />
           <Route path="timesheet" element={<TimesheetPage />} />
           <Route path="export" element={<ExportPage />} />
           <Route path="manager" element={<ManagerPage />} />
+          <Route path="venue-settings" element={<VenueSettingsPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
@@ -64,14 +73,19 @@ function AppRoutes() {
       <Routes>
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/dev/venues" element={<DevVenuesPage />} />
         <Route path="/login" element={<FirstSetupPage />} />
+        <Route path="/:venueSlug/login" element={<FirstSetupPage />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     )
   return (
     <Routes>
       <Route path="/" element={<MarketingLandingPage />} />
+      <Route path="/venues" element={<VenueLandingPage />} />
+      <Route path="/dev/venues" element={<DevVenuesPage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/:venueSlug/login" element={<LoginPage />} />
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
       <Route path="*" element={<Navigate to="/login" replace />} />

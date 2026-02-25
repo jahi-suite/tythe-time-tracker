@@ -9,6 +9,11 @@ router.use(requireAuth)
 
 router.get('/excel', async (req, res) => {
   const user = req.session!.user!
+  const venueId = req.session?.venue_id
+  if (!venueId) {
+    res.status(401).json({ error: 'Venue not found in session' })
+    return
+  }
   const employeeName = req.query.employee as string | undefined
   const start = req.query.start ? new Date(req.query.start as string) : undefined
   const end = req.query.end ? new Date(req.query.end as string) : undefined
@@ -16,11 +21,11 @@ router.get('/excel', async (req, res) => {
   const entries =
     user.role === 'manager' || user.role === 'admin'
       ? employeeName
-        ? await timeTracking.getEmployeeTimesheet(employeeName, start, end)
-        : await timeTracking.getAllTimesheets(start, end)
-      : await timeTracking.getEmployeeTimesheet(user.display_name, start, end, user.id)
+        ? await timeTracking.getEmployeeTimesheet(employeeName, start, end, undefined, venueId)
+        : await timeTracking.getAllTimesheets(start, end, venueId)
+      : await timeTracking.getEmployeeTimesheet(user.display_name, start, end, user.id, venueId)
 
-  const buf = await exportToExcel(entries, start, end)
+  const buf = await exportToExcel(entries, start, end, venueId)
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
   res.setHeader(
     'Content-Disposition',
@@ -31,6 +36,11 @@ router.get('/excel', async (req, res) => {
 
 router.get('/pdf', async (req, res) => {
   const user = req.session!.user!
+  const venueId = req.session?.venue_id
+  if (!venueId) {
+    res.status(401).json({ error: 'Venue not found in session' })
+    return
+  }
   const employeeName = req.query.employee as string | undefined
   const start = req.query.start ? new Date(req.query.start as string) : undefined
   const end = req.query.end ? new Date(req.query.end as string) : undefined
@@ -38,11 +48,11 @@ router.get('/pdf', async (req, res) => {
   const entries =
     user.role === 'manager' || user.role === 'admin'
       ? employeeName
-        ? await timeTracking.getEmployeeTimesheet(employeeName, start, end)
-        : await timeTracking.getAllTimesheets(start, end)
-      : await timeTracking.getEmployeeTimesheet(user.display_name, start, end, user.id)
+        ? await timeTracking.getEmployeeTimesheet(employeeName, start, end, undefined, venueId)
+        : await timeTracking.getAllTimesheets(start, end, venueId)
+      : await timeTracking.getEmployeeTimesheet(user.display_name, start, end, user.id, venueId)
 
-  const buf = await exportToPdf(entries)
+  const buf = await exportToPdf(entries, venueId)
   res.setHeader('Content-Type', 'application/pdf')
   res.setHeader(
     'Content-Disposition',

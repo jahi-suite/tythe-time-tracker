@@ -1,9 +1,23 @@
 import bcrypt from 'bcrypt'
-import type { AuthUser, User } from '../../shared/types.js'
-import { DB, ALLOWED_ROLES } from '../../shared/constants.js'
+import type { AuthUser, User, VenueSettings } from '../../shared/types.js'
+import { DB, ALLOWED_ROLES, TIME } from '../../shared/constants.js'
 import { query } from '../db/connection.js'
 
 const MAX_PAY_RATE = 999.99
+const DEFAULT_BREAK_DEDUCT_MINUTES = 20
+const DEFAULT_BREAK_THRESHOLD_HOURS = 6
+
+const DEFAULT_VENUE_SETTINGS: VenueSettings = {
+  enhanced_enabled: true,
+  enhanced_start_hour: TIME.ENHANCED_START_HOUR,
+  enhanced_end_hour: TIME.ENHANCED_END_HOUR,
+  break_deduct_enabled: true,
+  break_deduct_minutes: DEFAULT_BREAK_DEDUCT_MINUTES,
+  break_threshold_hours: DEFAULT_BREAK_THRESHOLD_HOURS,
+  supervisor_enabled: true,
+  supervisor_label: 'Supervisor',
+  supervisor_deduct_break: true,
+}
 
 function isValidPayRateValue(value: number | null): boolean {
   if (value === null) return true
@@ -20,7 +34,93 @@ export function verifyPassword(plain: string, hashed: string): boolean {
   return bcrypt.compareSync(plain, hashed)
 }
 
-export async function authenticateUser(username: string, password: string): Promise<AuthUser | null> {
+export interface VenueIdentity {
+  id: string
+  slug: string
+  name: string
+}
+
+export async function getVenueBySlug(slug: string): Promise<VenueIdentity | null> {
+  const res = await query<VenueIdentity>(
+    `SELECT ${DB.ID_COLUMN} AS id, slug, name
+     FROM ${DB.VENUES_TABLE}
+     WHERE LOWER(slug) = LOWER($1)
+       AND active = true`,
+    [slug.trim()]
+  )
+  return res.rows[0] ?? null
+}
+
+export async function getVenueById(id: string): Promise<VenueIdentity | null> {
+  const res = await query<VenueIdentity>(
+    `SELECT ${DB.ID_COLUMN} AS id, slug, name
+     FROM ${DB.VENUES_TABLE}
+     WHERE ${DB.ID_COLUMN} = $1
+       AND active = true`,
+    [id]
+  )
+  return res.rows[0] ?? null
+}
+
+function cloneDefaultVenueSettings(): VenueSettings {
+  return { ...DEFAULT_VENUE_SETTINGS }
+}
+
+export async function getVenueSettings(venueId?: string | null): Promise<VenueSettings> {
+  const trimmedVenueId = venueId?.trim() ?? ''
+  if (!trimmedVenueId) return cloneDefaultVenueSettings()
+
+  const res = await query<{
+    enhanced_enabled: boolean | null
+    enhanced_start_hour: number | null
+    enhanced_end_hour: number | null
+    break_deduct_enabled: boolean | null
+    break_deduct_minutes: number | null
+    break_threshold_hours: number | string | null
+    supervisor_enabled: boolean | null
+    supervisor_label: string | null
+    supervisor_deduct_break: boolean | null
+  }>(
+    `SELECT enhanced_enabled,
+            enhanced_start_hour,
+            enhanced_end_hour,
+            break_deduct_enabled,
+            break_deduct_minutes,
+            break_threshold_hours::double precision AS break_threshold_hours,
+            supervisor_enabled,
+            supervisor_label,
+            supervisor_deduct_break
+     FROM ${DB.VENUES_TABLE}
+     WHERE ${DB.ID_COLUMN} = $1`,
+    [trimmedVenueId]
+  )
+
+  const row = res.rows[0]
+  if (!row) return cloneDefaultVenueSettings()
+
+  return {
+    enhanced_enabled: row.enhanced_enabled ?? DEFAULT_VENUE_SETTINGS.enhanced_enabled,
+    enhanced_start_hour: row.enhanced_start_hour ?? DEFAULT_VENUE_SETTINGS.enhanced_start_hour,
+    enhanced_end_hour: row.enhanced_end_hour ?? DEFAULT_VENUE_SETTINGS.enhanced_end_hour,
+    break_deduct_enabled: row.break_deduct_enabled ?? DEFAULT_VENUE_SETTINGS.break_deduct_enabled,
+    break_deduct_minutes: row.break_deduct_minutes ?? DEFAULT_VENUE_SETTINGS.break_deduct_minutes,
+    break_threshold_hours:
+      row.break_threshold_hours === null
+        ? DEFAULT_VENUE_SETTINGS.break_threshold_hours
+        : Number(row.break_threshold_hours),
+    supervisor_enabled: row.supervisor_enabled ?? DEFAULT_VENUE_SETTINGS.supervisor_enabled,
+    supervisor_label:
+      row.supervisor_label?.trim() || DEFAULT_VENUE_SETTINGS.supervisor_label,
+    supervisor_deduct_break:
+      row.supervisor_deduct_break ?? DEFAULT_VENUE_SETTINGS.supervisor_deduct_break,
+  }
+}
+
+export async function authenticateUser(
+  username: string,
+  password: string,
+  venue?: { venueId?: string | null; venueSlug?: string | null }
+): Promise<AuthUser | null> {
   const res = await query<{
     id: string
     username: string
@@ -28,11 +128,15 @@ export async function authenticateUser(username: string, password: string): Prom
     role: string
     display_name: string
   }>(
-    `SELECT id, username, password_hash, role,
+    `SELECT u.id, u.username, u.password_hash, u.role,
        COALESCE(NULLIF(TRIM(display_name), ''), NULLIF(TRIM(username), ''), 'User') AS display_name
-     FROM ${DB.USERS_TABLE}
-     WHERE LOWER(TRIM(username)) = LOWER($1) AND active = true`,
-    [username.trim()]
+     FROM ${DB.USERS_TABLE} u
+     JOIN ${DB.VENUES_TABLE} v ON v.${DB.ID_COLUMN} = u.${DB.VENUE_ID_COLUMN}
+     WHERE LOWER(TRIM(u.username)) = LOWER($1)
+       AND u.active = true
+       AND ($2::uuid IS NULL OR u.${DB.VENUE_ID_COLUMN} = $2::uuid)
+       AND ($3::text IS NULL OR LOWER(v.slug) = LOWER($3))`,
+    [username.trim(), venue?.venueId?.trim() || null, venue?.venueSlug?.trim() || null]
   )
   const row = res.rows[0]
   if (!row || !verifyPassword(password, row.password_hash)) return null
@@ -44,20 +148,27 @@ export async function authenticateUser(username: string, password: string): Prom
   }
 }
 
-export async function getAuthUserById(id: string): Promise<AuthUser | null> {
+export async function getAuthUserById(
+  id: string,
+  venue?: { venueId?: string | null; venueSlug?: string | null }
+): Promise<AuthUser | null> {
   const res = await query<{
     id: string
     username: string
     role: string
     display_name: string
   }>(
-    `SELECT id,
-       COALESCE(NULLIF(TRIM(username), ''), 'user') AS username,
-       role,
-       COALESCE(NULLIF(TRIM(display_name), ''), NULLIF(TRIM(username), ''), 'User') AS display_name
-     FROM ${DB.USERS_TABLE}
-     WHERE id = $1 AND active = true`,
-    [id]
+    `SELECT u.id,
+       COALESCE(NULLIF(TRIM(u.username), ''), 'user') AS username,
+       u.role,
+       COALESCE(NULLIF(TRIM(u.display_name), ''), NULLIF(TRIM(u.username), ''), 'User') AS display_name
+     FROM ${DB.USERS_TABLE} u
+     JOIN ${DB.VENUES_TABLE} v ON v.${DB.ID_COLUMN} = u.${DB.VENUE_ID_COLUMN}
+     WHERE u.id = $1
+       AND u.active = true
+       AND ($2::uuid IS NULL OR u.${DB.VENUE_ID_COLUMN} = $2::uuid)
+       AND ($3::text IS NULL OR LOWER(v.slug) = LOWER($3))`,
+    [id, venue?.venueId?.trim() || null, venue?.venueSlug?.trim() || null]
   )
   const row = res.rows[0]
   if (!row) return null
@@ -74,7 +185,8 @@ export async function createUser(
   username: string,
   password: string,
   displayName: string,
-  role: string
+  role: string,
+  venueId?: string | null
 ): Promise<[boolean, string]> {
   if (!username.trim() || !password || !displayName.trim()) {
     return [false, 'Username, password, and display name are required.']
@@ -85,9 +197,9 @@ export async function createUser(
   try {
     const hash = hashPassword(password)
     await query(
-      `INSERT INTO ${DB.USERS_TABLE} (username, password_hash, role, display_name)
-       VALUES ($1, $2, $3, $4)`,
-      [username.trim(), hash, role, displayName.trim()]
+      `INSERT INTO ${DB.USERS_TABLE} (username, password_hash, role, display_name, ${DB.VENUE_ID_COLUMN})
+       VALUES ($1, $2, $3, $4, $5)`,
+      [username.trim(), hash, role, displayName.trim(), venueId ?? null]
     )
     return [true, `User '${username.trim()}' created successfully.`]
   } catch (e: unknown) {
@@ -99,7 +211,7 @@ export async function createUser(
   }
 }
 
-export async function getAllUsers(): Promise<User[]> {
+export async function getAllUsers(venueId?: string | null): Promise<User[]> {
   const res = await query<{
     id: string
     username: string
@@ -113,7 +225,9 @@ export async function getAllUsers(): Promise<User[]> {
     `SELECT id, username, role, display_name, active,
             ${DB.STANDARD_RATE_COLUMN}, ${DB.ENHANCED_RATE_COLUMN}, ${DB.SUPERVISOR_RATE_COLUMN}
      FROM ${DB.USERS_TABLE}
-     ORDER BY role, display_name`
+     WHERE ($1::uuid IS NULL OR ${DB.VENUE_ID_COLUMN} = $1::uuid)
+     ORDER BY role, display_name`,
+    [venueId?.trim() || null]
   )
   return res.rows.map((r) => ({
     id: r.id,
@@ -326,12 +440,13 @@ export async function isUsersTableEmpty(): Promise<boolean> {
 export async function createFirstManager(
   username: string,
   password: string,
-  displayName: string
+  displayName: string,
+  venueId?: string | null
 ): Promise<[boolean, string]> {
   if (!(await isUsersTableEmpty())) {
     return [false, 'An admin account already exists. Please log in.']
   }
-  return createUser(username, password, displayName, 'manager')
+  return createUser(username, password, displayName, 'manager', venueId)
 }
 
 export async function promoteToAdmin(actor: AuthUser, targetUserId: string): Promise<[boolean, string]> {

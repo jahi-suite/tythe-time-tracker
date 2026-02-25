@@ -7,12 +7,14 @@ import { createRequire } from 'module'
 import { fileURLToPath } from 'url'
 
 import authRoutes from './routes/auth.js'
+import venuesRoutes from './routes/venues.js'
 import clockRoutes from './routes/clock.js'
 import timesheetRoutes from './routes/timesheet.js'
 import shiftsRoutes from './routes/shifts.js'
 import usersRoutes from './routes/users.js'
 import auditRoutes from './routes/audit.js'
 import exportRoutes from './routes/export.js'
+import devRoutes from './routes/dev.js'
 import { requireSameOriginForMutations } from './middleware/csrf.js'
 import { getSessionCookieOptions } from './sessionConfig.js'
 import { getPool } from './db/connection.js'
@@ -143,12 +145,14 @@ export async function createApp() {
   app.use('/api', requireSameOriginForMutations)
 
   app.use('/api/auth', authRoutes)
+  app.use('/api/venues', venuesRoutes)
   app.use('/api/clock', clockRoutes)
   app.use('/api/timesheet', timesheetRoutes)
   app.use('/api/shifts', shiftsRoutes)
   app.use('/api/users', usersRoutes)
   app.use('/api/audit', auditRoutes)
   app.use('/api/export', exportRoutes)
+  app.use('/api/dev', devRoutes)
 
   return app
 }

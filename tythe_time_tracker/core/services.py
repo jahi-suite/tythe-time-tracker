@@ -4,8 +4,6 @@ import logging
 from datetime import datetime, timedelta, timezone, date, time
 from typing import List, Optional, Tuple
 
-import streamlit as st
-
 from .audit import log_change
 from .constants import DatabaseConstants, PayRateType, TimeConstants
 from .models import (
@@ -49,15 +47,11 @@ class TimeTrackingService:
         else:
             self.repository = repository
 
-    def _get_audit_username(self) -> str:
-        """Return the authenticated username from Streamlit session state."""
-        current_user = st.session_state.get("current_user")
-        if not isinstance(current_user, dict):
-            raise ValueError("Authenticated user not found in session")
-        username = current_user.get("username")
-        if not isinstance(username, str) or not username.strip():
-            raise ValueError("Authenticated username not found in session")
-        return username.strip()
+    def _require_changed_by(self, changed_by: str) -> str:
+        """Validate the audit username passed in by the caller."""
+        if not isinstance(changed_by, str) or not changed_by.strip():
+            raise ValueError("Authenticated username is required for audit logging")
+        return changed_by.strip()
     
     def clock_in(self, employee_name: str, is_supervisor: bool) -> Tuple[bool, str]:
         """Clock in an employee (simplified interface for UI).
@@ -72,37 +66,37 @@ class TimeTrackingService:
         request = ClockInRequest(employee_name=employee_name, is_supervisor=is_supervisor)
         return self.clock_in_with_request(request)
     
-    def clock_in_with_request(self, request: ClockInRequest) -> Tuple[bool, str]:
+    def clock_in_with_request(self, req: ClockInRequest) -> Tuple[bool, str]:
         """Clock in an employee.
         
         Args:
-            request: Clock in request containing employee name and supervisor status.
+            req: Clock in request containing employee name and supervisor status.
             
         Returns:
             Tuple of (success, message).
         """
         try:
             # Check if employee already has an open shift
-            existing_shift = self.repository.get_open_shift(request.employee_name)
+            existing_shift = self.repository.get_open_shift(req.employee_name)
             if existing_shift:
-                return False, f"{request.employee_name} already has an open shift"
+                return False, f"{req.employee_name} already has an open shift"
             
             # Determine pay rate type
             current_time = datetime.now(timezone.utc)
-            pay_rate_type = self._determine_pay_rate_type(request.is_supervisor, current_time)
+            pay_rate_type = self._determine_pay_rate_type(req.is_supervisor, current_time)
             
             # Create time entry
             time_entry = self.repository.create_time_entry(
-                employee=request.employee_name,
+                employee=req.employee_name,
                 clock_in=current_time,
                 pay_rate_type=pay_rate_type
             )
             
             rate_message = f" ({pay_rate_type.value} Rate)"
-            return True, f"{request.employee_name} clocked in successfully{rate_message}"
+            return True, f"{req.employee_name} clocked in successfully{rate_message}"
             
         except Exception as e:
-            logger.error(f"Error clocking in {request.employee_name}: {e}")
+            logger.error(f"Error clocking in {req.employee_name}: {e}")
             return False, f"Error clocking in: {e}"
     
     def clock_out(self, employee_name: str) -> Tuple[bool, str]:
@@ -117,29 +111,29 @@ class TimeTrackingService:
         request = ClockOutRequest(employee_name=employee_name)
         return self.clock_out_with_request(request)
     
-    def clock_out_with_request(self, request: ClockOutRequest) -> Tuple[bool, str]:
+    def clock_out_with_request(self, req: ClockOutRequest) -> Tuple[bool, str]:
         """Clock out an employee.
         
         Args:
-            request: Clock out request containing employee name.
+            req: Clock out request containing employee name.
             
         Returns:
             Tuple of (success, message).
         """
         try:
             # Find the most recent open shift for this employee
-            open_shift = self.repository.get_open_shift(request.employee_name)
+            open_shift = self.repository.get_open_shift(req.employee_name)
             if not open_shift:
-                return False, f"No open shift found for {request.employee_name}"
+                return False, f"No open shift found for {req.employee_name}"
             
             # Close the shift
             current_time = datetime.now(timezone.utc)
             self.repository.close_shift(open_shift.id, current_time)
             
-            return True, f"{request.employee_name} clocked out successfully"
+            return True, f"{req.employee_name} clocked out successfully"
             
         except Exception as e:
-            logger.error(f"Error clocking out {request.employee_name}: {e}")
+            logger.error(f"Error clocking out {req.employee_name}: {e}")
             return False, f"Error clocking out: {e}"
     
     def get_open_shift(self, employee_name: str) -> Optional[TimeEntry]:
@@ -195,7 +189,8 @@ class TimeTrackingService:
         clock_out_date: Optional[date],
         clock_out_time: Optional[time],
         is_supervisor: bool,
-        pay_rate_override: Optional[str]
+        pay_rate_override: Optional[str],
+        changed_by: str,
     ) -> Tuple[bool, str]:
         """Add a shift manually for managers (simplified interface for UI).
         
@@ -211,7 +206,7 @@ class TimeTrackingService:
         Returns:
             Tuple of (success, message).
         """
-        request = ShiftRequest(
+        req = ShiftRequest(
             employee_name=employee_name,
             clock_in_date=datetime.combine(clock_in_date, clock_in_time),
             clock_in_time=datetime.combine(clock_in_date, clock_in_time),
@@ -220,46 +215,50 @@ class TimeTrackingService:
             is_supervisor=is_supervisor,
             pay_rate_override=PayRateType(pay_rate_override) if pay_rate_override else None
         )
-        return self.add_shift_manually_with_request(request)
+        return self.add_shift_manually_with_request(req, changed_by=changed_by)
     
-    def add_shift_manually_with_request(self, request: ShiftRequest) -> Tuple[bool, str]:
+    def add_shift_manually_with_request(
+        self,
+        req: ShiftRequest,
+        changed_by: str,
+    ) -> Tuple[bool, str]:
         """Add a shift manually for managers.
         
         Args:
-            request: Shift request containing all shift details.
+            req: Shift request containing all shift details.
             
         Returns:
             Tuple of (success, message).
         """
         try:
-            changed_by = self._get_audit_username()
+            changed_by = self._require_changed_by(changed_by)
             # Combine date and time for clock-in
             clock_in_datetime = datetime.combine(
-                request.clock_in_date.date(), 
-                request.clock_in_time.time()
+                req.clock_in_date.date(), 
+                req.clock_in_time.time()
             )
             clock_in_datetime = TimeUtils.convert_to_utc(clock_in_datetime)
             
             # Combine date and time for clock-out (if provided)
             clock_out_datetime = None
-            if request.clock_out_date and request.clock_out_time:
+            if req.clock_out_date and req.clock_out_time:
                 clock_out_datetime = datetime.combine(
-                    request.clock_out_date.date(), 
-                    request.clock_out_time.time()
+                    req.clock_out_date.date(), 
+                    req.clock_out_time.time()
                 )
                 clock_out_datetime = TimeUtils.convert_to_utc(clock_out_datetime)
             
             # Determine pay rate type
-            if request.pay_rate_override:
-                pay_rate_type = request.pay_rate_override
+            if req.pay_rate_override:
+                pay_rate_type = req.pay_rate_override
             else:
                 pay_rate_type = self._determine_pay_rate_type(
-                    request.is_supervisor, clock_in_datetime
+                    req.is_supervisor, clock_in_datetime
                 )
             
             # Create time entry
             time_entry = self.repository.create_time_entry(
-                employee=request.employee_name,
+                employee=req.employee_name,
                 clock_in=clock_in_datetime,
                 clock_out=clock_out_datetime,
                 pay_rate_type=pay_rate_type
@@ -273,10 +272,10 @@ class TimeTrackingService:
                 new_values=_time_entry_to_audit_values(time_entry),
             )
             
-            return True, f"Shift added for {request.employee_name} ({pay_rate_type.value} Rate)"
+            return True, f"Shift added for {req.employee_name} ({pay_rate_type.value} Rate)"
             
         except Exception as e:
-            logger.error(f"Error adding shift for {request.employee_name}: {e}")
+            logger.error(f"Error adding shift for {req.employee_name}: {e}")
             return False, f"Error adding shift: {e}"
     
     def edit_shift(
@@ -288,7 +287,8 @@ class TimeTrackingService:
         clock_out_date: Optional[date],
         clock_out_time: Optional[time],
         is_supervisor: bool,
-        pay_rate_override: Optional[str]
+        pay_rate_override: Optional[str],
+        changed_by: str,
     ) -> Tuple[bool, str]:
         """Edit an existing shift (simplified interface for UI).
         
@@ -305,7 +305,7 @@ class TimeTrackingService:
         Returns:
             Tuple of (success, message).
         """
-        request = ShiftRequest(
+        req = ShiftRequest(
             employee_name=employee_name,
             clock_in_date=datetime.combine(clock_in_date, clock_in_time),
             clock_in_time=datetime.combine(clock_in_date, clock_in_time),
@@ -314,52 +314,57 @@ class TimeTrackingService:
             is_supervisor=is_supervisor,
             pay_rate_override=PayRateType(pay_rate_override) if pay_rate_override else None
         )
-        return self.edit_shift_with_request(entry_id, request)
+        return self.edit_shift_with_request(entry_id, req, changed_by=changed_by)
     
-    def edit_shift_with_request(self, entry_id: str, request: ShiftRequest) -> Tuple[bool, str]:
+    def edit_shift_with_request(
+        self,
+        entry_id: str,
+        req: ShiftRequest,
+        changed_by: str,
+    ) -> Tuple[bool, str]:
         """Edit an existing shift.
         
         Args:
             entry_id: The ID of the time entry to edit.
-            request: Shift request containing updated details.
+            req: Shift request containing updated details.
             
         Returns:
             Tuple of (success, message).
         """
         try:
-            changed_by = self._get_audit_username()
+            changed_by = self._require_changed_by(changed_by)
             existing_entry = self.repository.get_time_entry_by_id(entry_id)
             if existing_entry is None:
                 return False, "Shift not found"
 
             # Combine date and time for clock-in
             clock_in_datetime = datetime.combine(
-                request.clock_in_date.date(), 
-                request.clock_in_time.time()
+                req.clock_in_date.date(), 
+                req.clock_in_time.time()
             )
             clock_in_datetime = TimeUtils.convert_to_utc(clock_in_datetime)
             
             # Combine date and time for clock-out (if provided)
             clock_out_datetime = None
-            if request.clock_out_date and request.clock_out_time:
+            if req.clock_out_date and req.clock_out_time:
                 clock_out_datetime = datetime.combine(
-                    request.clock_out_date.date(), 
-                    request.clock_out_time.time()
+                    req.clock_out_date.date(), 
+                    req.clock_out_time.time()
                 )
                 clock_out_datetime = TimeUtils.convert_to_utc(clock_out_datetime)
             
             # Determine pay rate type
-            if request.pay_rate_override:
-                pay_rate_type = request.pay_rate_override
+            if req.pay_rate_override:
+                pay_rate_type = req.pay_rate_override
             else:
                 pay_rate_type = self._determine_pay_rate_type(
-                    request.is_supervisor, clock_in_datetime
+                    req.is_supervisor, clock_in_datetime
                 )
             
             # Update the time entry
             updated = self.repository.update_time_entry(
                 entry_id=entry_id,
-                employee=request.employee_name,
+                employee=req.employee_name,
                 clock_in=clock_in_datetime,
                 clock_out=clock_out_datetime,
                 pay_rate_type=pay_rate_type
@@ -374,13 +379,13 @@ class TimeTrackingService:
                 new_values=_time_entry_to_audit_values(updated),
             )
             
-            return True, f"Shift updated for {request.employee_name} ({pay_rate_type.value} Rate)"
+            return True, f"Shift updated for {req.employee_name} ({pay_rate_type.value} Rate)"
             
         except Exception as e:
             logger.error(f"Error updating shift {entry_id}: {e}")
             return False, f"Error updating shift: {e}"
     
-    def delete_entry(self, entry_id: str) -> Tuple[bool, str]:
+    def delete_entry(self, entry_id: str, changed_by: str) -> Tuple[bool, str]:
         """Delete a time entry.
         
         Args:
@@ -390,7 +395,7 @@ class TimeTrackingService:
             Tuple of (success, message).
         """
         try:
-            changed_by = self._get_audit_username()
+            changed_by = self._require_changed_by(changed_by)
             existing_entry = self.repository.get_time_entry_by_id(entry_id)
             if existing_entry is None:
                 return False, "Entry not found"
@@ -478,22 +483,22 @@ class TimeTrackingService:
         for entry in entries:
             if entry.employee not in staff_summaries:
                 staff_summaries[entry.employee] = StaffSummary(
-                    employee_name=entry.employee,
-                    total_hours=0.0,
-                    total_shifts=0,
+                    employee=entry.employee,
                     standard_hours=0.0,
                     enhanced_hours=0.0,
-                    supervisor_hours=0.0
+                    supervisor_hours=0.0,
+                    total_shifts=0,
                 )
             
             summary = staff_summaries[entry.employee]
             time_split = self.calculate_time_split(entry)
-            
-            summary.total_hours += time_split.total_hours
-            summary.total_shifts += 1
-            summary.standard_hours += time_split.standard_hours
-            summary.enhanced_hours += time_split.enhanced_hours
-            summary.supervisor_hours += time_split.supervisor_hours
+            staff_summaries[entry.employee] = StaffSummary(
+                employee=summary.employee,
+                standard_hours=summary.standard_hours + time_split.standard_hours,
+                enhanced_hours=summary.enhanced_hours + time_split.enhanced_hours,
+                supervisor_hours=summary.supervisor_hours + time_split.supervisor_hours,
+                total_shifts=summary.total_shifts + 1,
+            )
         
         return staff_summaries
     
@@ -511,7 +516,7 @@ class TimeTrackingService:
                 total_hours=0.0,
                 total_shifts=0,
                 unique_employees=0,
-                staff_summary={}
+                staff_summaries={}
             )
         
         staff_summaries = self.calculate_staff_summary(entries)
@@ -524,7 +529,7 @@ class TimeTrackingService:
             total_hours=total_hours,
             total_shifts=total_shifts,
             unique_employees=unique_employees,
-            staff_summary=staff_summaries
+            staff_summaries=staff_summaries
         )
     
     def _determine_pay_rate_type(

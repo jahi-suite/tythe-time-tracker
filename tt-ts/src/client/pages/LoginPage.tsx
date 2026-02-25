@@ -1,11 +1,18 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { auth } from '../api'
+import { auth, venues } from '../api'
 
 export function LoginPage() {
   const { login } = useAuth()
+  const { venueSlug } = useParams()
+  const effectiveVenueSlug = (venueSlug || 'tythe').trim() || 'tythe'
+  const isTytheVenue = effectiveVenueSlug.toLowerCase() === 'tythe'
+  const [venueName, setVenueName] = useState<string | null>(null)
   const [username, setUsername] = useState('')
+  useEffect(() => {
+    venues.getBySlug(effectiveVenueSlug).then((v) => setVenueName(v.name)).catch(() => setVenueName(effectiveVenueSlug))
+  }, [effectiveVenueSlug])
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -15,7 +22,7 @@ export function LoginPage() {
     setError('')
     setLoading(true)
     try {
-      await login(username, password)
+      await login(username, password, effectiveVenueSlug)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
     } finally {
@@ -28,10 +35,15 @@ export function LoginPage() {
       <Link to="/" className="block text-center text-sm mb-4" style={{ color: 'var(--tt-text-muted)' }}>
         ← Back to home
       </Link>
-      <img src="/tythe-logo.png" alt="Tythe Barn" width={200} style={{ display: 'block', margin: '0 auto 1rem' }} />
+      <img
+        src={isTytheVenue ? '/tythe-logo.png' : '/kari-logo.png'}
+        alt={isTytheVenue ? 'Tythe Barn' : 'Kari Suite'}
+        width={200}
+        style={{ display: 'block', margin: '0 auto 1rem' }}
+      />
       <div className="login-hero">
         <p className="login-eyebrow">Secure Access</p>
-        <h1 className="login-title">Employee Portal — The Tythe Barn</h1>
+        <h1 className="login-title">Employee Portal — {venueName ?? effectiveVenueSlug}</h1>
         <p className="login-subtitle">Employee and manager timekeeping for daily operations.</p>
       </div>
       <form onSubmit={handleLogin} className="login-form">
@@ -60,6 +72,9 @@ export function LoginPage() {
 
 export function FirstSetupPage() {
   const { login } = useAuth()
+  const { venueSlug } = useParams()
+  const effectiveVenueSlug = (venueSlug || 'tythe').trim() || 'tythe'
+  const isTytheVenue = effectiveVenueSlug.toLowerCase() === 'tythe'
   const [username, setUsername] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [password, setPassword] = useState('')
@@ -80,8 +95,8 @@ export function FirstSetupPage() {
     }
     setLoading(true)
     try {
-      await auth.createFirstAdmin(username, password, displayName)
-      await login(username, password)
+      await auth.createFirstAdmin(username, password, displayName, effectiveVenueSlug)
+      await login(username, password, effectiveVenueSlug)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Setup failed')
     } finally {
@@ -91,7 +106,12 @@ export function FirstSetupPage() {
 
   return (
     <div className="login-page">
-      <img src="/tythe-logo.png" alt="Tythe Barn" width={200} style={{ display: 'block', margin: '0 auto 1rem' }} />
+      <img
+        src={isTytheVenue ? '/tythe-logo.png' : '/kari-logo.png'}
+        alt={isTytheVenue ? 'Tythe Barn' : 'Kari Suite'}
+        width={200}
+        style={{ display: 'block', margin: '0 auto 1rem' }}
+      />
       <div className="login-hero">
         <p className="login-eyebrow">First-Time Setup</p>
         <h1 className="login-title">Create Your Admin Account</h1>

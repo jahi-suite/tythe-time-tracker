@@ -58,7 +58,7 @@ SUPABASE_DATABASE=postgres
 SUPABASE_USER=postgres
 SUPABASE_PASSWORD=your-database-password
 SUPABASE_PORT=5432
-MANAGER_PASSWORD=tythe2024
+MANAGER_PASSWORD=your-manager-password
 ```
 
 Replace the values with your actual Supabase details.
@@ -78,7 +78,7 @@ USER = "postgres.YOUR_PROJECT_REF"
 PASSWORD = "your-database-password"
 PORT = "6543"
 
-MANAGER_PASSWORD = "tythe2024"
+MANAGER_PASSWORD = "your-manager-password"
 ```
 
 3. Save and redeploy. The app will use these when it runs in the cloud.

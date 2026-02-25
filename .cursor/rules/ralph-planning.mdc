@@ -1,0 +1,41 @@
+---
+description: When creating Ralph tasks, the planning agent creates artifacts ONLY. Ralph (the execution agent) does the implementation.
+alwaysApply: true
+---
+
+# Ralph Planning vs Execution
+
+## Two Distinct Roles
+
+### Planning Agent (this session)
+
+When the user asks for a Ralph task or to "create a Ralph plan/loop":
+
+1. **Create ONLY** the Ralph artifacts:
+   - `docs/working-memory/open/TASK_ID/plan.md`
+   - `docs/working-memory/open/TASK_ID/updates.md`
+   - `ralph/prompts/TASK_ID.md`
+   - `ralph/verify-TASK_ID.sh`
+   - `ralph/loops/TASK_ID.sh`
+
+2. **Do NOT implement** the solution. Do not write the code, config files, or docs that the plan describes. Ralph does that.
+
+3. **Validate** that the setup is ready: plan is complete, prompt is clear, verify script checks the right things, loop exists and is executable.
+
+4. **Tell the user** to run `./ralph/loops/TASK_ID.sh` to spawn Ralph. The user runs the loop in their terminal.
+
+### Execution Agent (Ralph)
+
+Spawned by the loop script. Reads the plan, implements one phase per iteration, commits, updates. May run verify scripts to see current state.
+
+## Forbidden
+
+- Writing Ralph artifacts **and then** implementing the solution in the same session
+- Implementing when the user asked for a Ralph task
+
+## Correct Flow
+
+1. User: "Create a Ralph plan for X"
+2. Agent: Creates plan, prompt, verify, loop. Does NOT implement X.
+3. User: Runs `./ralph/loops/tt-x-YYYYMMDD.sh`
+4. Ralph: Implements X, commits, iterates until verify passes.

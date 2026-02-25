@@ -64,6 +64,10 @@ logs/
 *.sqlite
 *.sqlite3
 
+# Google Cloud SDK (local install)
+google-cloud-sdk/
+google-cloud-cli-*.tar.gz
+
 # Temporary files
 *.tmp
 *.temp
@@ -80,6 +84,9 @@ Pipfile.lock
 
 # pytest
 .pytest_cache/
+
+# Playwright / test output
+tt-ts/test-results/
 
 # Coverage reports
 htmlcov/

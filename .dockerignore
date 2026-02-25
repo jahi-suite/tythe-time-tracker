@@ -1,0 +1,13 @@
+# Root build context — exclude from COPY tt-ts/
+.git
+.github
+*.md
+tt-ts/node_modules
+tt-ts/dist
+tt-ts/dist-server
+tt-ts/.env
+tt-ts/.env.*
+ralph
+docs
+google-cloud-sdk
+*.log

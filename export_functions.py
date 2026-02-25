@@ -1,16 +1,20 @@
 import pandas as pd
-import streamlit as st
 from datetime import datetime, timedelta, timezone, time as dtime
+import logging
 from reportlab.lib import colors
 
 from tythe_time_tracker.utils.time_utils import TimeUtils
 from tythe_time_tracker.core.auth import get_all_users
+from tythe_time_tracker.database.connection import DatabaseConnection, get_db_connection
+from tythe_time_tracker.database.repository import TimeEntryRepository
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 import io
 import base64
+
+logger = logging.getLogger(__name__)
 
 def get_date_range(option):
     """Get date range based on selection"""
@@ -38,56 +42,54 @@ def get_date_range(option):
 
 def get_timesheet_data(employee_name=None, start_date=None, end_date=None, is_manager=False):
     """Get timesheet data with filters"""
-    conn = st.secrets.get("SUPABASE", {})
-    if not conn:
+    db_conn, error = get_db_connection()
+    if db_conn is None:
+        logger.error("Database error in get_timesheet_data: %s", error)
         return []
-    
+
     try:
-        import psycopg2
-        db_conn = psycopg2.connect(
-            host=st.secrets["SUPABASE"]["HOST"],
-            database=st.secrets["SUPABASE"]["DATABASE"],
-            user=st.secrets["SUPABASE"]["USER"],
-            password=st.secrets["SUPABASE"]["PASSWORD"],
-            port=st.secrets["SUPABASE"]["PORT"],
-            options='-c family=ipv4'
-        )
-        
-        cursor = db_conn.cursor()
-        
-        # Build query based on filters
-        query = """
-            SELECT id, employee, clock_in, clock_out, pay_rate_type, created_at
-            FROM time_entries 
-            WHERE 1=1
-        """
-        params = []
-        
+        repo = TimeEntryRepository(DatabaseConnection(db_conn))
+
+        def _as_datetime(value):
+            if value is None or isinstance(value, datetime):
+                return value
+            return datetime.combine(value, dtime.min)
+
+        start_dt = _as_datetime(start_date)
+        end_dt = _as_datetime(end_date)
+
         if employee_name:
-            query += " AND LOWER(employee) = LOWER(%s)"
-            params.append(employee_name)
-        
-        if start_date:
-            query += " AND DATE(clock_in) >= %s"
-            params.append(start_date)
-        
-        if end_date:
-            query += " AND DATE(clock_in) <= %s"
-            params.append(end_date)
-        
-        query += " ORDER BY employee, clock_in DESC"
-        
-        cursor.execute(query, params)
-        entries = cursor.fetchall()
-        
-        cursor.close()
-        db_conn.close()
-        
-        return entries
-        
+            entries = repo.get_employee_timesheet(employee_name, start_dt, end_dt)
+        else:
+            entries = repo.get_all_timesheets(start_dt, end_dt)
+
+        # Preserve legacy tuple shape used by export UI preview code.
+        rows = []
+        for entry in entries:
+            pay_rate_type = (
+                entry.pay_rate_type.value
+                if hasattr(entry.pay_rate_type, "value")
+                else entry.pay_rate_type
+            )
+            rows.append(
+                (
+                    entry.id,
+                    entry.employee,
+                    entry.clock_in,
+                    entry.clock_out,
+                    pay_rate_type,
+                    entry.created_at,
+                )
+            )
+
+        rows.sort(key=lambda e: e[2], reverse=True)
+        rows.sort(key=lambda e: e[1].strip().lower())
+        return rows
     except Exception as e:
-        st.error(f"Database error: {e}")
+        logger.exception("Database error in get_timesheet_data: %s", e)
         return []
+    finally:
+        db_conn.close()
 
 def calculate_hours(clock_in, clock_out):
     """Calculate hours worked"""

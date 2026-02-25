@@ -1,0 +1,12 @@
+# tt-archive-obsolete-tasks-20260225 — Updates
+
+> Ralph implements one story per iteration. Log progress here.
+
+## Progress
+
+- 2026-02-25: Task created. Ralph to implement.
+- 2026-02-25 13:28:51 GMT: Completed `archive-01` by moving `tt-netlify-fullstack-20260224` from `open/` to `done/` and adding an obsolete note (`Netlify not used; app on Google Cloud Run`).
+- 2026-02-25 13:30:03 GMT: Completed `archive-02` by moving `tt-netlify-502-debug-20260224` from `open/` to `done/` and adding an obsolete note (`Netlify not used; app on Google Cloud Run`).
+- 2026-02-25 13:30:46 GMT: Completed `archive-03` by moving `tt-netlify-login-debug-20260224` from `open/` to `done/` and adding an obsolete note (`Netlify not used; app on Google Cloud Run`).
+- 2026-02-25 13:32:02 GMT: Completed `archive-04` by moving `tt-login-auth-diagnosis-20260224` from `open/` to `done/` and adding an obsolete note (`Netlify-focused auth diagnosis; app is working on Google Cloud Run`).
+- 2026-02-25 13:33:15 GMT: Completed `archive-05` by moving `tt-streamlit-desktop-contrast-20260223` from `open/` to `done/` and adding an obsolete note (`Streamlit task archived; tt-ts on Google Cloud Run is the primary app`).
