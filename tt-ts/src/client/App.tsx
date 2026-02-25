@@ -16,11 +16,15 @@ function AppRoutes() {
   const { user, loading } = useAuth()
   const [needsSetup, setNeedsSetup] = React.useState<boolean | null>(null)
   const [apiReachable, setApiReachable] = React.useState<boolean | null>(null)
+  const venueSlug =
+    (typeof window !== 'undefined'
+      ? window.location.pathname.match(/^\/([^/]+)\/login\/?$/)?.[1]
+      : null) ?? 'tythe'
 
   React.useEffect(() => {
     if (loading) return
     if (user) return
-    fetch('/api/auth/first-setup', { credentials: 'include' })
+    fetch(`/api/auth/first-setup?venue_slug=${encodeURIComponent(venueSlug)}`, { credentials: 'include' })
       .then((r) => {
         setApiReachable(true)
         return r.json()
@@ -65,6 +69,7 @@ function AppRoutes() {
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/login" element={<FirstSetupPage />} />
+        <Route path="/:venueSlug/login" element={<FirstSetupPage />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     )
@@ -72,6 +77,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<MarketingLandingPage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/:venueSlug/login" element={<LoginPage />} />
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
       <Route path="*" element={<Navigate to="/login" replace />} />

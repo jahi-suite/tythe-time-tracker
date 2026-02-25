@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import type { Response } from 'express'
 import * as auth from '../auth/index.js'
 import { logChange } from '../audit.js'
 import { requireAuth } from '../middleware/auth.js'
@@ -52,13 +53,55 @@ async function writeUserAuditLog(
   }
 }
 
+function parseVenueFromBodyOrQuery(input: {
+  body?: unknown
+  query?: unknown
+}): { venueId: string | null; venueSlug: string | null } {
+  const body = (input.body && typeof input.body === 'object' ? input.body : {}) as Record<string, unknown>
+  const query = (input.query && typeof input.query === 'object' ? input.query : {}) as Record<string, unknown>
+  const venueId = String(body.venue_id ?? query.venue_id ?? '').trim() || null
+  const venueSlug = String(body.venue_slug ?? query.venue_slug ?? '').trim() || null
+  return { venueId, venueSlug }
+}
+
+async function resolveVenueOrRespond(
+  res: Response,
+  venueRef: { venueId: string | null; venueSlug: string | null },
+  options?: { requireExplicitVenue?: boolean }
+): Promise<{ id: string; slug: string; name: string } | null> {
+  if (options?.requireExplicitVenue && !venueRef.venueId && !venueRef.venueSlug) {
+    res.status(400).json({ error: 'venue_slug or venue_id required' })
+    return null
+  }
+  if (venueRef.venueId) {
+    const venue = await auth.getVenueById(venueRef.venueId)
+    if (!venue) {
+      res.status(404).json({ error: 'Venue not found' })
+      return null
+    }
+    return venue
+  }
+  const venue = await auth.getVenueBySlug(venueRef.venueSlug || 'tythe')
+  if (!venue) {
+    res.status(404).json({ error: 'Venue not found' })
+    return null
+  }
+  return venue
+}
+
 router.post('/login', loginRateLimit, async (req, res) => {
   const { username, password } = req.body ?? {}
+  const venueRef = parseVenueFromBodyOrQuery({ body: req.body })
   if (!username || !password) {
     res.status(400).json({ error: 'Username and password required' })
     return
   }
-  const user = await auth.authenticateUser(username, password)
+  const venue = await resolveVenueOrRespond(res, venueRef, { requireExplicitVenue: true })
+  if (!venue) return
+  const user = await auth.authenticateUser(username, password, {
+    venueId: venue.id,
+    venueSlug: venue.slug,
+  })
   if (!user) {
     res.status(401).json({ error: 'Invalid username or password' })
     return
@@ -69,6 +112,8 @@ router.post('/login', loginRateLimit, async (req, res) => {
       return
     }
     req.session!.user = user
+    req.session!.venue_id = venue.id
+    req.session!.venue_slug = venue.slug
     // Ensure the session is persisted before the client follows up with /me.
     req.session!.save((saveErr: Error | null) => {
       if (saveErr) {
@@ -99,11 +144,31 @@ router.post('/logout', (req, res) => {
 
 router.get('/me', async (req, res) => {
   const sessionUser = req.session?.user
+  const sessionVenueId = req.session?.venue_id
+  const sessionVenueSlug = req.session?.venue_slug
   if (!sessionUser) {
     res.status(401).json({ error: 'Not authenticated' })
     return
   }
-  const freshUser = await auth.getAuthUserById(sessionUser.id)
+  if (!sessionVenueId || !sessionVenueSlug) {
+    await new Promise<void>((resolve) => {
+      req.session?.destroy(() => resolve())
+    })
+    res.status(401).json({ error: 'Not authenticated' })
+    return
+  }
+  const venue = await auth.getVenueById(sessionVenueId)
+  if (!venue || venue.slug !== sessionVenueSlug) {
+    await new Promise<void>((resolve) => {
+      req.session?.destroy(() => resolve())
+    })
+    res.status(401).json({ error: 'Not authenticated' })
+    return
+  }
+  const freshUser = await auth.getAuthUserById(sessionUser.id, {
+    venueId: sessionVenueId,
+    venueSlug: sessionVenueSlug,
+  })
   if (!freshUser) {
     await new Promise<void>((resolve) => {
       req.session?.destroy(() => resolve())
@@ -120,6 +185,8 @@ router.get('/me', async (req, res) => {
     return
   }
   req.session!.user = freshUser
+  req.session!.venue_id = venue.id
+  req.session!.venue_slug = venue.slug
   res.json(freshUser)
 })
 
@@ -143,17 +210,23 @@ router.get('/admin-count', async (_req, res) => {
   res.json({ count })
 })
 
-router.get('/first-setup', async (_req, res) => {
+router.get('/first-setup', async (req, res) => {
+  const venueRef = parseVenueFromBodyOrQuery({ query: req.query })
+  const venue = await resolveVenueOrRespond(res, venueRef)
+  if (!venue) return
   const empty = await auth.isUsersTableEmpty()
   res.json({ needsSetup: empty })
 })
 
 router.post('/first-setup', authMutationRateLimit, async (req, res) => {
   const { username, password, displayName, setupToken } = req.body ?? {}
+  const venueRef = parseVenueFromBodyOrQuery({ body: req.body })
   if (!username || !password || !displayName) {
     res.status(400).json({ error: 'Username, password, and display name required' })
     return
   }
+  const venue = await resolveVenueOrRespond(res, venueRef)
+  if (!venue) return
   const requiredFirstSetupToken = process.env.FIRST_SETUP_TOKEN?.trim()
   if (requiredFirstSetupToken) {
     const needsSetup = await auth.isUsersTableEmpty()
@@ -162,7 +235,7 @@ router.post('/first-setup', authMutationRateLimit, async (req, res) => {
       return
     }
   }
-  const [ok, msg] = await auth.createFirstManager(username, password, displayName)
+  const [ok, msg] = await auth.createFirstManager(username, password, displayName, venue.id)
   if (!ok) {
     res.status(400).json({ error: msg })
     return

@@ -24,11 +24,12 @@ export interface AuthUser {
 }
 
 export const auth = {
-  me: () => fetchApi<AuthUser>('/auth/me'),
-  login: (username: string, password: string) =>
+  me: (venueSlug?: string) =>
+    fetchApi<AuthUser>(`/auth/me${venueSlug ? `?venue_slug=${encodeURIComponent(venueSlug)}` : ''}`),
+  login: (username: string, password: string, venueSlug = 'tythe') =>
     fetchApi<AuthUser>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username, password, venue_slug: venueSlug }),
     }),
   logout: () => fetchApi<{ ok: boolean }>('/auth/logout', { method: 'POST' }),
   changePassword: (currentPassword: string, newPassword: string) =>
@@ -36,11 +37,12 @@ export const auth = {
       method: 'POST',
       body: JSON.stringify({ currentPassword, newPassword }),
     }),
-  firstSetup: () => fetchApi<{ needsSetup: boolean }>('/auth/first-setup'),
-  createFirstAdmin: (username: string, password: string, displayName: string) =>
+  firstSetup: (venueSlug = 'tythe') =>
+    fetchApi<{ needsSetup: boolean }>(`/auth/first-setup?venue_slug=${encodeURIComponent(venueSlug)}`),
+  createFirstAdmin: (username: string, password: string, displayName: string, venueSlug = 'tythe') =>
     fetchApi<{ ok: boolean }>('/auth/first-setup', {
       method: 'POST',
-      body: JSON.stringify({ username, password, displayName }),
+      body: JSON.stringify({ username, password, displayName, venue_slug: venueSlug }),
     }),
   adminCount: () => fetchApi<{ count: number }>('/auth/admin-count'),
 }

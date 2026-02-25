@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { auth } from '../api'
 
 export function LoginPage() {
   const { login } = useAuth()
+  const { venueSlug } = useParams()
+  const effectiveVenueSlug = (venueSlug || 'tythe').trim() || 'tythe'
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -15,7 +17,7 @@ export function LoginPage() {
     setError('')
     setLoading(true)
     try {
-      await login(username, password)
+      await login(username, password, effectiveVenueSlug)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
     } finally {
@@ -60,6 +62,8 @@ export function LoginPage() {
 
 export function FirstSetupPage() {
   const { login } = useAuth()
+  const { venueSlug } = useParams()
+  const effectiveVenueSlug = (venueSlug || 'tythe').trim() || 'tythe'
   const [username, setUsername] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [password, setPassword] = useState('')
@@ -80,8 +84,8 @@ export function FirstSetupPage() {
     }
     setLoading(true)
     try {
-      await auth.createFirstAdmin(username, password, displayName)
-      await login(username, password)
+      await auth.createFirstAdmin(username, password, displayName, effectiveVenueSlug)
+      await login(username, password, effectiveVenueSlug)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Setup failed')
     } finally {

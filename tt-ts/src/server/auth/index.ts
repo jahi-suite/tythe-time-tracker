@@ -20,7 +20,37 @@ export function verifyPassword(plain: string, hashed: string): boolean {
   return bcrypt.compareSync(plain, hashed)
 }
 
-export async function authenticateUser(username: string, password: string): Promise<AuthUser | null> {
+export interface VenueIdentity {
+  id: string
+  slug: string
+  name: string
+}
+
+export async function getVenueBySlug(slug: string): Promise<VenueIdentity | null> {
+  const res = await query<VenueIdentity>(
+    `SELECT ${DB.ID_COLUMN} AS id, slug, name
+     FROM ${DB.VENUES_TABLE}
+     WHERE LOWER(slug) = LOWER($1)`,
+    [slug.trim()]
+  )
+  return res.rows[0] ?? null
+}
+
+export async function getVenueById(id: string): Promise<VenueIdentity | null> {
+  const res = await query<VenueIdentity>(
+    `SELECT ${DB.ID_COLUMN} AS id, slug, name
+     FROM ${DB.VENUES_TABLE}
+     WHERE ${DB.ID_COLUMN} = $1`,
+    [id]
+  )
+  return res.rows[0] ?? null
+}
+
+export async function authenticateUser(
+  username: string,
+  password: string,
+  venue?: { venueId?: string | null; venueSlug?: string | null }
+): Promise<AuthUser | null> {
   const res = await query<{
     id: string
     username: string
@@ -28,11 +58,15 @@ export async function authenticateUser(username: string, password: string): Prom
     role: string
     display_name: string
   }>(
-    `SELECT id, username, password_hash, role,
+    `SELECT u.id, u.username, u.password_hash, u.role,
        COALESCE(NULLIF(TRIM(display_name), ''), NULLIF(TRIM(username), ''), 'User') AS display_name
-     FROM ${DB.USERS_TABLE}
-     WHERE LOWER(TRIM(username)) = LOWER($1) AND active = true`,
-    [username.trim()]
+     FROM ${DB.USERS_TABLE} u
+     JOIN ${DB.VENUES_TABLE} v ON v.${DB.ID_COLUMN} = u.${DB.VENUE_ID_COLUMN}
+     WHERE LOWER(TRIM(u.username)) = LOWER($1)
+       AND u.active = true
+       AND ($2::uuid IS NULL OR u.${DB.VENUE_ID_COLUMN} = $2::uuid)
+       AND ($3::text IS NULL OR LOWER(v.slug) = LOWER($3))`,
+    [username.trim(), venue?.venueId?.trim() || null, venue?.venueSlug?.trim() || null]
   )
   const row = res.rows[0]
   if (!row || !verifyPassword(password, row.password_hash)) return null
@@ -44,20 +78,27 @@ export async function authenticateUser(username: string, password: string): Prom
   }
 }
 
-export async function getAuthUserById(id: string): Promise<AuthUser | null> {
+export async function getAuthUserById(
+  id: string,
+  venue?: { venueId?: string | null; venueSlug?: string | null }
+): Promise<AuthUser | null> {
   const res = await query<{
     id: string
     username: string
     role: string
     display_name: string
   }>(
-    `SELECT id,
-       COALESCE(NULLIF(TRIM(username), ''), 'user') AS username,
-       role,
-       COALESCE(NULLIF(TRIM(display_name), ''), NULLIF(TRIM(username), ''), 'User') AS display_name
-     FROM ${DB.USERS_TABLE}
-     WHERE id = $1 AND active = true`,
-    [id]
+    `SELECT u.id,
+       COALESCE(NULLIF(TRIM(u.username), ''), 'user') AS username,
+       u.role,
+       COALESCE(NULLIF(TRIM(u.display_name), ''), NULLIF(TRIM(u.username), ''), 'User') AS display_name
+     FROM ${DB.USERS_TABLE} u
+     JOIN ${DB.VENUES_TABLE} v ON v.${DB.ID_COLUMN} = u.${DB.VENUE_ID_COLUMN}
+     WHERE u.id = $1
+       AND u.active = true
+       AND ($2::uuid IS NULL OR u.${DB.VENUE_ID_COLUMN} = $2::uuid)
+       AND ($3::text IS NULL OR LOWER(v.slug) = LOWER($3))`,
+    [id, venue?.venueId?.trim() || null, venue?.venueSlug?.trim() || null]
   )
   const row = res.rows[0]
   if (!row) return null
@@ -74,7 +115,8 @@ export async function createUser(
   username: string,
   password: string,
   displayName: string,
-  role: string
+  role: string,
+  venueId?: string | null
 ): Promise<[boolean, string]> {
   if (!username.trim() || !password || !displayName.trim()) {
     return [false, 'Username, password, and display name are required.']
@@ -85,9 +127,9 @@ export async function createUser(
   try {
     const hash = hashPassword(password)
     await query(
-      `INSERT INTO ${DB.USERS_TABLE} (username, password_hash, role, display_name)
-       VALUES ($1, $2, $3, $4)`,
-      [username.trim(), hash, role, displayName.trim()]
+      `INSERT INTO ${DB.USERS_TABLE} (username, password_hash, role, display_name, ${DB.VENUE_ID_COLUMN})
+       VALUES ($1, $2, $3, $4, $5)`,
+      [username.trim(), hash, role, displayName.trim(), venueId ?? null]
     )
     return [true, `User '${username.trim()}' created successfully.`]
   } catch (e: unknown) {
@@ -326,12 +368,13 @@ export async function isUsersTableEmpty(): Promise<boolean> {
 export async function createFirstManager(
   username: string,
   password: string,
-  displayName: string
+  displayName: string,
+  venueId?: string | null
 ): Promise<[boolean, string]> {
   if (!(await isUsersTableEmpty())) {
     return [false, 'An admin account already exists. Please log in.']
   }
-  return createUser(username, password, displayName, 'manager')
+  return createUser(username, password, displayName, 'manager', venueId)
 }
 
 export async function promoteToAdmin(actor: AuthUser, targetUserId: string): Promise<[boolean, string]> {
