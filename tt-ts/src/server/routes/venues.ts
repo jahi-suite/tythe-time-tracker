@@ -60,7 +60,8 @@ router.get('/search', async (req, res) => {
   const result = await query<VenueSearchRow>(
     `SELECT slug, name
      FROM ${DB.VENUES_TABLE}
-     WHERE slug ILIKE $1 OR name ILIKE $1
+     WHERE active = true
+       AND (slug ILIKE $1 OR name ILIKE $1)
      ORDER BY
        CASE WHEN slug = LOWER($2) THEN 0 ELSE 1 END,
        CASE WHEN LOWER(name) = LOWER($2) THEN 0 ELSE 1 END,

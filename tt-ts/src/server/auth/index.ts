@@ -44,7 +44,8 @@ export async function getVenueBySlug(slug: string): Promise<VenueIdentity | null
   const res = await query<VenueIdentity>(
     `SELECT ${DB.ID_COLUMN} AS id, slug, name
      FROM ${DB.VENUES_TABLE}
-     WHERE LOWER(slug) = LOWER($1)`,
+     WHERE LOWER(slug) = LOWER($1)
+       AND active = true`,
     [slug.trim()]
   )
   return res.rows[0] ?? null
@@ -54,7 +55,8 @@ export async function getVenueById(id: string): Promise<VenueIdentity | null> {
   const res = await query<VenueIdentity>(
     `SELECT ${DB.ID_COLUMN} AS id, slug, name
      FROM ${DB.VENUES_TABLE}
-     WHERE ${DB.ID_COLUMN} = $1`,
+     WHERE ${DB.ID_COLUMN} = $1
+       AND active = true`,
     [id]
   )
   return res.rows[0] ?? null
