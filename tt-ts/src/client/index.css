@@ -23,6 +23,8 @@ html,
 body,
 #root {
   max-width: 100%;
+  background: var(--night);
+  color: var(--cream);
 }
 
 body {
@@ -32,105 +34,115 @@ body {
   font-size: var(--font-size-body);
   line-height: var(--line-height-body);
   background: var(--night);
-  color: var(--tt-text);
+  color: var(--cream);
 }
 
 .app-shell {
   min-height: 100vh;
+  background-color: var(--night);
   background:
-    radial-gradient(circle at top, rgba(201, 169, 111, 0.1), transparent 50%),
-    var(--color-canvas, #f7f3eb);
+    radial-gradient(circle at 12% 0%, rgba(200, 133, 58, 0.14), transparent 48%),
+    radial-gradient(circle at 92% 8%, rgba(232, 168, 85, 0.08), transparent 42%),
+    linear-gradient(180deg, rgba(13, 11, 9, 0.98), rgba(13, 11, 9, 1)),
+    var(--night);
+  color: var(--cream);
 }
 
-.app-shell__topnav .ks-topnav__brand {
+.workspace-shell__topnav .ks-topnav__brand {
   font-style: normal;
 }
 
-.app-shell__content {
+.workspace-shell__content {
   padding-block: clamp(1rem, 2vw, 1.5rem) clamp(2rem, 5vw, 3rem);
 }
 
-.app-shell__intro {
+.workspace-shell__intro {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1rem 0 0.9rem;
+  padding: 1rem 1rem 0.95rem;
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0)),
+    rgba(255, 255, 255, 0.018);
+  box-shadow: inset 0 1px 0 rgba(243, 237, 227, 0.03);
 }
 
-.app-shell__intro-main {
+.workspace-shell__intro-main {
   display: grid;
   gap: 0.45rem;
   min-width: 0;
 }
 
-.app-shell__brand-row {
+.workspace-shell__brand-row {
   display: flex;
   align-items: center;
   gap: 0.8rem;
 }
 
-.app-shell__venue-logo {
+.workspace-shell__venue-logo {
   display: block;
   width: 44px;
   height: 44px;
   object-fit: contain;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(23, 20, 15, 0.08);
+  background: rgba(243, 237, 227, 0.96);
+  border: 1px solid rgba(200, 133, 58, 0.15);
   padding: 0.25rem;
 }
 
-.app-shell__kicker {
+.workspace-shell__kicker {
   margin: 0 0 0.15rem;
-  color: var(--color-accent, #8a6430);
+  color: var(--amber-l);
   font-size: 0.76rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-.app-shell__title {
+.workspace-shell__title {
   margin: 0;
   font-family: var(--font-family-display);
   font-size: clamp(1.35rem, 2vw, 1.8rem);
   line-height: 1.1;
   letter-spacing: -0.02em;
-  color: var(--color-text);
+  color: var(--cream);
 }
 
-.app-shell__subtle {
+.workspace-shell__subtle {
   margin: 0;
-  color: var(--color-text-muted);
+  color: rgba(243, 237, 227, 0.72);
   font-size: 0.92rem;
 }
 
-.app-shell__actions {
+.workspace-shell__actions {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   flex-shrink: 0;
 }
 
-.app-shell__nav {
+.workspace-shell__nav {
   display: flex;
   gap: 0.45rem;
   padding: 0.55rem;
-  border: 1px solid rgba(23, 20, 15, 0.08);
+  border: 1px solid var(--rule);
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.62);
+  background: rgba(255, 255, 255, 0.02);
   overflow-x: auto;
   scrollbar-width: thin;
 }
 
-.app-shell__nav-link {
+.workspace-shell__nav-link {
   flex: 0 0 auto;
   min-height: 2.5rem;
   padding: 0.55rem 0.85rem;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--color-text-muted);
+  color: rgba(243, 237, 227, 0.7);
   text-align: left;
   font: inherit;
   font-size: 0.92rem;
@@ -138,86 +150,93 @@ body {
   cursor: pointer;
 }
 
-.app-shell__nav-link:hover {
-  background: rgba(255, 255, 255, 0.7);
-  color: var(--color-text);
+.workspace-shell__nav-link:hover {
+  background: rgba(200, 133, 58, 0.08);
+  color: var(--cream);
 }
 
-.app-shell__nav-link.active {
-  background: rgba(255, 255, 255, 0.92);
-  color: var(--color-text);
-  border-color: rgba(23, 20, 15, 0.08);
+.workspace-shell__nav-link.active {
+  background: linear-gradient(180deg, rgba(200, 133, 58, 0.2), rgba(200, 133, 58, 0.12));
+  color: var(--cream);
+  border-color: rgba(200, 133, 58, 0.35);
+  box-shadow: inset 0 1px 0 rgba(243, 237, 227, 0.04);
 }
 
-.app-shell__nav-link:focus-visible {
-  outline: 2px solid rgba(138, 100, 48, 0.35);
+.workspace-shell__nav-link:focus-visible {
+  outline: 2px solid rgba(232, 168, 85, 0.5);
   outline-offset: 2px;
 }
 
-.app-shell__support-grid {
+.workspace-shell__support-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.75rem;
   margin-top: 0.75rem;
 }
 
-.app-shell__panel {
-  background: rgba(255, 255, 255, 0.56);
-  border: 1px solid rgba(23, 20, 15, 0.08);
+.workspace-shell__panel {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--rule);
   border-radius: var(--radius-md);
   padding: 0.75rem 0.85rem;
+  color: var(--cream);
+  box-shadow: inset 0 1px 0 rgba(243, 237, 227, 0.02);
 }
 
-.app-shell__panel summary {
+.workspace-shell__panel summary {
   cursor: pointer;
-  color: var(--color-text);
+  color: var(--cream);
   font-weight: 600;
 }
 
-.app-shell__password-form {
+.workspace-shell__password-form {
   display: grid;
   gap: 0.65rem;
   margin-top: 0.75rem;
 }
 
-.app-shell__main {
+.workspace-shell__main {
   margin-top: 1rem;
 }
 
-.app-shell__main > .page {
+.workspace-shell__main > .page {
   width: 100%;
 }
 
-.app-shell__main .page > h2 {
+.workspace-shell__main .page > h2 {
   margin: 0 0 1rem 0;
   font-family: var(--font-family-display);
   font-size: clamp(1.35rem, 2.1vw, 1.8rem);
   line-height: 1.1;
   letter-spacing: -0.02em;
-  color: var(--color-text);
+  color: var(--cream);
 }
 
-.app-shell__main .card {
+.workspace-shell__main .card {
   border-radius: var(--radius-md);
-  border-color: rgba(23, 20, 15, 0.08);
-  background: rgba(255, 255, 255, 0.8);
-  box-shadow: none;
+  border-color: var(--rule);
+  background: var(--card);
+  box-shadow: inset 0 1px 0 rgba(243, 237, 227, 0.02);
+  color: var(--cream);
 }
 
-.app-shell__main .stat-card,
-.app-shell__main .user-card {
-  background: rgba(255, 255, 255, 0.76);
-  border-color: rgba(23, 20, 15, 0.08);
-  box-shadow: none;
+.workspace-shell__main .stat-card,
+.workspace-shell__main .user-card {
+  background: rgba(255, 255, 255, 0.022);
+  border-color: var(--rule);
+  box-shadow: inset 0 1px 0 rgba(243, 237, 227, 0.02);
+  color: var(--cream);
 }
 
-.app-shell__main .tabs button.active {
-  background: var(--color-brand-strong, var(--tt-primary));
-  border-color: var(--color-brand-strong, var(--tt-primary));
+.workspace-shell__main .tabs button.active {
+  background: rgba(200, 133, 58, 0.22);
+  border-color: rgba(200, 133, 58, 0.35);
+  color: var(--cream);
 }
 
-.app-shell__footer {
+.workspace-shell__footer {
   margin-top: 0.5rem;
+  color: rgba(243, 237, 227, 0.65);
 }
 
 .login-page {
@@ -245,20 +264,20 @@ body {
 }
 
 @media (max-width: 900px) {
-  .app-shell__intro {
+  .workspace-shell__intro {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .app-shell__actions {
+  .workspace-shell__actions {
     width: 100%;
   }
 
-  .app-shell__actions .btn-secondary {
+  .workspace-shell__actions .btn-secondary {
     width: 100%;
   }
 
-  .app-shell__support-grid {
+  .workspace-shell__support-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -536,7 +555,11 @@ tbody tr:last-child td { border-bottom: 0; }
 .tabs button:hover:not(.active) { background: #f4f7fb; }
 .tabs button.active { background: var(--tt-primary); color: white; border-color: var(--tt-primary); }
 
-.loading { padding: 2rem; text-align: center; }
+.loading {
+  padding: 2rem;
+  text-align: center;
+  color: var(--cream);
+}
 
 .connection-error {
   max-width: 500px;
@@ -546,6 +569,7 @@ tbody tr:last-child td { border-bottom: 0; }
   border: 1px solid #bb6670;
   border-radius: 10px;
   text-align: center;
+  color: #17140f;
 }
 .connection-error pre {
   background: #fff;
@@ -558,16 +582,16 @@ tbody tr:last-child td { border-bottom: 0; }
 .pay-rate-info {
   margin-top: 0;
   font-size: 0.86rem;
-  color: var(--tt-text-muted);
-  background: #f4f7fb;
-  border: 1px solid var(--tt-border);
+  color: rgba(243, 237, 227, 0.72);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--rule);
   border-radius: 8px;
   padding: 0.5rem 0.65rem;
 }
 
 .pay-rate-info summary {
   cursor: pointer;
-  color: var(--tt-primary-dark);
+  color: var(--cream);
   font-weight: 600;
 }
 
