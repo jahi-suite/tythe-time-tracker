@@ -6,6 +6,7 @@ import { auth } from '../api'
 export function Layout() {
   const { user, logout } = useAuth()
   const venueName = user?.venue?.name ?? 'The Tythe Barn'
+  const isTytheVenue = (user?.venue?.slug || '').trim().toLowerCase() === 'tythe'
   const navigate = useNavigate()
   const location = useLocation()
   const [currentPassword, setCurrentPassword] = useState('')
@@ -54,8 +55,8 @@ export function Layout() {
       <header className="app-header">
         <div className="app-header-brand">
           <img
-            src="/tythe-logo.png"
-            alt="Tythe Barn"
+            src={isTytheVenue ? '/tythe-logo.png' : '/kari-logo.png'}
+            alt={isTytheVenue ? 'Tythe Barn' : 'Kari Suite'}
             className="app-header-logo"
             width={48}
             height={48}

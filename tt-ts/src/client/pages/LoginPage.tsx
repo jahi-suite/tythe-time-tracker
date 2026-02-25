@@ -7,6 +7,7 @@ export function LoginPage() {
   const { login } = useAuth()
   const { venueSlug } = useParams()
   const effectiveVenueSlug = (venueSlug || 'tythe').trim() || 'tythe'
+  const isTytheVenue = effectiveVenueSlug.toLowerCase() === 'tythe'
   const [venueName, setVenueName] = useState<string | null>(null)
   const [username, setUsername] = useState('')
   useEffect(() => {
@@ -34,7 +35,12 @@ export function LoginPage() {
       <Link to="/" className="block text-center text-sm mb-4" style={{ color: 'var(--tt-text-muted)' }}>
         ← Back to home
       </Link>
-      <img src="/tythe-logo.png" alt="Tythe Barn" width={200} style={{ display: 'block', margin: '0 auto 1rem' }} />
+      <img
+        src={isTytheVenue ? '/tythe-logo.png' : '/kari-logo.png'}
+        alt={isTytheVenue ? 'Tythe Barn' : 'Kari Suite'}
+        width={200}
+        style={{ display: 'block', margin: '0 auto 1rem' }}
+      />
       <div className="login-hero">
         <p className="login-eyebrow">Secure Access</p>
         <h1 className="login-title">Employee Portal — {venueName ?? effectiveVenueSlug}</h1>
@@ -68,6 +74,7 @@ export function FirstSetupPage() {
   const { login } = useAuth()
   const { venueSlug } = useParams()
   const effectiveVenueSlug = (venueSlug || 'tythe').trim() || 'tythe'
+  const isTytheVenue = effectiveVenueSlug.toLowerCase() === 'tythe'
   const [username, setUsername] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [password, setPassword] = useState('')
@@ -99,7 +106,12 @@ export function FirstSetupPage() {
 
   return (
     <div className="login-page">
-      <img src="/tythe-logo.png" alt="Tythe Barn" width={200} style={{ display: 'block', margin: '0 auto 1rem' }} />
+      <img
+        src={isTytheVenue ? '/tythe-logo.png' : '/kari-logo.png'}
+        alt={isTytheVenue ? 'Tythe Barn' : 'Kari Suite'}
+        width={200}
+        style={{ display: 'block', margin: '0 auto 1rem' }}
+      />
       <div className="login-hero">
         <p className="login-eyebrow">First-Time Setup</p>
         <h1 className="login-title">Create Your Admin Account</h1>
