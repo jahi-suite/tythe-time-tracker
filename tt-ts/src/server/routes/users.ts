@@ -76,10 +76,19 @@ function stripPayRatesFromUser(user: User): User {
   return rest
 }
 
+async function ensureUserInVenue(userId: string, venueId: string): Promise<boolean> {
+  const users = await auth.getAllUsers(venueId)
+  return users.some((u) => u.id === userId)
+}
+
 router.use(requireManager)
 
 router.get('/', async (req, res) => {
   const venueId = req.session?.venue_id ?? null
+  if (!venueId) {
+    res.status(400).json({ error: 'Venue context required' })
+    return
+  }
   const users = await auth.getAllUsers(venueId)
   const actor = req.session!.user!
   res.json({
@@ -94,6 +103,10 @@ router.post('/', async (req, res) => {
     return
   }
   const venueId = req.session?.venue_id ?? null
+  if (!venueId) {
+    res.status(400).json({ error: 'Venue context required' })
+    return
+  }
   const [ok, msg] = await auth.createUser(username, password, displayName, role ?? 'employee', venueId)
   if (!ok) {
     res.status(400).json({ error: msg })
@@ -105,6 +118,14 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   const user = req.session!.user!
   const venueId = req.session?.venue_id ?? null
+  if (!venueId) {
+    res.status(400).json({ error: 'Venue context required' })
+    return
+  }
+  if (!(await ensureUserInVenue(req.params.id, venueId))) {
+    res.status(404).json({ error: 'User not found' })
+    return
+  }
   const before = await getUserAuditSnapshotById(req.params.id, venueId)
   const { username, displayName, role, password } = req.body ?? {}
   if (!username || !displayName) {
@@ -134,6 +155,15 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   const user = req.session!.user!
+  const venueId = req.session?.venue_id ?? null
+  if (!venueId) {
+    res.status(400).json({ error: 'Venue context required' })
+    return
+  }
+  if (!(await ensureUserInVenue(req.params.id, venueId))) {
+    res.status(404).json({ error: 'User not found' })
+    return
+  }
   const [ok, msg] = await auth.deleteUser(req.params.id, user.id)
   if (!ok) {
     res.status(400).json({ error: msg })
@@ -145,6 +175,14 @@ router.delete('/:id', async (req, res) => {
 router.post('/:id/activate', async (req, res) => {
   const actor = req.session!.user!
   const venueId = req.session?.venue_id ?? null
+  if (!venueId) {
+    res.status(400).json({ error: 'Venue context required' })
+    return
+  }
+  if (!(await ensureUserInVenue(req.params.id, venueId))) {
+    res.status(404).json({ error: 'User not found' })
+    return
+  }
   const before = await getUserAuditSnapshotById(req.params.id, venueId)
   const [ok, msg] = await auth.setUserActive(req.params.id, true)
   if (!ok) {
@@ -162,6 +200,14 @@ router.post('/:id/activate', async (req, res) => {
 router.post('/:id/deactivate', async (req, res) => {
   const actor = req.session!.user!
   const venueId = req.session?.venue_id ?? null
+  if (!venueId) {
+    res.status(400).json({ error: 'Venue context required' })
+    return
+  }
+  if (!(await ensureUserInVenue(req.params.id, venueId))) {
+    res.status(404).json({ error: 'User not found' })
+    return
+  }
   const before = await getUserAuditSnapshotById(req.params.id, venueId)
   const [ok, msg] = await auth.setUserActive(req.params.id, false)
   if (!ok) {
@@ -179,6 +225,14 @@ router.post('/:id/deactivate', async (req, res) => {
 router.post('/:id/pay-rates', requireAdmin, async (req, res) => {
   const actor = req.session!.user!
   const venueId = req.session?.venue_id ?? null
+  if (!venueId) {
+    res.status(400).json({ error: 'Venue context required' })
+    return
+  }
+  if (!(await ensureUserInVenue(req.params.id, venueId))) {
+    res.status(404).json({ error: 'User not found' })
+    return
+  }
   const before = await getUserAuditSnapshotById(req.params.id, venueId)
   const { standard, enhanced, supervisor } = req.body ?? {}
   let parsedStandard: number | null
@@ -212,7 +266,16 @@ router.post('/:id/pay-rates', requireAdmin, async (req, res) => {
 
 router.post('/:id/reset-password', resetPasswordRateLimit, async (req, res) => {
   const actor = req.session!.user!
-  const target = await getUserAuditSnapshotById(req.params.id, req.session?.venue_id ?? null)
+  const venueId = req.session?.venue_id ?? null
+  if (!venueId) {
+    res.status(400).json({ error: 'Venue context required' })
+    return
+  }
+  if (!(await ensureUserInVenue(req.params.id, venueId))) {
+    res.status(404).json({ error: 'User not found' })
+    return
+  }
+  const target = await getUserAuditSnapshotById(req.params.id, venueId)
   const { newPassword } = req.body ?? {}
   if (!newPassword) {
     res.status(400).json({ error: 'newPassword required' })
@@ -229,7 +292,7 @@ router.post('/:id/reset-password', resetPasswordRateLimit, async (req, res) => {
     req.params.id,
     target ? { ...target, event: 'password_reset_requested', password_reset: false } : { event: 'password_reset_requested', password_reset: false },
     target ? { ...target, event: 'password_reset_completed', password_reset: true } : { event: 'password_reset_completed', password_reset: true },
-    req.session?.venue_id ?? null
+    venueId
   )
   res.json({ ok: true, message: msg })
 })
@@ -237,6 +300,14 @@ router.post('/:id/reset-password', resetPasswordRateLimit, async (req, res) => {
 router.post('/:id/promote-admin', async (req, res) => {
   const actor = req.session!.user!
   const venueId = req.session?.venue_id ?? null
+  if (!venueId) {
+    res.status(400).json({ error: 'Venue context required' })
+    return
+  }
+  if (!(await ensureUserInVenue(req.params.id, venueId))) {
+    res.status(404).json({ error: 'User not found' })
+    return
+  }
   const before = await getUserAuditSnapshotById(req.params.id, venueId)
   const [ok, msg] = await auth.promoteToAdmin(actor, req.params.id)
   if (!ok) {
