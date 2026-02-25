@@ -243,14 +243,15 @@ export async function insertAuditLog(
   targetId: string | null,
   changedBy: string,
   oldValues?: Record<string, unknown> | null,
-  newValues?: Record<string, unknown> | null
+  newValues?: Record<string, unknown> | null,
+  venueId?: string | null
 ): Promise<{ id: string; created_at: Date }> {
   const { query } = await import('./connection.js')
   const res = await query<{ id: string; created_at: Date }>(
-    `INSERT INTO ${DB.AUDIT_LOG_TABLE} (action, target_table, target_id, changed_by, old_values, new_values)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO ${DB.AUDIT_LOG_TABLE} (action, target_table, target_id, changed_by, old_values, new_values, ${DB.VENUE_ID_COLUMN})
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING id, created_at`,
-    [action, targetTable, targetId, changedBy.trim(), oldValues ? JSON.stringify(oldValues) : null, newValues ? JSON.stringify(newValues) : null]
+    [action, targetTable, targetId, changedBy.trim(), oldValues ? JSON.stringify(oldValues) : null, newValues ? JSON.stringify(newValues) : null, venueId?.trim() || null]
   )
   return res.rows[0]
 }

@@ -127,7 +127,7 @@ export async function addShift(
   const venueSettings = await getVenueSettings(venueId)
   const payRateType = payRateOverride ?? determinePayRateType(isSupervisor, clockInUtc, venueSettings)
   const entry = await repo.createTimeEntry(employeeName, clockInUtc, payRateType, clockOutUtc, null, venueId)
-  await logChange('add', DB.TIME_ENTRIES_TABLE, entry.id, auditUsername, undefined, timeEntryToAudit(entry))
+  await logChange('add', DB.TIME_ENTRIES_TABLE, entry.id, auditUsername, undefined, timeEntryToAudit(entry), venueId)
   return [true, `Shift added for ${employeeName} (${payRateType} Rate)`]
 }
 
@@ -172,7 +172,7 @@ export async function editShift(
     payRateType,
     venueId
   )
-  await logChange('edit', DB.TIME_ENTRIES_TABLE, updated.id, auditUsername, timeEntryToAudit(existing), timeEntryToAudit(updated))
+  await logChange('edit', DB.TIME_ENTRIES_TABLE, updated.id, auditUsername, timeEntryToAudit(existing), timeEntryToAudit(updated), venueId)
   return [true, `Shift updated for ${employeeName} (${payRateType} Rate)`]
 }
 
@@ -185,7 +185,7 @@ export async function deleteEntry(
   if (!existing) return [false, 'Entry not found']
   const deleted = await repo.deleteTimeEntry(entryId, venueId)
   if (deleted) {
-    await logChange('delete', DB.TIME_ENTRIES_TABLE, existing.id, auditUsername, timeEntryToAudit(existing))
+    await logChange('delete', DB.TIME_ENTRIES_TABLE, existing.id, auditUsername, timeEntryToAudit(existing), undefined, venueId)
     return [true, 'Entry deleted successfully']
   }
   return [false, 'Entry not found']

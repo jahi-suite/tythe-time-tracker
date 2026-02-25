@@ -61,10 +61,11 @@ async function writeUserAuditLog(
   actor: string,
   targetUserId: string | null,
   oldValues?: Record<string, unknown> | null,
-  newValues?: Record<string, unknown> | null
+  newValues?: Record<string, unknown> | null,
+  venueId?: string | null
 ): Promise<void> {
   try {
-    await logChange(action, DB.USERS_TABLE, targetUserId, actor, oldValues, newValues)
+    await logChange(action, DB.USERS_TABLE, targetUserId, actor, oldValues, newValues, venueId)
   } catch (error) {
     console.error('Failed to write user audit log', error)
   }
@@ -127,7 +128,7 @@ router.put('/:id', async (req, res) => {
     ...(after ?? {}),
     event: before && after && before.role !== after.role ? 'user_role_change' : 'user_update',
     password_changed: Boolean(password),
-  })
+  }, venueId)
   res.json({ ok: true, message: msg })
 })
 
@@ -154,7 +155,7 @@ router.post('/:id/activate', async (req, res) => {
   await writeUserAuditLog('edit', actor.username, req.params.id, before, {
     ...(after ?? {}),
     event: 'user_activated',
-  })
+  }, venueId)
   res.json({ ok: true, message: msg })
 })
 
@@ -171,7 +172,7 @@ router.post('/:id/deactivate', async (req, res) => {
   await writeUserAuditLog('edit', actor.username, req.params.id, before, {
     ...(after ?? {}),
     event: 'user_deactivated',
-  })
+  }, venueId)
   res.json({ ok: true, message: msg })
 })
 
@@ -205,7 +206,7 @@ router.post('/:id/pay-rates', requireAdmin, async (req, res) => {
   await writeUserAuditLog('edit', actor.username, req.params.id, before, {
     ...(after ?? {}),
     event: 'pay_rates_updated',
-  })
+  }, venueId)
   res.json({ ok: true, message: msg })
 })
 
@@ -227,24 +228,26 @@ router.post('/:id/reset-password', resetPasswordRateLimit, async (req, res) => {
     actor.username,
     req.params.id,
     target ? { ...target, event: 'password_reset_requested', password_reset: false } : { event: 'password_reset_requested', password_reset: false },
-    target ? { ...target, event: 'password_reset_completed', password_reset: true } : { event: 'password_reset_completed', password_reset: true }
+    target ? { ...target, event: 'password_reset_completed', password_reset: true } : { event: 'password_reset_completed', password_reset: true },
+    req.session?.venue_id ?? null
   )
   res.json({ ok: true, message: msg })
 })
 
 router.post('/:id/promote-admin', async (req, res) => {
   const actor = req.session!.user!
-  const before = await getUserAuditSnapshotById(req.params.id)
+  const venueId = req.session?.venue_id ?? null
+  const before = await getUserAuditSnapshotById(req.params.id, venueId)
   const [ok, msg] = await auth.promoteToAdmin(actor, req.params.id)
   if (!ok) {
     res.status(400).json({ error: msg })
     return
   }
-  const after = await getUserAuditSnapshotById(req.params.id)
+  const after = await getUserAuditSnapshotById(req.params.id, venueId)
   await writeUserAuditLog('edit', actor.username, req.params.id, before, {
     ...(after ?? {}),
     event: 'user_promoted_to_admin',
-  })
+  }, venueId)
   res.json({ ok: true, message: msg })
 })
 

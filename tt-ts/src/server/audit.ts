@@ -6,10 +6,11 @@ export async function logChange(
   targetId: string | null,
   changedBy: string,
   oldValues?: Record<string, unknown> | null,
-  newValues?: Record<string, unknown> | null
+  newValues?: Record<string, unknown> | null,
+  venueId?: string | null
 ): Promise<void> {
   if (!changedBy?.trim()) throw new Error('changed_by is required')
-  await insertAuditLog(action, targetTable, targetId, changedBy, oldValues ?? null, newValues ?? null)
+  await insertAuditLog(action, targetTable, targetId, changedBy, oldValues ?? null, newValues ?? null, venueId ?? null)
 }
 
 export { getAuditLogs } from './db/repository.js'

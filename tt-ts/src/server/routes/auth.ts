@@ -44,10 +44,11 @@ async function writeUserAuditLog(
   actor: string,
   targetUserId: string | null,
   oldValues?: Record<string, unknown> | null,
-  newValues?: Record<string, unknown> | null
+  newValues?: Record<string, unknown> | null,
+  venueId?: string | null
 ): Promise<void> {
   try {
-    await logChange(action, DB.USERS_TABLE, targetUserId, actor, oldValues, newValues)
+    await logChange(action, DB.USERS_TABLE, targetUserId, actor, oldValues, newValues, venueId)
   } catch (error) {
     console.error('Failed to write user audit log', error)
   }
@@ -261,7 +262,8 @@ router.post('/first-setup', authMutationRateLimit, async (req, res) => {
       ...(createdUser ?? {}),
       event: 'first_setup_manager_created',
       display_name: displayName,
-    }
+    },
+    venue.id
   )
   res.json({ ok: true, message: msg })
 })
