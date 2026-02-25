@@ -12,7 +12,7 @@ TASK_ID="tt-app-ui-20260225"
 TASK_DIR="docs/working-memory/open/$TASK_ID"
 PROMPT_FILE="$REPO_ROOT/ralph/prompts/$TASK_ID.md"
 
-export RALPH_BACKEND="${RALPH_BACKEND:-codex-cli}"
+export RALPH_BACKEND="${RALPH_BACKEND:-gemini}"
 MAX_ITERATIONS="${RALPH_MAX_ITERATIONS:-25}"
 SLEEP="${RALPH_SLEEP:-3}"
 

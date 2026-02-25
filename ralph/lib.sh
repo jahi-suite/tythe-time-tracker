@@ -2,7 +2,7 @@
 # Ralph shared library: configurable agent backend (Claude, Cursor, Codex, Codex CLI, or Gemini).
 # Source this from run.sh.
 # Usage: spawn_agent <repo_root> <prompt_content>
-# Environment: RALPH_BACKEND (claude|cursor|codex|codex-cli|gemini), RALPH_MODEL (Cursor/Codex), RALPH_CLAUDE_MODEL (Claude), RALPH_GEMINI_MODEL (Gemini)
+# Environment: RALPH_BACKEND (gemini default|claude|cursor|codex|codex-cli), RALPH_MODEL (Cursor/Codex), RALPH_CLAUDE_MODEL (Claude), RALPH_GEMINI_MODEL (default: gemini-3-pro)
 
 # Resolve Claude CLI binary (PATH, common install path, or RALPH_CLAUDE_CMD).
 find_claude() {
@@ -55,7 +55,7 @@ spawn_agent() {
   local repo_root="$1"
   local prompt_content="$2"
 
-  if [ "${RALPH_BACKEND:-claude}" = "claude" ]; then
+  if [ "${RALPH_BACKEND:-gemini}" = "claude" ]; then
     local claude_bin
     claude_bin=$(find_claude)
     if [ -z "$claude_bin" ]; then
@@ -69,7 +69,7 @@ spawn_agent() {
         ${RALPH_CLAUDE_MODEL:+--model "$RALPH_CLAUDE_MODEL"} \
         "$prompt_content"
     ) || true
-  elif [ "${RALPH_BACKEND:-claude}" = "codex-cli" ]; then
+  elif [ "${RALPH_BACKEND:-gemini}" = "codex-cli" ]; then
     local codex_bin
     codex_bin=$(find_codex_cli)
     if [ -z "$codex_bin" ]; then
@@ -80,7 +80,7 @@ spawn_agent() {
     (
       cd "$repo_root" && "$codex_bin" exec -C "$repo_root" --full-auto ${RALPH_CODEX_CLI_MODEL:+--model "$RALPH_CODEX_CLI_MODEL"} "$prompt_content"
     ) || true
-  elif [ "${RALPH_BACKEND:-claude}" = "gemini" ]; then
+  elif [ "${RALPH_BACKEND:-gemini}" = "gemini" ]; then
     local gemini_bin
     gemini_bin=$(find_gemini_cli)
     if [ -z "$gemini_bin" ]; then
@@ -97,12 +97,12 @@ spawn_agent() {
     fi
     (
       cd "$repo_root" && printf '%s' "$prompt_content" | $gemini_cmd --yolo \
-        ${RALPH_GEMINI_MODEL:+--model "$RALPH_GEMINI_MODEL"}
+        --model "${RALPH_GEMINI_MODEL:-gemini-3-pro}"
     ) || true
   else
     local -a cmd=(cursor agent --print --force --workspace "$repo_root")
     local model="${RALPH_MODEL:-}"
-    [ "${RALPH_BACKEND:-claude}" = "codex" ] && model="${model:-gpt-5.3-codex-fast}"
+    [ "${RALPH_BACKEND:-gemini}" = "codex" ] && model="${model:-gpt-5.3-codex-fast}"
     [ -n "$model" ] && cmd+=(--model "$model")
     "${cmd[@]}" "$prompt_content" || true
   fi
