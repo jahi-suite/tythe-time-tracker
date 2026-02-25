@@ -134,6 +134,7 @@ export async function exportToExcel(
       formatPay(data.total_pay),
     ])
 
+    let employeeShiftRowIndex = 0
     for (const entry of sortedEntries) {
       if (getStaffSummaryKey(entry) !== summaryKey) continue
       const isSupervisor = entry.pay_rate_type === 'Supervisor'
@@ -153,7 +154,7 @@ export async function exportToExcel(
       } else {
         shiftDisplay = `Standard (${split.Standard}h)`
       }
-      ws.addRow([
+      const shiftRow = ws.addRow([
         `  └─ ${employee}`,
         bstIn.toISOString().slice(0, 10),
         bstIn.toTimeString().slice(0, 8),
@@ -171,6 +172,18 @@ export async function exportToExcel(
         '—',
         '—',
       ])
+      employeeShiftRowIndex += 1
+      if (employeeShiftRowIndex % 2 === 0) {
+        shiftRow.eachCell({ includeEmpty: true }, (cell, columnNumber) => {
+          if (columnNumber <= headers.length) {
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFFAFAFA' },
+            }
+          }
+        })
+      }
     }
     ws.addRow([])
   }

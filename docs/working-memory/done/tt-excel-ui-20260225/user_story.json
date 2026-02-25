@@ -30,7 +30,7 @@
       "id": "excel-ui-05",
       "title": "Polish: readability",
       "acceptance_criteria": "Optional: light alternate row shading for shift rows, or subtle visual separation between employee blocks. Keep it professional and not noisy. If minimal change is better, skip and mark done.",
-      "passes": false
+      "passes": true
     }
   ]
 }
