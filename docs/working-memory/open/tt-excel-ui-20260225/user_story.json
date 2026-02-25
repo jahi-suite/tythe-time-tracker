@@ -18,7 +18,7 @@
       "id": "excel-ui-03",
       "title": "Add cell borders",
       "acceptance_criteria": "Staff Hours & Shifts sheet: data cells have thin borders so the sheet reads as a table. Header row and data rows both bordered. Total rows and shift rows included.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "excel-ui-04",

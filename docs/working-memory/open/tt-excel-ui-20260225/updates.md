@@ -7,3 +7,4 @@
 - 2026-02-25: Task created. Ralph to implement.
 - 2026-02-25: Implemented `excel-ui-01` in `tt-ts/src/server/services/exportService.ts` by styling the `Staff Hours & Shifts` header row (bold font, light grey fill, bottom border).
 - 2026-02-25: Implemented `excel-ui-02` in `tt-ts/src/server/services/exportService.ts` by setting explicit column widths for all `Staff Hours & Shifts` columns to improve readability.
+- 2026-02-25: Implemented `excel-ui-03` in `tt-ts/src/server/services/exportService.ts` by applying thin borders to all non-empty rows/cells across the `Staff Hours & Shifts` table columns (header, totals, shifts, and note row), preserving existing data/calculations.

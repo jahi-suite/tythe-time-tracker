@@ -106,6 +106,12 @@ export async function exportToExcel(
       bottom: { style: 'thin', color: { argb: 'FFBFBFBF' } },
     }
   })
+  const staffTableBorder = {
+    top: { style: 'thin' as const, color: { argb: 'FFD9D9D9' } },
+    left: { style: 'thin' as const, color: { argb: 'FFD9D9D9' } },
+    bottom: { style: 'thin' as const, color: { argb: 'FFD9D9D9' } },
+    right: { style: 'thin' as const, color: { argb: 'FFD9D9D9' } },
+  }
 
   for (const [summaryKey, data] of Object.entries(staffSummary)) {
     const employee = data.employee_label
@@ -169,6 +175,23 @@ export async function exportToExcel(
     ws.addRow([])
   }
   ws.addRow(['Note', breakDeductionNote])
+
+  for (let rowNumber = 1; rowNumber <= ws.rowCount; rowNumber++) {
+    const row = ws.getRow(rowNumber)
+    let hasContent = false
+    for (let columnNumber = 1; columnNumber <= headers.length; columnNumber++) {
+      const value = row.getCell(columnNumber).value
+      if (value !== null && value !== undefined && value !== '') {
+        hasContent = true
+        break
+      }
+    }
+    if (!hasContent) continue
+
+    for (let columnNumber = 1; columnNumber <= headers.length; columnNumber++) {
+      ws.getCell(rowNumber, columnNumber).border = staffTableBorder
+    }
+  }
 
   const summaryWs = wb.addWorksheet('Overall Summary')
   const overall = Object.values(staffSummary).reduce(
