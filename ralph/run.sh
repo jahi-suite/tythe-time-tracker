@@ -51,7 +51,7 @@ if [ -z "$TASK_ID" ]; then
   for d in "$REPO_ROOT"/docs/working-memory/open/*/; do
     [ -d "$d" ] && echo "  $(basename "$d")" && count=$((count + 1))
   done
-  [ $count -eq 0 ] && echo "  (none — add tasks to docs/working-memory/open/ or move from archive/ and add user_story.json)"
+  [ $count -eq 0 ] && echo "  (none — add new tasks to docs/working-memory/open/ with plan.md + user_story.json)"
   echo ""
   echo "Usage: ./ralph/run.sh <task-id>" >&2
   exit 1
@@ -87,8 +87,9 @@ fi
 
 if [ ! -f "$PROMPT_FILE" ]; then
   PROMPT_FILE=$(ls "$REPO_ROOT"/ralph/prompts/*"${TASK_ID}"* 2>/dev/null | head -1 || true)
-  if [ -z "$PROMPT_FILE" ] || [ ! -f "$PROMPT_FILE" ]; then
-    fail "No prompt found at ralph/prompts/${TASK_ID}.md"
+  [ -z "$PROMPT_FILE" ] || [ ! -f "$PROMPT_FILE" ] && PROMPT_FILE="$REPO_ROOT/ralph/prompts/_template.md"
+  if [ ! -f "$PROMPT_FILE" ]; then
+    fail "No prompt found. Create ralph/prompts/${TASK_ID}.md or use _template.md"
     exit 1
   fi
 fi

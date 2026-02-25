@@ -122,21 +122,23 @@ tythe-time-tracker/
 │   └── utils/                      # time_utils, date_utils
 ├── docs/
 │   ├── APP-STATE-FOR-AGENT.md      # This file
-│   └── working-memory/open/        # Ralph task plans (auth, audit, mobile, branding)
+│   └── working-memory/
+│       ├── open/                   # Active Ralph tasks (plan.md + user_story.json)
+│       └── done/                   # Completed tasks — move here when all stories pass
 ├── tt-ts/                          # TypeScript app (Vite + React + Express)
 │   ├── src/                        # Client: pages (Clock, Timesheet, Export, Manager), components, hooks
 │   └── server/                     # Express API, services, exportUtils
-└── ralph/                          # Ralph: run.sh, status.sh, prompts, verify-*.sh
+└── ralph/                          # Ralph: run.sh, status.sh, prompts/_template.md
 ```
 
 ---
 
 ## Ralph tasks
 
-- **Completed** (in `docs/working-memory/done/`): tt-user-auth, tt-audit-log, tt-kari-branding, tt-mobile-fix, tt-mobile-safari-regex, tt-passwords-admin, tt-pay-rates, tt-ui-polish, tt-user-edit-delete, tt-export-manager, tt-first-admin-ui.
-- **Open** (in `docs/working-memory/open/`): Run `./ralph/status.sh` to see current tasks. Tasks require plan.md + user_story.json to run.
+- **Completed** (in `docs/working-memory/done/`): All tasks. Run `./ralph/status.sh` to see.
+- **Open** (in `docs/working-memory/open/`): Active tasks. Create new tasks with plan.md + user_story.json. When all stories pass, **move the task folder from open/ to done/**.
 
-Run a loop: `RALPH_BACKEND=codex-cli ./ralph/run.sh <task-id>`. Status: `./ralph/status.sh`. Every task requires plan.md + user_story.json + updates.md. On failure: record in updates.md what you tried, what worked, what didn't.
+Run: `./ralph/run.sh <task-id>`. Status: `./ralph/status.sh`. Uses `ralph/prompts/_template.md` by default. On failure: record in updates.md what you tried, what worked, what didn't.
 
 ---
 

@@ -9,24 +9,22 @@ alwaysApply: true
 
 ### Planning Agent (this session)
 
-When the user asks for a Ralph task or to "create a Ralph plan/loop":
+When the user asks for a Ralph task or to "create a Ralph plan":
 
-1. **Create ONLY** the Ralph artifacts:
-   - `docs/working-memory/open/TASK_ID/plan.md`
-   - `docs/working-memory/open/TASK_ID/updates.md`
-   - `ralph/prompts/TASK_ID.md`
-   - `ralph/verify-TASK_ID.sh`
-   - `ralph/loops/TASK_ID.sh`
+1. **Create ONLY** the Ralph artifacts in `docs/working-memory/open/TASK_ID/`:
+   - `plan.md` — PRD/context, verification command
+   - `user_story.json` — Stories with acceptance criteria
+   - `updates.md` — Progress log
 
 2. **Do NOT implement** the solution. Do not write the code, config files, or docs that the plan describes. Ralph does that.
 
-3. **Validate** that the setup is ready: plan is complete, prompt is clear, verify script checks the right things, loop exists and is executable.
+3. **Tell the user** to run `./ralph/run.sh <task-id>`. run.sh uses `ralph/prompts/_template.md` by default. Optionally create `ralph/prompts/<task-id>.md` for task-specific instructions.
 
-4. **Tell the user** to run `./ralph/loops/TASK_ID.sh` to spawn Ralph. The user runs the loop in their terminal.
+4. **When complete:** Ralph moves the task from open/ to done/ when all stories pass.
 
 ### Execution Agent (Ralph)
 
-Spawned by the loop script. Reads the plan, implements one phase per iteration, commits, updates. May run verify scripts to see current state.
+Spawned by `./ralph/run.sh <task-id>`. Reads plan, user_story.json, updates.md. Implements one story per iteration, commits, updates. When all stories pass, moves task to done/.
 
 ## Forbidden
 
@@ -36,6 +34,6 @@ Spawned by the loop script. Reads the plan, implements one phase per iteration, 
 ## Correct Flow
 
 1. User: "Create a Ralph plan for X"
-2. Agent: Creates plan, prompt, verify, loop. Does NOT implement X.
-3. User: Runs `./ralph/loops/tt-x-YYYYMMDD.sh`
-4. Ralph: Implements X, commits, iterates until verify passes.
+2. Agent: Creates plan.md, user_story.json, updates.md in open/. Does NOT implement X.
+3. User: Runs `./ralph/run.sh tt-x-YYYYMMDD`
+4. Ralph: Implements X, commits, iterates until all stories pass, then moves task to done/.

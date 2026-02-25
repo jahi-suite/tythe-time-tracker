@@ -31,7 +31,7 @@ ls docs/working-memory/open/
 1. Read plan.md and user_story.json to find the next unpassed story
 2. Implement that story per its acceptance criteria (one atomic change)
 3. Commit immediately
-4. Run verification if defined (grep, npm run build, tsc, etc. — NOT ./ralph/verify-*.sh; those are for the user to run)
+4. Run verification if defined (grep, npm run build, tsc, etc.)
 5. Update updates.md:
    - **If criteria met:** what you did; set `passes: true` for that story
    - **If criteria not met:** what you tried, what worked, what didn't, what to try next (feeds the retry loop)
@@ -50,6 +50,10 @@ External verification decides completion:
 ## Failure → Retry Loop
 
 When a story does not pass: record in updates.md what you tried, what worked, what didn't. The next iteration reads this and tries again with that context. Do not leave failed attempts undocumented.
+
+## When All Stories Pass — Move to Done
+
+When every story has `passes: true`, move the task folder from `docs/working-memory/open/<task-id>/` to `docs/working-memory/done/<task-id>/`, commit, and stop.
 
 ## If No Active Task
 

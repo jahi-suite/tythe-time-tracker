@@ -27,10 +27,12 @@
 }
 ```
 
-- **id** — Unique within task (e.g. `auth-01`, `parity-02`)
-- **title** — One-line summary
-- **acceptance_criteria** — Verifiable conditions; external verification (grep, tsc, tests, verify script) decides pass/fail
-- **passes** — `true` when criteria are met; agent sets this after verification
+## Folder Structure
+
+| Folder | Purpose |
+|--------|---------|
+| **open/** | Active tasks. run.sh only runs tasks in open/. |
+| **done/** | Completed tasks. **When all stories pass, move the task from open/ to done/.** |
 
 ## Workflow
 
@@ -38,22 +40,13 @@
 2. Picks next story where `passes: false`
 3. Implements per acceptance criteria
 4. Commits
-5. Runs verification
-6. Updates updates.md:
-   - If pass: what was done; set `passes: true`
-   - If fail: what was tried, what worked, what didn't, what to try next
-7. Next iteration reads failure notes and retries
+5. Runs verification (grep, tsc, npm run build, etc.)
+6. Updates updates.md (pass: set `passes: true`; fail: record what worked/didn't)
+7. **When all stories pass:** move task folder from open/ to done/, commit, stop
 
-## Folder structure
+## Creating a New Task
 
-- **open/** — Active tasks (run.sh only runs tasks in open/)
-- **done/** — Completed tasks (all stories pass)
-- **archive/** — Plan-only tasks (no user_story.json); move to open/ and add user_story.json to run
-
-## Migrating Plan-Only Tasks
-
-Tasks in archive/ or with only plan.md need a user_story.json. For each story in the plan:
-
-1. Add an entry to `stories` with `id`, `title`, `acceptance_criteria`, `passes: false`
-2. Extract or write testable acceptance criteria from the plan prose
-3. Ensure the prompt uses `{{STORY_ID}}` and reads user_story.json
+1. Create `docs/working-memory/open/<task-id>/` with plan.md, user_story.json, updates.md
+2. run.sh uses `ralph/prompts/_template.md` by default, or create `ralph/prompts/<task-id>.md` for task-specific instructions
+3. Run `./ralph/run.sh <task-id>`
+4. When complete, agent moves task to done/
