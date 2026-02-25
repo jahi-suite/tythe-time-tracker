@@ -1,9 +1,20 @@
 import bcrypt from 'bcrypt'
-import type { AuthUser, User } from '../../shared/types.js'
-import { DB, ALLOWED_ROLES } from '../../shared/constants.js'
+import type { AuthUser, User, VenueSettings } from '../../shared/types.js'
+import { DB, ALLOWED_ROLES, TIME } from '../../shared/constants.js'
 import { query } from '../db/connection.js'
 
 const MAX_PAY_RATE = 999.99
+const DEFAULT_BREAK_DEDUCT_MINUTES = 20
+const DEFAULT_BREAK_THRESHOLD_HOURS = 6
+
+const DEFAULT_VENUE_SETTINGS: VenueSettings = {
+  enhanced_enabled: true,
+  enhanced_start_hour: TIME.ENHANCED_START_HOUR,
+  enhanced_end_hour: TIME.ENHANCED_END_HOUR,
+  break_deduct_enabled: true,
+  break_deduct_minutes: DEFAULT_BREAK_DEDUCT_MINUTES,
+  break_threshold_hours: DEFAULT_BREAK_THRESHOLD_HOURS,
+}
 
 function isValidPayRateValue(value: number | null): boolean {
   if (value === null) return true
@@ -44,6 +55,49 @@ export async function getVenueById(id: string): Promise<VenueIdentity | null> {
     [id]
   )
   return res.rows[0] ?? null
+}
+
+function cloneDefaultVenueSettings(): VenueSettings {
+  return { ...DEFAULT_VENUE_SETTINGS }
+}
+
+export async function getVenueSettings(venueId?: string | null): Promise<VenueSettings> {
+  const trimmedVenueId = venueId?.trim() ?? ''
+  if (!trimmedVenueId) return cloneDefaultVenueSettings()
+
+  const res = await query<{
+    enhanced_enabled: boolean | null
+    enhanced_start_hour: number | null
+    enhanced_end_hour: number | null
+    break_deduct_enabled: boolean | null
+    break_deduct_minutes: number | null
+    break_threshold_hours: number | string | null
+  }>(
+    `SELECT enhanced_enabled,
+            enhanced_start_hour,
+            enhanced_end_hour,
+            break_deduct_enabled,
+            break_deduct_minutes,
+            break_threshold_hours::double precision AS break_threshold_hours
+     FROM ${DB.VENUES_TABLE}
+     WHERE ${DB.ID_COLUMN} = $1`,
+    [trimmedVenueId]
+  )
+
+  const row = res.rows[0]
+  if (!row) return cloneDefaultVenueSettings()
+
+  return {
+    enhanced_enabled: row.enhanced_enabled ?? DEFAULT_VENUE_SETTINGS.enhanced_enabled,
+    enhanced_start_hour: row.enhanced_start_hour ?? DEFAULT_VENUE_SETTINGS.enhanced_start_hour,
+    enhanced_end_hour: row.enhanced_end_hour ?? DEFAULT_VENUE_SETTINGS.enhanced_end_hour,
+    break_deduct_enabled: row.break_deduct_enabled ?? DEFAULT_VENUE_SETTINGS.break_deduct_enabled,
+    break_deduct_minutes: row.break_deduct_minutes ?? DEFAULT_VENUE_SETTINGS.break_deduct_minutes,
+    break_threshold_hours:
+      row.break_threshold_hours === null
+        ? DEFAULT_VENUE_SETTINGS.break_threshold_hours
+        : Number(row.break_threshold_hours),
+  }
 }
 
 export async function authenticateUser(

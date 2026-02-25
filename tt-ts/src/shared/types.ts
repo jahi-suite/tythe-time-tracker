@@ -33,6 +33,15 @@ export interface AuthUser {
   display_name: string
 }
 
+export interface VenueSettings {
+  enhanced_enabled: boolean
+  enhanced_start_hour: number
+  enhanced_end_hour: number
+  break_deduct_enabled: boolean
+  break_deduct_minutes: number
+  break_threshold_hours: number
+}
+
 export interface TimeSplit {
   standard_hours: number
   enhanced_hours: number
