@@ -26,8 +26,23 @@ check npm run build >/dev/null 2>&1
 # Marketing tokens in index.css (--night, --cream, --amber)
 check grep -q '0d0b09\|f3ede3\|c8853a' "$REPO_ROOT/tt-ts/src/client/index.css"
 
-# Body or app-shell uses dark background
-check grep -A 6 'body {' "$REPO_ROOT/tt-ts/src/client/index.css" | grep -qE 'var\(--night\)|#0d0b09'
+# App shell MUST use dark background (full app marketing style)
+if grep -A 12 '\.app-shell' "$REPO_ROOT/tt-ts/src/client/index.css" | head -15 | grep -qE 'var\(--night\)|#0d0b09|0d0b09'; then
+  echo "[PASS] App shell uses dark theme"
+  PASS=$((PASS + 1))
+else
+  echo "[FAIL] App shell must use dark background (--night / #0d0b09) for full marketing style"
+  FAIL=$((FAIL + 1))
+fi
+
+# Cards in app should use dark theme (not light rgba(255,255,255,0.8))
+if grep -A 6 '\.app-shell__main \.card' "$REPO_ROOT/tt-ts/src/client/index.css" | grep -q 'rgba(255, 255, 255, 0\.8)'; then
+  echo "[FAIL] App cards still use light background; use --card or dark theme for full marketing style"
+  FAIL=$((FAIL + 1))
+else
+  echo "[PASS] App cards use dark or neutral theme"
+  PASS=$((PASS + 1))
+fi
 
 # No duplicate nav: Layout must not have BOTH TopNav with page links AND app-shell__nav
 if grep -q 'TopNav' "$REPO_ROOT/tt-ts/src/client/pages/Layout.tsx" && \
