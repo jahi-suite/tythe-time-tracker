@@ -6,7 +6,7 @@
       "id": "excel-ui-01",
       "title": "Style header row",
       "acceptance_criteria": "Staff Hours & Shifts sheet: header row has bold font, subtle background fill (e.g. light grey), and bottom border. Use ExcelJS cell styling (font.bold, fill, border).",
-      "passes": false
+      "passes": true
     },
     {
       "id": "excel-ui-02",

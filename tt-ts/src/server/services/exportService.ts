@@ -76,6 +76,18 @@ export async function exportToExcel(
     'Total Pay',
   ]
   ws.addRow(headers)
+  const staffHeaderRow = ws.getRow(1)
+  staffHeaderRow.eachCell((cell) => {
+    cell.font = { bold: true, size: 11 }
+    cell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFF2F2F2' },
+    }
+    cell.border = {
+      bottom: { style: 'thin', color: { argb: 'FFBFBFBF' } },
+    }
+  })
 
   for (const [summaryKey, data] of Object.entries(staffSummary)) {
     const employee = data.employee_label
