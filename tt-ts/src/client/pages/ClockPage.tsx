@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { clock } from '../api'
+import { clock, venues } from '../api'
 
 export function ClockPage() {
   const { user } = useAuth()
@@ -19,6 +19,8 @@ export function ClockPage() {
   }
 
   useEffect(() => {
+    // Preload venue settings from /api/venues/current/settings for non-admin supervisor UI logic.
+    void venues.currentSettings().catch(() => undefined)
     loadOpenShift()
   }, [])
 

@@ -4,7 +4,7 @@ import { DB } from '../../shared/constants.js'
 import { hashPassword } from '../auth/index.js'
 import { getClient, query } from '../db/connection.js'
 import { createIpRateLimit } from '../middleware/rateLimit.js'
-import { requireAdmin } from '../middleware/auth.js'
+import { requireAdmin, requireAuth } from '../middleware/auth.js'
 import * as auth from '../auth/index.js'
 
 const router = Router()
@@ -75,6 +75,17 @@ router.get('/search', async (req, res) => {
       name: row.name,
     }))
   )
+})
+
+router.get('/current/settings', requireAuth, async (req, res) => {
+  const sessionVenueId = req.session?.venue_id
+  if (!sessionVenueId) {
+    res.status(400).json({ error: 'Venue context missing from session' })
+    return
+  }
+
+  const settings = await auth.getVenueSettings(sessionVenueId)
+  res.json(settings)
 })
 
 router.get('/:slug/settings', requireAdmin, async (req, res) => {

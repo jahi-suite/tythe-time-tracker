@@ -53,6 +53,8 @@ export const venues = {
     fetchApi<{ slug: string; name: string }>(`/venues/${encodeURIComponent(slug)}`),
   getSettings: (slug: string) =>
     fetchApi<VenueSettings>(`/venues/${encodeURIComponent(slug)}/settings`),
+  currentSettings: () =>
+    fetchApi<VenueSettings>('/venues/current/settings'),
   updateSettings: (slug: string, settings: Partial<VenueSettings>) =>
     fetchApi<VenueSettings>(`/venues/${encodeURIComponent(slug)}/settings`, {
       method: 'PUT',
