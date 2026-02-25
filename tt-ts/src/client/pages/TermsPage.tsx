@@ -115,8 +115,9 @@ const sections: TermsSection[] = [
         <ul>
           <li>operate and secure the service;</li>
           <li>store and display shift and timesheet records;</li>
-          <li>generate exports and reports requested by users; and</li>
-          <li>maintain backups, logs, and basic service diagnostics.</li>
+          <li>generate exports and reports requested by users;</li>
+          <li>maintain backups, logs, and basic service diagnostics; and</li>
+          <li>understand website usage via analytics (e.g. Google Analytics). See our Privacy Policy for details.</li>
         </ul>
         <p>
           We will take reasonable technical and organisational steps to protect data in
