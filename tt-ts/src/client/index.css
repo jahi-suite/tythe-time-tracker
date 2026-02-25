@@ -129,6 +129,16 @@ body {
   font-weight: 600;
 }
 
+.footer-brand a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.footer-brand a:hover,
+.footer-brand a:focus-visible {
+  text-decoration: underline;
+}
+
 .footer-brand-logo {
   display: block;
 }
