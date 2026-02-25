@@ -1,0 +1,42 @@
+{
+  "initiative": "tt-karisuite-ui-20260225",
+  "updated": "2026-02-25",
+  "stories": [
+    {
+      "id": "ui-tokens",
+      "title": "Extract design system (tokens)",
+      "acceptance_criteria": "Create tt-ts/src/client/styles/tokens.css (or .ts/.scss) with --maxWidth, spacing scale (xs→xl), font sizes (hero/h2/body/small), border radius, dividers, button/link styles, tag/chip styles. Create theme.css that imports tokens. index.css imports theme. No page-level random CSS; everything uses tokens.",
+      "passes": false
+    },
+    {
+      "id": "ui-components",
+      "title": "Build reusable components matching site patterns",
+      "acceptance_criteria": "Create tt-ts/src/client/components/ with TopNav (Kari Suite, Products/About/Privacy, CTA), Container (centers, max-width), Hero (H1 split-line style), Section, Card (product card), Tag chips (Live now/Idea stage/On the radar), Steps (1/2/3 columns), Footer (email + copyright). Pages compose these components.",
+      "passes": false
+    },
+    {
+      "id": "ui-shell",
+      "title": "Create marketing-consistent app shell layout",
+      "acceptance_criteria": "Shared layout wrapper: TopNav on every page, consistent spacing/padding, consistent heading styles, mobile-friendly. Dashboard (Clock, Timesheet, Export, Manager) feels like product sibling of marketing site, not admin panel.",
+      "passes": false
+    },
+    {
+      "id": "ui-landing",
+      "title": "Build landing screen inside app",
+      "acceptance_criteria": "Route / shows product landing: Hero, three-value bullets (Independent & self-funded, No VC. No roadmap theatre.), Products section (Live: Kari Time, Idea: Kari Rota, Radar: Kari Stock), How we work 1/2/3 steps, CTA + email. If app opens to login/dashboard, implement as logged-out welcome screen.",
+      "passes": false
+    },
+    {
+      "id": "ui-copy",
+      "title": "Copy/tone pass",
+      "acceptance_criteria": "Update microcopy to match KariSuite tone: short, direct, no fluff. Avoid enterprise/powerful/robust. Examples: 'No roadmap theatre.', 'Build tight. Ship it.', 'Works in the real world.'",
+      "passes": false
+    },
+    {
+      "id": "ui-qa",
+      "title": "QA requirements",
+      "acceptance_criteria": "No layout shift, no horizontal scroll on mobile. Semantic headings (h1/h2/h3), focus states visible. Login, clock in/out, exports, admin still function. Visual consistency: same buttons, spacing, headings everywhere.",
+      "passes": false
+    }
+  ]
+}
