@@ -43,4 +43,31 @@ router.get('/venues', requireDevVenuesEnabled, requireDevSecret, async (_req, re
   )
 })
 
+router.post('/venues/:slug/deactivate', requireDevVenuesEnabled, requireDevSecret, async (req, res) => {
+  const slug = String(req.params.slug ?? '').trim().toLowerCase()
+  if (!slug) {
+    res.status(400).json({ error: 'Slug required' })
+    return
+  }
+  if (slug === 'tythe') {
+    res.status(400).json({ error: 'Cannot deactivate Tythe' })
+    return
+  }
+
+  const result = await query<{ name: string; slug: string; active: boolean }>(
+    `UPDATE ${DB.VENUES_TABLE}
+     SET active = false
+     WHERE slug = $1
+     RETURNING name, slug, active`,
+    [slug]
+  )
+
+  if (result.rowCount === 0) {
+    res.status(404).json({ error: 'Venue not found' })
+    return
+  }
+
+  res.json(result.rows[0])
+})
+
 export default router
