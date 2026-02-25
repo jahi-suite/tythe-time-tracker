@@ -6,3 +6,4 @@
 
 - 2026-02-25: Task created. Ralph to implement.
 - 2026-02-25 16:42: legacy-01 removed example credentials from UI and docs, replaced with placeholders.
+- 2026-02-25 16:45: legacy-02 removed Streamlit from `core/services.py`, injected `changed_by` from manager UI for audited shift add/edit/delete operations, and fixed `StaffSummary`/`OverallSummary` field mismatches plus frozen dataclass summary mutation.
