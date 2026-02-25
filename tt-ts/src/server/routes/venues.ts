@@ -4,6 +4,7 @@ import { DB } from '../../shared/constants.js'
 import { hashPassword } from '../auth/index.js'
 import { getClient, query } from '../db/connection.js'
 import { createIpRateLimit } from '../middleware/rateLimit.js'
+import { requireAdmin } from '../middleware/auth.js'
 import * as auth from '../auth/index.js'
 
 const router = Router()
@@ -74,6 +75,92 @@ router.get('/search', async (req, res) => {
       name: row.name,
     }))
   )
+})
+
+router.get('/:slug/settings', requireAdmin, async (req, res) => {
+  const slug = String(req.params.slug ?? '').trim()
+  const sessionVenueId = req.session?.venue_id
+  if (!slug || !sessionVenueId) {
+    res.status(400).json({ error: 'Slug required' })
+    return
+  }
+  const venue = await auth.getVenueBySlug(slug)
+  if (!venue) {
+    res.status(404).json({ error: 'Venue not found' })
+    return
+  }
+  if (venue.id !== sessionVenueId) {
+    res.status(403).json({ error: 'Can only view your own venue settings' })
+    return
+  }
+  const settings = await auth.getVenueSettings(venue.id)
+  res.json(settings)
+})
+
+router.put('/:slug/settings', requireAdmin, async (req, res) => {
+  const slug = String(req.params.slug ?? '').trim()
+  const sessionVenueId = req.session?.venue_id
+  if (!slug || !sessionVenueId) {
+    res.status(400).json({ error: 'Slug required' })
+    return
+  }
+  const venue = await auth.getVenueBySlug(slug)
+  if (!venue) {
+    res.status(404).json({ error: 'Venue not found' })
+    return
+  }
+  if (venue.id !== sessionVenueId) {
+    res.status(403).json({ error: 'Can only edit your own venue settings' })
+    return
+  }
+  const body = (req.body && typeof req.body === 'object' ? req.body : {}) as Record<string, unknown>
+  const enhanced_enabled = body.enhanced_enabled
+  const enhanced_start_hour = body.enhanced_start_hour != null ? Number(body.enhanced_start_hour) : undefined
+  const enhanced_end_hour = body.enhanced_end_hour != null ? Number(body.enhanced_end_hour) : undefined
+  const break_deduct_enabled = body.break_deduct_enabled
+  const break_deduct_minutes = body.break_deduct_minutes != null ? Number(body.break_deduct_minutes) : undefined
+  const break_threshold_hours = body.break_threshold_hours != null ? Number(body.break_threshold_hours) : undefined
+
+  const updates: string[] = []
+  const values: unknown[] = []
+  let i = 1
+  if (typeof enhanced_enabled === 'boolean') {
+    updates.push(`enhanced_enabled = $${i++}`)
+    values.push(enhanced_enabled)
+  }
+  if (enhanced_start_hour != null && Number.isInteger(enhanced_start_hour) && enhanced_start_hour >= 0 && enhanced_start_hour <= 23) {
+    updates.push(`enhanced_start_hour = $${i++}`)
+    values.push(enhanced_start_hour)
+  }
+  if (enhanced_end_hour != null && Number.isInteger(enhanced_end_hour) && enhanced_end_hour >= 0 && enhanced_end_hour <= 23) {
+    updates.push(`enhanced_end_hour = $${i++}`)
+    values.push(enhanced_end_hour)
+  }
+  if (typeof break_deduct_enabled === 'boolean') {
+    updates.push(`break_deduct_enabled = $${i++}`)
+    values.push(break_deduct_enabled)
+  }
+  if (break_deduct_minutes != null && Number.isFinite(break_deduct_minutes) && break_deduct_minutes >= 0 && break_deduct_minutes <= 120) {
+    updates.push(`break_deduct_minutes = $${i++}`)
+    values.push(Math.round(break_deduct_minutes))
+  }
+  if (break_threshold_hours != null && Number.isFinite(break_threshold_hours) && break_threshold_hours >= 0 && break_threshold_hours <= 24) {
+    updates.push(`break_threshold_hours = $${i++}`)
+    values.push(break_threshold_hours)
+  }
+  if (updates.length === 0) {
+    res.status(400).json({ error: 'No valid settings to update' })
+    return
+  }
+  values.push(venue.id)
+  await query(
+    `UPDATE ${DB.VENUES_TABLE}
+     SET ${updates.join(', ')}
+     WHERE ${DB.ID_COLUMN} = $${i}`,
+    values
+  )
+  const settings = await auth.getVenueSettings(venue.id)
+  res.json(settings)
 })
 
 router.get('/:slug', async (req, res) => {

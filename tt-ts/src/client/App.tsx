@@ -10,6 +10,7 @@ import { ClockPage } from './pages/ClockPage'
 import { TimesheetPage } from './pages/TimesheetPage'
 import { ExportPage } from './pages/ExportPage'
 import { ManagerPage } from './pages/ManagerPage'
+import { VenueSettingsPage } from './pages/VenueSettingsPage'
 import { TermsPage } from './pages/TermsPage'
 import { PrivacyPage } from './pages/PrivacyPage'
 
@@ -59,6 +60,7 @@ function AppRoutes() {
           <Route path="timesheet" element={<TimesheetPage />} />
           <Route path="export" element={<ExportPage />} />
           <Route path="manager" element={<ManagerPage />} />
+          <Route path="venue-settings" element={<VenueSettingsPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

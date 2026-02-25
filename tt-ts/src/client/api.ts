@@ -34,11 +34,27 @@ export interface CreateVenueResponse {
   venue: { slug: string; name: string }
 }
 
+export interface VenueSettings {
+  enhanced_enabled: boolean
+  enhanced_start_hour: number
+  enhanced_end_hour: number
+  break_deduct_enabled: boolean
+  break_deduct_minutes: number
+  break_threshold_hours: number
+}
+
 export const venues = {
   search: (q: string) =>
     fetchApi<VenueSearchResult[]>(`/venues/search?q=${encodeURIComponent(q)}`),
   getBySlug: (slug: string) =>
     fetchApi<{ slug: string; name: string }>(`/venues/${encodeURIComponent(slug)}`),
+  getSettings: (slug: string) =>
+    fetchApi<VenueSettings>(`/venues/${encodeURIComponent(slug)}/settings`),
+  updateSettings: (slug: string, settings: Partial<VenueSettings>) =>
+    fetchApi<VenueSettings>(`/venues/${encodeURIComponent(slug)}/settings`, {
+      method: 'PUT',
+      body: JSON.stringify(settings),
+    }),
   create: (data: {
     venueName: string
     adminUsername: string

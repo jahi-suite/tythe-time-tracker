@@ -17,11 +17,13 @@ export function Layout() {
   const displayName = (user?.display_name?.trim() || user?.username?.trim() || 'User').trim() || 'User'
 
   const isManager = user?.role === 'manager' || user?.role === 'admin'
+  const isAdmin = user?.role === 'admin'
   const pages = [
     { path: '/clock', label: 'Employee Clock In/Out' },
     { path: '/timesheet', label: 'Personal Timesheet' },
     { path: '/export', label: 'Export Timesheet' },
     ...(isManager ? [{ path: '/manager', label: 'Manager Dashboard' }] : []),
+    ...(isAdmin ? [{ path: '/venue-settings', label: 'Venue Settings' }] : []),
   ]
 
   const handleLogout = async () => {
