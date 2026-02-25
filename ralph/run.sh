@@ -16,7 +16,7 @@ set -uo pipefail
 #   RALPH_BACKEND        Agent backend: gemini (default), claude, cursor, codex, codex-cli
 #   RALPH_MODEL          Cursor model when backend=cursor (e.g. grok)
 #   RALPH_CLAUDE_MODEL   Claude model when backend=claude (e.g. sonnet, opus)
-#   RALPH_GEMINI_MODEL   Gemini model when backend=gemini (default: gemini-3-pro)
+#   RALPH_GEMINI_MODEL   Gemini model when backend=gemini (default: gemini-2.0-flash, free tier)
 #   RALPH_MAX_ITERATIONS Max iterations (default: 30)
 #   RALPH_SLEEP          Seconds between iterations (default: 3)
 
