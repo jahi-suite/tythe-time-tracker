@@ -142,7 +142,7 @@ tythe-time-tracker/
 - **tt-break-deduction-20260223** – 20min break for 6h+ shifts (in progress).
 - **tt-streamlit-desktop-contrast-20260223** – Desktop form contrast fixes.
 
-Run a loop: `RALPH_BACKEND=codex-cli ./ralph/loops/<task-id>.sh`. Or `./ralph/run.sh <task-id>`.
+Run a loop: `RALPH_BACKEND=codex-cli ./ralph/run.sh <task-id>`.
 
 ---
 

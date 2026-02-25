@@ -2,7 +2,7 @@
 
 ## 2026-02-24
 
-Task created. Run `./ralph/loops/tt-marketing-pdf-fix-blank-pages-20260224.sh` to fix blank pages.
+Task created. Run `./ralph/run.sh tt-marketing-pdf-fix-blank-pages-20260224` to fix blank pages.
 
 Investigated `tt-ts/scripts/generate-marketing-pdf.mjs` and reproduced the issue (many blank pages caused the verifier to report `21` pages via grep fallback). Root cause was `pageChrome()` drawing footer text at `y = h - 18`, which is inside PDFKit's default bottom margin; each footer `doc.text()` call triggered an implicit page break.
 

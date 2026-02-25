@@ -26,4 +26,4 @@ cd tt-ts && npm install && npm run build
 
 - `tt-ts/src/server/` — Express API, db, auth, services
 - `tt-ts/src/client/` — React pages, context, API client
-- `ralph/loops/tt-ts-scaffold-001.sh` — Ralph loop for scaffold task
+- `./ralph/run.sh tt-ts-scaffold-001` — Ralph loop for scaffold task

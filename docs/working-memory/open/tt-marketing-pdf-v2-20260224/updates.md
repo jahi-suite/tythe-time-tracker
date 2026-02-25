@@ -2,9 +2,9 @@
 
 ## 2026-02-24
 
-Task created. Run AFTER `./ralph/loops/tt-marketing-page-v2-20260224.sh`.
+Task created. Run AFTER `./ralph/run.sh tt-marketing-page-v2-20260224`.
 
-Then: `./ralph/loops/tt-marketing-pdf-v2-20260224.sh`
+Then: `./ralph/run.sh tt-marketing-pdf-v2-20260224`
 
 Completed Ralph execution pass:
 - Rewrote `tt-ts/scripts/generate-marketing-pdf.mjs` to use v2 marketing page copy (Constance hero/story, Saturday-night pain timeline, outcome-first cards, mechanics/how-it-works, Constance testimonial, last-orders CTA).

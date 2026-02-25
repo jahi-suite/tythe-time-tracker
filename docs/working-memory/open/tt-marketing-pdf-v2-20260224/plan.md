@@ -11,7 +11,7 @@ Rewrite `tt-ts/scripts/generate-marketing-pdf.mjs` so the PDF matches the v2 mar
 
 ## Prerequisite
 
-Run `./ralph/loops/tt-marketing-page-v2-20260224.sh` first. This task reads the v2 MarketingLandingPage.tsx and syncs the PDF to it.
+Run `./ralph/run.sh tt-marketing-page-v2-20260224` first. This task reads the v2 MarketingLandingPage.tsx and syncs the PDF to it.
 
 ## What to Sync
 

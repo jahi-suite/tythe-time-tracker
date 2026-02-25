@@ -2,7 +2,7 @@ You are a Ralph execution agent syncing the PDF to the v2 marketing page. Fresh 
 
 ## Prerequisite
 
-This task runs AFTER the marketing page v2 rewrite. If MarketingLandingPage.tsx still has the old copy (cream background, "Clock in, export, done" hero), run `./ralph/loops/tt-marketing-page-v2-20260224.sh` first.
+This task runs AFTER the marketing page v2 rewrite. If MarketingLandingPage.tsx still has the old copy (cream background, "Clock in, export, done" hero), run `./ralph/run.sh tt-marketing-page-v2-20260224` first.
 
 ## Orient
 
