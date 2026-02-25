@@ -20,6 +20,13 @@ import io
 
 logger = logging.getLogger(__name__)
 
+
+def _safe_iso(value):
+    """Best-effort log formatting for dates/datetimes."""
+    if value is None:
+        return None
+    return value.isoformat() if hasattr(value, "isoformat") else str(value)
+
 def get_date_range(option):
     """Get date range based on selection"""
     today = datetime.now().date()
@@ -46,9 +53,22 @@ def get_date_range(option):
 
 def get_timesheet_data(employee_name=None, start_date=None, end_date=None, is_manager=False):
     """Get timesheet data with filters"""
+    logger.info(
+        "Fetching timesheet data (employee=%s, start=%s, end=%s, is_manager=%s)",
+        employee_name or "*",
+        _safe_iso(start_date),
+        _safe_iso(end_date),
+        is_manager,
+    )
     db_conn, error = get_db_connection()
     if db_conn is None:
-        logger.error("Database error in get_timesheet_data: %s", error)
+        logger.error(
+            "Failed to fetch timesheet data: database connection unavailable (employee=%s, start=%s, end=%s): %s",
+            employee_name or "*",
+            _safe_iso(start_date),
+            _safe_iso(end_date),
+            error,
+        )
         return []
 
     try:
@@ -88,9 +108,22 @@ def get_timesheet_data(employee_name=None, start_date=None, end_date=None, is_ma
 
         rows.sort(key=lambda e: e[2], reverse=True)
         rows.sort(key=lambda e: e[1].strip().lower())
+        logger.info(
+            "Fetched %s timesheet rows (employee=%s, start=%s, end=%s)",
+            len(rows),
+            employee_name or "*",
+            _safe_iso(start_date),
+            _safe_iso(end_date),
+        )
         return rows
     except Exception as e:
-        logger.exception("Database error in get_timesheet_data: %s", e)
+        logger.exception(
+            "Failed to fetch timesheet data (employee=%s, start=%s, end=%s): %s",
+            employee_name or "*",
+            _safe_iso(start_date),
+            _safe_iso(end_date),
+            e,
+        )
         return []
     finally:
         db_conn.close()
@@ -225,7 +258,16 @@ def calculate_summary(entries):
 def export_to_excel(entries, filename="timesheet_export.xlsx", start_date=None, end_date=None):
     """Export timesheet data to Excel with staff summaries and individual shifts"""
     if not entries:
+        logger.warning("Excel export skipped: no entries (filename=%s)", filename)
         return None
+
+    logger.info(
+        "Starting Excel export (filename=%s, entries=%s, start=%s, end=%s)",
+        filename,
+        len(entries),
+        _safe_iso(start_date),
+        _safe_iso(end_date),
+    )
 
     user_rates_map = _get_user_rates_map()
     staff_summary = calculate_staff_summary(entries, user_rates_map)
@@ -378,12 +420,25 @@ def export_to_excel(entries, filename="timesheet_export.xlsx", start_date=None, 
             value="Hours and pay shown are ALREADY net of the 20-minute unpaid break for shifts of 6+ hours. Do not deduct break again.",
         )
     
+    logger.info(
+        "Excel export completed (filename=%s, entries=%s, staff=%s)",
+        filename,
+        len(entries),
+        len(staff_summary),
+    )
     return filename
 
 def export_to_pdf(entries, filename="timesheet_export.pdf"):
     """Export timesheet data to PDF with staff summaries and individual shifts grouped under each staff member"""
     if not entries:
+        logger.warning("PDF export skipped: no entries (filename=%s)", filename)
         return None
+
+    logger.info(
+        "Starting PDF export (filename=%s, entries=%s)",
+        filename,
+        len(entries),
+    )
 
     user_rates_map = _get_user_rates_map()
     staff_summary = calculate_staff_summary(entries, user_rates_map)
@@ -510,6 +565,12 @@ def export_to_pdf(entries, filename="timesheet_export.pdf"):
     
     # Build PDF
     doc.build(story)
+    logger.info(
+        "PDF export completed (filename=%s, entries=%s, staff=%s)",
+        filename,
+        len(entries),
+        len(staff_summary),
+    )
     return filename
 
 def get_download_link(file_path, file_name, file_type):

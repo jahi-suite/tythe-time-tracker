@@ -51,6 +51,7 @@ class TimeTrackingService:
     def _require_changed_by(self, changed_by: str) -> str:
         """Validate the audit username passed in by the caller."""
         if not isinstance(changed_by, str) or not changed_by.strip():
+            logger.warning("Audit validation failed: missing changed_by username")
             raise ValueError("Authenticated username is required for audit logging")
         return changed_by.strip()
     
@@ -80,6 +81,11 @@ class TimeTrackingService:
             # Check if employee already has an open shift
             existing_shift = self.repository.get_open_shift(req.employee_name)
             if existing_shift:
+                logger.warning(
+                    "Clock-in rejected: employee already has open shift (employee=%s, entry_id=%s)",
+                    req.employee_name,
+                    existing_shift.id,
+                )
                 return False, f"{req.employee_name} already has an open shift"
             
             # Determine pay rate type
@@ -94,10 +100,15 @@ class TimeTrackingService:
             )
             
             rate_message = f" ({pay_rate_type.value} Rate)"
+            logger.info(
+                "Clock-in succeeded (employee=%s, pay_rate_type=%s)",
+                req.employee_name,
+                pay_rate_type.value,
+            )
             return True, f"{req.employee_name} clocked in successfully{rate_message}"
             
         except Exception as e:
-            logger.error(f"Error clocking in {req.employee_name}: {e}")
+            logger.exception("Clock-in failed (employee=%s): %s", req.employee_name, e)
             return False, f"Error clocking in: {e}"
     
     def clock_out(self, employee_name: str) -> Tuple[bool, str]:
@@ -125,16 +136,25 @@ class TimeTrackingService:
             # Find the most recent open shift for this employee
             open_shift = self.repository.get_open_shift(req.employee_name)
             if not open_shift:
+                logger.warning(
+                    "Clock-out rejected: no open shift found (employee=%s)",
+                    req.employee_name,
+                )
                 return False, f"No open shift found for {req.employee_name}"
             
             # Close the shift
             current_time = datetime.now(timezone.utc)
             self.repository.close_shift(open_shift.id, current_time)
             
+            logger.info(
+                "Clock-out succeeded (employee=%s, entry_id=%s)",
+                req.employee_name,
+                open_shift.id,
+            )
             return True, f"{req.employee_name} clocked out successfully"
             
         except Exception as e:
-            logger.error(f"Error clocking out {req.employee_name}: {e}")
+            logger.exception("Clock-out failed (employee=%s): %s", req.employee_name, e)
             return False, f"Error clocking out: {e}"
     
     def get_open_shift(self, employee_name: str) -> Optional[TimeEntry]:
@@ -272,11 +292,19 @@ class TimeTrackingService:
                 changed_by=changed_by,
                 new_values=_time_entry_to_audit_values(time_entry),
             )
+
+            logger.info(
+                "Manual shift add succeeded (employee=%s, entry_id=%s, pay_rate_type=%s, changed_by=%s)",
+                req.employee_name,
+                time_entry.id,
+                pay_rate_type.value,
+                changed_by,
+            )
             
             return True, f"Shift added for {req.employee_name} ({pay_rate_type.value} Rate)"
             
         except Exception as e:
-            logger.error(f"Error adding shift for {req.employee_name}: {e}")
+            logger.exception("Manual shift add failed (employee=%s): %s", req.employee_name, e)
             return False, f"Error adding shift: {e}"
     
     def edit_shift(
@@ -336,6 +364,7 @@ class TimeTrackingService:
             changed_by = self._require_changed_by(changed_by)
             existing_entry = self.repository.get_time_entry_by_id(entry_id)
             if existing_entry is None:
+                logger.warning("Edit shift rejected: shift not found (entry_id=%s)", entry_id)
                 return False, "Shift not found"
 
             # Combine date and time for clock-in
@@ -379,11 +408,19 @@ class TimeTrackingService:
                 old_values=_time_entry_to_audit_values(existing_entry),
                 new_values=_time_entry_to_audit_values(updated),
             )
+
+            logger.info(
+                "Shift edit succeeded (entry_id=%s, employee=%s, pay_rate_type=%s, changed_by=%s)",
+                entry_id,
+                req.employee_name,
+                pay_rate_type.value,
+                changed_by,
+            )
             
             return True, f"Shift updated for {req.employee_name} ({pay_rate_type.value} Rate)"
             
         except Exception as e:
-            logger.error(f"Error updating shift {entry_id}: {e}")
+            logger.exception("Shift edit failed (entry_id=%s): %s", entry_id, e)
             return False, f"Error updating shift: {e}"
     
     def delete_entry(self, entry_id: str, changed_by: str) -> Tuple[bool, str]:
@@ -399,6 +436,7 @@ class TimeTrackingService:
             changed_by = self._require_changed_by(changed_by)
             existing_entry = self.repository.get_time_entry_by_id(entry_id)
             if existing_entry is None:
+                logger.warning("Delete entry rejected: entry not found (entry_id=%s)", entry_id)
                 return False, "Entry not found"
 
             deleted = self.repository.delete_time_entry(entry_id)
@@ -410,12 +448,19 @@ class TimeTrackingService:
                     changed_by=changed_by,
                     old_values=_time_entry_to_audit_values(existing_entry),
                 )
+                logger.info(
+                    "Entry delete succeeded (entry_id=%s, employee=%s, changed_by=%s)",
+                    existing_entry.id,
+                    existing_entry.employee,
+                    changed_by,
+                )
                 return True, "Entry deleted successfully"
             else:
+                logger.warning("Delete entry no-op: repository reported missing entry (entry_id=%s)", entry_id)
                 return False, "Entry not found"
                 
         except Exception as e:
-            logger.error(f"Error deleting entry {entry_id}: {e}")
+            logger.exception("Entry delete failed (entry_id=%s): %s", entry_id, e)
             return False, f"Error deleting entry: {e}"
     
     def get_shift_by_id(self, entry_id: str) -> Optional[TimeEntry]:
