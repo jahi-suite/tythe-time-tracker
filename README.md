@@ -38,7 +38,7 @@ USER = "postgres.xxx"
 PASSWORD = "your-password"
 PORT = "5432"
 
-MANAGER_PASSWORD = "tythe2024"
+MANAGER_PASSWORD = "your-manager-password"
 ```
 
 **First manager account:** When no accounts exist, the login page shows a "Set up your admin account" form. Enter username, display name, and password — no secrets editing required. Optional: use `SEED_MANAGER_USERNAME` and `SEED_MANAGER_PASSWORD` in secrets for automated setup.

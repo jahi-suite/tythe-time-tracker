@@ -5,3 +5,4 @@
 ## Progress
 
 - 2026-02-25: Task created. Ralph to implement.
+- 2026-02-25 16:42: legacy-01 removed example credentials from UI and docs, replaced with placeholders.

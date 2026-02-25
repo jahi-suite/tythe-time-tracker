@@ -260,17 +260,17 @@ def initialize_database() -> None:
                 "In Supabase click **Connect** → set Method to **Session pooler** → copy the **host** from the URI."
             )
             st.markdown("Then in Streamlit Cloud → Settings → Secrets use this (replace the host with yours):")
-            st.code(
-                '''[SUPABASE]
-HOST = "aws-0-eu-west-1.pooler.supabase.com"
+                st.code(
+                    '''[SUPABASE]
+HOST = "aws-0-XX-XXXXX.pooler.supabase.com"
 DATABASE = "postgres"
-USER = "postgres.nfwzrlxhjcxdznsnkhhm"
-PASSWORD = "3Spressomartini!!"
-PORT = "5432"
+USER = "postgres.YOUR_PROJECT_REF"
+PASSWORD = "your-database-password"
+PORT = "6543"
 
-MANAGER_PASSWORD = "tythe2024"''',
-                language="toml",
-            )
+MANAGER_PASSWORD = "your-manager-password"''',
+                    language="toml",
+                )
             st.caption("See STREAMLIT_CLOUD_DATABASE.md in the repo for step-by-step.")
         st.stop()
 
