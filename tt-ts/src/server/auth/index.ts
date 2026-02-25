@@ -141,7 +141,7 @@ export async function createUser(
   }
 }
 
-export async function getAllUsers(): Promise<User[]> {
+export async function getAllUsers(venueId?: string | null): Promise<User[]> {
   const res = await query<{
     id: string
     username: string
@@ -155,7 +155,9 @@ export async function getAllUsers(): Promise<User[]> {
     `SELECT id, username, role, display_name, active,
             ${DB.STANDARD_RATE_COLUMN}, ${DB.ENHANCED_RATE_COLUMN}, ${DB.SUPERVISOR_RATE_COLUMN}
      FROM ${DB.USERS_TABLE}
-     ORDER BY role, display_name`
+     WHERE ($1::uuid IS NULL OR ${DB.VENUE_ID_COLUMN} = $1::uuid)
+     ORDER BY role, display_name`,
+    [venueId?.trim() || null]
   )
   return res.rows.map((r) => ({
     id: r.id,
