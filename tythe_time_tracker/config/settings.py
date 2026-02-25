@@ -1,5 +1,6 @@
 """Application configuration settings."""
 
+import importlib
 import os
 from dataclasses import dataclass
 from typing import Optional
@@ -8,6 +9,11 @@ from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
+
+
+def _load_streamlit_secrets_helper():
+    """Lazily import Streamlit-backed config readers."""
+    return importlib.import_module("tythe_time_tracker.config.streamlit_secrets")
 
 
 @dataclass(frozen=True)
@@ -62,30 +68,9 @@ class DatabaseConfig:
         Raises:
             ValueError: If required secrets are missing.
         """
-        import streamlit as st
-        
-        def _get(key: str) -> str:
-            raw = supabase_config.get(key) or supabase_config.get(key.lower())
-            if raw is None:
-                raise KeyError(key)
-            return str(raw).strip()
-
         try:
-            supabase_config = st.secrets["SUPABASE"]
-            host = _get("HOST")
-            database = _get("DATABASE")
-            user = _get("USER")
-            password = _get("PASSWORD")
-            port_val = supabase_config.get("PORT") or supabase_config.get("port")
-            port = int(port_val) if port_val is not None else 5432
-
-            return cls(
-                host=host,
-                database=database,
-                user=user,
-                password=password,
-                port=port
-            )
+            helper = _load_streamlit_secrets_helper()
+            return cls(**helper.load_database_config_values())
         except (KeyError, ValueError) as e:
             raise ValueError(f"Invalid Streamlit secrets configuration: {e}")
     
@@ -139,28 +124,9 @@ class AppConfig:
         Returns:
             AppConfig instance.
         """
-        import streamlit as st
-        
         try:
-            version = "2.0.0"  # Default version
-            debug = False  # Default debug setting
-            log_level = "INFO"  # Default log level
-            # MANAGER_PASSWORD can be top-level or under SUPABASE (e.g. in same Secrets block)
-            supabase = st.secrets.get("SUPABASE") or {}
-            manager_password = (
-                st.secrets.get("MANAGER_PASSWORD")
-                or supabase.get("MANAGER_PASSWORD")
-                or supabase.get("manager_password")
-            )
-            if manager_password is not None:
-                manager_password = str(manager_password).strip()
-
-            return cls(
-                version=version,
-                debug=debug,
-                log_level=log_level,
-                manager_password=manager_password
-            )
+            helper = _load_streamlit_secrets_helper()
+            return cls(**helper.load_app_config_values())
         except Exception as e:
             raise ValueError(f"Invalid Streamlit secrets configuration: {e}")
 
@@ -196,4 +162,4 @@ def get_app_config() -> AppConfig:
         return AppConfig.from_streamlit_secrets()
     except Exception:
         # Fall back to environment variables
-        return AppConfig.from_env() 
+        return AppConfig.from_env()
