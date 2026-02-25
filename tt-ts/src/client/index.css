@@ -354,6 +354,12 @@ body {
 .workspace-shell__main .manage-users-section summary {
   color: var(--cream);
 }
+.workspace-shell__main .user-card-name {
+  color: var(--cream);
+}
+.workspace-shell__main .user-card-username {
+  color: rgba(243, 237, 227, 0.8);
+}
 .workspace-shell__main .badge-entry-id {
   background: rgba(255, 255, 255, 0.06);
   border-color: var(--rule);
