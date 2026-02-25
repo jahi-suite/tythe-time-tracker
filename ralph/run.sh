@@ -151,6 +151,16 @@ MAX_RETRIES=3
 while [ $ITERATION -lt $MAX_ITERATIONS ]; do
   ITERATION=$((ITERATION + 1))
 
+  # Task may have been moved to done/ by agent; treat as complete
+  if [ ! -d "$ABS_TASK_DIR" ]; then
+    if [ -d "$REPO_ROOT/docs/working-memory/done/$TASK_ID" ]; then
+      ok "Task completed (moved to done/)"
+      exit 0
+    fi
+    fail "Task folder disappeared: $TASK_DIR"
+    exit 1
+  fi
+
   REMAINING=$(remaining_stories)
   if [ "$REMAINING" -eq 0 ]; then
     ok "All stories complete!"

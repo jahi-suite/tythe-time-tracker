@@ -13,6 +13,7 @@
 
 - Do not change backend business logic.
 - Do not change auth rules or data models.
+- **Do not change HTML pages** (tt-ts/public/*.html, karisuite-site/*.html). MarketingLandingPage must use iframe to kari-time-marketing.html — do not replace with React.
 - Only touch presentation + lightweight routing/layout where needed.
 - Keep changes incremental and reviewable.
 
