@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { auth } from '../api'
+import { Container, Footer, TopNav } from '../components'
 
 export function Layout() {
   const { user, logout } = useAuth()
@@ -53,100 +54,101 @@ export function Layout() {
   }
 
   return (
-    <div className="app-layout">
-      <header className="app-header">
-        <div className="app-header-brand">
-          <img
-            src={isTytheVenue ? '/tythe-logo.png' : '/kari-logo.png'}
-            alt={isTytheVenue ? 'Tythe Barn' : 'Kari Suite'}
-            className="app-header-logo"
-            width={48}
-            height={48}
-          />
-          <div>
-            <p className="app-header-kicker">{venueName}</p>
-            <h1>Employee Portal — {venueName}</h1>
+    <div className="app-shell">
+      <TopNav
+        brandLabel="Kari Time"
+        brandHref="/clock"
+        links={pages.map((p) => ({ label: p.label.replace(/^(Employee |Personal |Export |Manager )/, ''), href: p.path }))}
+        cta={undefined}
+        className="app-shell__topnav"
+      />
+
+      <Container className="app-shell__content">
+        <section className="app-shell__intro" aria-label="Workspace details">
+          <div className="app-shell__intro-main">
+            <div className="app-shell__brand-row">
+              <img
+                src={isTytheVenue ? '/tythe-logo.png' : '/kari-logo.png'}
+                alt={isTytheVenue ? 'Tythe Barn' : 'Kari Suite'}
+                className="app-shell__venue-logo"
+                width={44}
+                height={44}
+              />
+              <div>
+                <p className="app-shell__kicker">{venueName}</p>
+                <h1 className="app-shell__title">Employee Portal</h1>
+              </div>
+            </div>
+            <p className="app-shell__subtle">
+              Signed in as <strong>{displayName}</strong> ({user?.role})
+            </p>
           </div>
-        </div>
-      </header>
-      <nav className="sidebar">
-        <p className="user-info">
-          <strong>Logged in as:</strong> {displayName} ({user?.role})
-        </p>
-        <button onClick={handleLogout} className="btn-secondary">
-          Logout
-        </button>
-        <hr />
-        <details>
-          <summary>Change my password</summary>
-          <form onSubmit={handleChangePassword}>
-            <input
-              type="password"
-              placeholder="Current password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-            />
-            <input
-              type="password"
-              placeholder="New password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-            <input
-              type="password"
-              placeholder="Confirm new password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-            {passwordError && <p className="message-error">{passwordError}</p>}
-            {passwordSuccess && <p className="message-success">{passwordSuccess}</p>}
-            <button type="submit">Change password</button>
-          </form>
-        </details>
-        <hr />
-        <details className="pay-rate-info">
-          <summary>Pay Rate Information</summary>
-          <p>
-            <strong>Pay Rate Rules:</strong> Standard (4AM–7PM), Enhanced (7PM–4AM), Supervisor (when selected).
-          </p>
-        </details>
-        <hr />
-        <div className="sidebar-nav-section">
-          <p className="sidebar-nav-label">Navigation</p>
-          <div className="sidebar-nav-list" role="navigation" aria-label="Primary">
-            {pages.map((p) => {
-              const isActive = location.pathname === p.path
-              return (
-                <button
-                  key={p.path}
-                  type="button"
-                  className={`sidebar-nav-link${isActive ? ' active' : ''}`}
-                  aria-current={isActive ? 'page' : undefined}
-                  onClick={() => navigate(p.path)}
-                >
-                  {p.label}
-                </button>
-              )
-            })}
+          <div className="app-shell__actions">
+            <button onClick={handleLogout} className="btn-secondary" type="button">
+              Logout
+            </button>
           </div>
+        </section>
+
+        <div className="app-shell__nav" role="navigation" aria-label="Workspace sections">
+          {pages.map((p) => {
+            const isActive = location.pathname === p.path
+            return (
+              <button
+                key={p.path}
+                type="button"
+                className={`app-shell__nav-link${isActive ? ' active' : ''}`}
+                aria-current={isActive ? 'page' : undefined}
+                onClick={() => navigate(p.path)}
+              >
+                {p.label}
+              </button>
+            )
+          })}
         </div>
-      </nav>
-      <main>
-        <Outlet />
-      </main>
-      <footer className="footer">
-        <hr />
-        <div className="footer-brand">
-          <img src="/kari-logo.png" alt="Kari" width={14} height={14} className="footer-brand-logo" />
-          <span>
-            Powered by{' '}
-            <a href="https://karisuite.com" target="_blank" rel="noopener noreferrer">
-              Kari Suite
-            </a>
-          </span>
+
+        <div className="app-shell__support-grid">
+          <details className="app-shell__panel">
+            <summary>Change my password</summary>
+            <form onSubmit={handleChangePassword} className="app-shell__password-form">
+              <input
+                type="password"
+                placeholder="Current password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+              />
+              <input
+                type="password"
+                placeholder="New password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+              <input
+                type="password"
+                placeholder="Confirm new password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+              {passwordError && <p className="message-error">{passwordError}</p>}
+              {passwordSuccess && <p className="message-success">{passwordSuccess}</p>}
+              <button type="submit">Change password</button>
+            </form>
+          </details>
+
+          <details className="app-shell__panel pay-rate-info">
+            <summary>Pay Rate Information</summary>
+            <p>
+              <strong>Pay Rate Rules:</strong> Standard (4AM–7PM), Enhanced (7PM–4AM), Supervisor (when selected).
+            </p>
+          </details>
         </div>
-        <p className="footer-note">Mobile: Safari 14+ or Chrome. Legacy build for older Safari.</p>
-      </footer>
+
+        <main className="app-shell__main">
+          <Outlet />
+        </main>
+      </Container>
+
+      <Footer className="app-shell__footer" />
     </div>
   )
 }

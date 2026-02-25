@@ -18,7 +18,7 @@
       "id": "ui-shell",
       "title": "Create marketing-consistent app shell layout",
       "acceptance_criteria": "Shared layout wrapper: TopNav on every page, consistent spacing/padding, consistent heading styles, mobile-friendly. Dashboard (Clock, Timesheet, Export, Manager) feels like product sibling of marketing site, not admin panel.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "ui-landing",
