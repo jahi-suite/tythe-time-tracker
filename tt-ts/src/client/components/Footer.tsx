@@ -17,7 +17,13 @@ export function Footer({ email = 'jahi@karisuite.com', company = 'Kari Suite', c
         <a href={`mailto:${email}`} className="ks-footer__email">
           {email}
         </a>
-        <p className="ks-footer__meta">© {year} {company}. Small team. Real software.</p>
+        <p className="ks-footer__meta">
+          © {year}{' '}
+          <a href="https://karisuite.com" target="_blank" rel="noopener noreferrer">
+            {company}
+          </a>
+          . Small team. Real software.
+        </p>
       </Container>
     </footer>
   )
