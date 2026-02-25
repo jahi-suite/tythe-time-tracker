@@ -13,9 +13,10 @@ set -uo pipefail
 #   ./ralph/run.sh <task-id> --dry-run         # show what would run
 #
 # Environment:
-#   RALPH_BACKEND        Agent backend: claude (default) or cursor
+#   RALPH_BACKEND        Agent backend: claude (default), cursor, codex, codex-cli, or gemini
 #   RALPH_MODEL          Cursor model when backend=cursor (e.g. grok)
 #   RALPH_CLAUDE_MODEL   Claude model when backend=claude (e.g. sonnet, opus)
+#   RALPH_GEMINI_MODEL   Gemini model when backend=gemini (e.g. gemini-2.5-pro, gemini-3-pro)
 #   RALPH_MAX_ITERATIONS Max iterations (default: 30)
 #   RALPH_SLEEP          Seconds between iterations (default: 3)
 

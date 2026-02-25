@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Ralph shared library: configurable agent backend (Claude, Cursor, Codex, or OpenAI Codex CLI).
+# Ralph shared library: configurable agent backend (Claude, Cursor, Codex, Codex CLI, or Gemini).
 # Source this from run.sh.
 # Usage: spawn_agent <repo_root> <prompt_content>
-# Environment: RALPH_BACKEND (claude|cursor|codex|codex-cli), RALPH_MODEL (Cursor/Codex), RALPH_CLAUDE_MODEL (Claude)
+# Environment: RALPH_BACKEND (claude|cursor|codex|codex-cli|gemini), RALPH_MODEL (Cursor/Codex), RALPH_CLAUDE_MODEL (Claude), RALPH_GEMINI_MODEL (Gemini)
 
 # Resolve Claude CLI binary (PATH, common install path, or RALPH_CLAUDE_CMD).
 find_claude() {
@@ -16,6 +16,23 @@ find_claude() {
   fi
   if [ -x "${HOME:-/home/$USER}/.local/bin/claude" ]; then
     echo "${HOME:-/home/$USER}/.local/bin/claude"
+    return
+  fi
+  echo ""
+}
+
+# Resolve Google Gemini CLI (PATH, npx, or RALPH_GEMINI_CMD).
+find_gemini_cli() {
+  if [ -n "${RALPH_GEMINI_CMD:-}" ] && [ -x "$RALPH_GEMINI_CMD" ]; then
+    echo "$RALPH_GEMINI_CMD"
+    return
+  fi
+  if command -v gemini &>/dev/null; then
+    echo "gemini"
+    return
+  fi
+  if command -v npx &>/dev/null; then
+    echo "npx"
     return
   fi
   echo ""
@@ -62,6 +79,25 @@ spawn_agent() {
     fi
     (
       cd "$repo_root" && "$codex_bin" exec -C "$repo_root" --full-auto ${RALPH_CODEX_CLI_MODEL:+--model "$RALPH_CODEX_CLI_MODEL"} "$prompt_content"
+    ) || true
+  elif [ "${RALPH_BACKEND:-claude}" = "gemini" ]; then
+    local gemini_bin
+    gemini_bin=$(find_gemini_cli)
+    if [ -z "$gemini_bin" ]; then
+      echo -e "\033[1;31m[FAIL]\033[0m Gemini CLI not found. Install with: npm i -g @google/gemini-cli" >&2
+      echo "  Or run: npx @google/gemini-cli -p 'test'" >&2
+      echo "  Set RALPH_GEMINI_CMD to full path if installed elsewhere." >&2
+      return 1
+    fi
+    local gemini_cmd
+    if [ "$gemini_bin" = "npx" ]; then
+      gemini_cmd="npx -y @google/gemini-cli"
+    else
+      gemini_cmd="$gemini_bin"
+    fi
+    (
+      cd "$repo_root" && printf '%s' "$prompt_content" | $gemini_cmd --yolo \
+        ${RALPH_GEMINI_MODEL:+--model "$RALPH_GEMINI_MODEL"}
     ) || true
   else
     local -a cmd=(cursor agent --print --force --workspace "$repo_root")
