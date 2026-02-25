@@ -1,6 +1,8 @@
 import pandas as pd
 from datetime import datetime, timedelta, time as dtime
 import logging
+from openpyxl.styles import Font, PatternFill, Border, Side, Alignment
+from openpyxl.utils import get_column_letter
 from reportlab.lib import colors
 
 from tythe_time_tracker.core.payroll_engine import (
@@ -384,6 +386,17 @@ def export_to_excel(entries, filename="timesheet_export.xlsx", start_date=None, 
     # Calculate overall summary
     overall_summary = calculate_summary(entries)
     
+    # Styling constants
+    _header_font = Font(bold=True, size=11)
+    _header_fill = PatternFill(start_color='F2F2F2', end_color='F2F2F2', fill_type='solid')
+    _thin_border = Border(
+        left=Side(style='thin', color='D9D9D9'),
+        right=Side(style='thin', color='D9D9D9'),
+        top=Side(style='thin', color='D9D9D9'),
+        bottom=Side(style='thin', color='D9D9D9'),
+    )
+    _col_widths = [22, 12, 10, 10, 12, 12, 14, 24, 14, 12, 34, 15, 12, 12, 13, 12]
+
     # Create Excel file with multiple sheets
     with pd.ExcelWriter(filename, engine='openpyxl') as writer:
         # Hierarchical view (main sheet)
@@ -395,7 +408,21 @@ def export_to_excel(entries, filename="timesheet_export.xlsx", start_date=None, 
             column=1,
             value="Hours and pay shown are ALREADY net of the 20-minute unpaid break for shifts of 6+ hours. Do not deduct break again.",
         )
-        
+
+        # Style Staff Hours & Shifts
+        for col_idx, width in enumerate(_col_widths, start=1):
+            staff_sheet.column_dimensions[get_column_letter(col_idx)].width = width
+        for col_idx in range(1, len(df_hierarchical.columns) + 1):
+            cell = staff_sheet.cell(row=1, column=col_idx)
+            cell.font = _header_font
+            cell.fill = _header_fill
+            cell.border = Border(bottom=Side(style='thin', color='BFBFBF'))
+        for row_idx in range(1, len(df_hierarchical) + 2):
+            for col_idx in range(1, min(len(df_hierarchical.columns) + 1, len(_col_widths) + 1)):
+                cell = staff_sheet.cell(row=row_idx, column=col_idx)
+                if cell.value is not None and str(cell.value).strip():
+                    cell.border = _thin_border
+
         # Overall summary sheet
         summary_data = {
             'Metric': ['Total Hours (net of break)', 'Total Shifts', 'Unique Employees'],
@@ -419,6 +446,20 @@ def export_to_excel(entries, filename="timesheet_export.xlsx", start_date=None, 
             column=2,
             value="Hours and pay shown are ALREADY net of the 20-minute unpaid break for shifts of 6+ hours. Do not deduct break again.",
         )
+
+        # Style Overall Summary
+        summary_sheet.column_dimensions['A'].width = 28
+        summary_sheet.column_dimensions['B'].width = 48
+        for col_idx in (1, 2):
+            cell = summary_sheet.cell(row=1, column=col_idx)
+            cell.font = _header_font
+            cell.fill = _header_fill
+            cell.border = Border(bottom=Side(style='thin', color='BFBFBF'))
+        for row_idx in range(1, len(summary_df) + 1):
+            for col_idx in (1, 2):
+                cell = summary_sheet.cell(row=row_idx, column=col_idx)
+                if cell.value is not None and str(cell.value).strip():
+                    cell.border = _thin_border
     
     logger.info(
         "Excel export completed (filename=%s, entries=%s, staff=%s)",
