@@ -2,7 +2,7 @@
 # Ralph shared library: configurable agent backend (Claude, Cursor, Codex, Codex CLI, or Gemini).
 # Source this from run.sh.
 # Usage: spawn_agent <repo_root> <prompt_content>
-# Environment: RALPH_BACKEND (gemini default|claude|cursor|codex|codex-cli), RALPH_MODEL (Cursor/Codex), RALPH_CLAUDE_MODEL (Claude), RALPH_GEMINI_MODEL (default: gemini-2.0-flash, free tier)
+# Environment: RALPH_BACKEND (gemini default|claude|cursor|codex|codex-cli), RALPH_MODEL (Cursor/Codex), RALPH_CLAUDE_MODEL (Claude), RALPH_GEMINI_MODEL (default: gemini-3-flash-preview)
 
 # Resolve Claude CLI binary (PATH, common install path, or RALPH_CLAUDE_CMD).
 find_claude() {
@@ -110,7 +110,7 @@ spawn_agent() {
     fi
     (
       cd "$repo_root" && printf '%s' "$prompt_content" | $gemini_cmd --yolo \
-        --model "${RALPH_GEMINI_MODEL:-gemini-2.0-flash}"
+        --model "${RALPH_GEMINI_MODEL:-gemini-3-flash-preview}"
     ) || true
   else
     local -a cmd=(cursor agent --print --force --workspace "$repo_root")
