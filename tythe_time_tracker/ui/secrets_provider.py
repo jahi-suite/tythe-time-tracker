@@ -1,8 +1,4 @@
-"""Streamlit-backed configuration readers.
-
-This module is intentionally isolated so core config loading can import
-without requiring Streamlit unless these helpers are called.
-"""
+"""UI-only secrets readers backed by Streamlit."""
 
 
 def _get_supabase_value(supabase_config, key: str) -> str:
@@ -13,7 +9,7 @@ def _get_supabase_value(supabase_config, key: str) -> str:
 
 
 def load_database_config_values() -> dict:
-    """Load database config values from Streamlit secrets."""
+    """Load database config values from UI secrets."""
     import streamlit as st
 
     supabase_config = st.secrets["SUPABASE"]
@@ -29,7 +25,7 @@ def load_database_config_values() -> dict:
 
 
 def load_app_config_values() -> dict:
-    """Load app config values from Streamlit secrets."""
+    """Load app config values from UI secrets."""
     import streamlit as st
 
     supabase = st.secrets.get("SUPABASE") or {}
@@ -50,7 +46,7 @@ def load_app_config_values() -> dict:
 
 
 def load_seed_manager_credentials() -> tuple[str, str]:
-    """Load seed manager credentials from Streamlit secrets if present."""
+    """Load seed manager credentials from UI secrets if present."""
     import streamlit as st
 
     secrets = getattr(st, "secrets", None)

@@ -118,7 +118,7 @@ class ClockInRequest:
     is_supervisor: bool
     
     def __post_init__(self) -> None:
-        """Validate clock in request."""
+        """Validate clock in request"""
         if not self.employee_name.strip():
             raise ValueError("Employee name cannot be empty")
 
@@ -130,7 +130,7 @@ class ClockOutRequest:
     employee_name: str
     
     def __post_init__(self) -> None:
-        """Validate clock out request."""
+        """Validate clock out request"""
         if not self.employee_name.strip():
             raise ValueError("Employee name cannot be empty")
 
@@ -148,7 +148,7 @@ class ShiftRequest:
     pay_rate_override: Optional[PayRateType]
     
     def __post_init__(self) -> None:
-        """Validate shift request."""
+        """Validate shift request"""
         if not self.employee_name.strip():
             raise ValueError("Employee name cannot be empty")
         

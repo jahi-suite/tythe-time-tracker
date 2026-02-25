@@ -11,9 +11,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def _load_streamlit_secrets_helper():
-    """Lazily import Streamlit-backed config readers."""
-    return importlib.import_module("tythe_time_tracker.config.streamlit_secrets")
+def _load_ui_secrets_helper():
+    """Lazily import UI-backed secret readers."""
+    return importlib.import_module("tythe_time_tracker.ui.secrets_provider")
 
 
 @dataclass(frozen=True)
@@ -69,7 +69,7 @@ class DatabaseConfig:
             ValueError: If required secrets are missing.
         """
         try:
-            helper = _load_streamlit_secrets_helper()
+            helper = _load_ui_secrets_helper()
             return cls(**helper.load_database_config_values())
         except (KeyError, ValueError) as e:
             raise ValueError(f"Invalid Streamlit secrets configuration: {e}")
@@ -125,7 +125,7 @@ class AppConfig:
             AppConfig instance.
         """
         try:
-            helper = _load_streamlit_secrets_helper()
+            helper = _load_ui_secrets_helper()
             return cls(**helper.load_app_config_values())
         except Exception as e:
             raise ValueError(f"Invalid Streamlit secrets configuration: {e}")

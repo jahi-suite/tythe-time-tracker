@@ -104,7 +104,7 @@ class DatabaseConnection:
             return False
     
     def initialize_tables(self) -> None:
-        """Initialize database tables if they don't exist."""
+        """Initialize database tables if they do not exist"""
         try:
             with self.get_cursor() as cursor:
                 # Create users table

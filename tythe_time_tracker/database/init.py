@@ -16,13 +16,13 @@ from ..core.constants import DatabaseConstants
 logger = logging.getLogger(__name__)
 
 
-def _load_streamlit_secrets_helper():
-    """Load Streamlit secrets helper lazily to avoid importing Streamlit in DB init paths."""
-    return importlib.import_module("tythe_time_tracker.config.streamlit_secrets")
+def _load_ui_secrets_helper():
+    """Load UI secrets helper lazily for optional seed credential lookup."""
+    return importlib.import_module("tythe_time_tracker.ui.secrets_provider")
 
 
 def init_database() -> Tuple[bool, Optional[str]]:
-    """Initialize the database tables if they don't exist.
+    """Initialize the database tables if they do not exist
 
     Returns:
         (True, None) if successful, (False, error_message) otherwise.
@@ -229,7 +229,7 @@ def _get_seed_credentials() -> Tuple[str, str]:
     if username and password:
         return username, password
     try:
-        helper = _load_streamlit_secrets_helper()
+        helper = _load_ui_secrets_helper()
         return helper.load_seed_manager_credentials()
     except Exception:
         pass
@@ -289,7 +289,7 @@ def run_seed_if_empty() -> bool:
 
     Call this from the login page so the first user is created when secrets are
     available (e.g. on Streamlit Cloud where init might run before secrets are loaded).
-    Returns True if a user was created (caller may want to st.rerun()).
+    Returns True if a user was created (caller may want to rerun the UI).
     """
     ok, _ = bootstrap_seed_manager()
     return ok

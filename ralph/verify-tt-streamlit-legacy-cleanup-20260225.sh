@@ -63,7 +63,7 @@ else
 fi
 
 # --- Streamlit not in core/database ---
-if ! grep -rq "import streamlit\|st\." tythe_time_tracker/core/ tythe_time_tracker/database/ 2>/dev/null; then
+if ! grep -rIq "import streamlit\|st\." tythe_time_tracker/core/ tythe_time_tracker/database/ 2>/dev/null; then
   echo "PASS: Streamlit not in core or database"
   PASS=$((PASS+1))
 else
