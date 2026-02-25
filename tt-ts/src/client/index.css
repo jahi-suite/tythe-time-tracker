@@ -9,8 +9,15 @@
   box-sizing: border-box;
 }
 
+html,
+body,
+#root {
+  max-width: 100%;
+}
+
 body {
   margin: 0;
+  overflow-x: hidden;
   font-family: var(--font-family-sans);
   font-size: var(--font-size-body);
   line-height: var(--line-height-body);

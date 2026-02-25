@@ -36,7 +36,7 @@
       "id": "ui-qa",
       "title": "QA requirements",
       "acceptance_criteria": "No layout shift, no horizontal scroll on mobile. Semantic headings (h1/h2/h3), focus states visible. Login, clock in/out, exports, admin still function. Visual consistency: same buttons, spacing, headings everywhere.",
-      "passes": false
+      "passes": true
     }
   ]
 }
