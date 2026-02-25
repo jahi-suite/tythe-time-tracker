@@ -17,6 +17,9 @@ export function VenueSettingsPage() {
     break_deduct_enabled: true,
     break_deduct_minutes: 20,
     break_threshold_hours: 6,
+    supervisor_enabled: true,
+    supervisor_label: 'Supervisor',
+    supervisor_deduct_break: true,
   })
 
   useEffect(() => {
@@ -32,6 +35,9 @@ export function VenueSettingsPage() {
           break_deduct_enabled: s.break_deduct_enabled,
           break_deduct_minutes: s.break_deduct_minutes,
           break_threshold_hours: s.break_threshold_hours,
+          supervisor_enabled: s.supervisor_enabled,
+          supervisor_label: s.supervisor_label,
+          supervisor_deduct_break: s.supervisor_deduct_break,
         })
       })
       .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load'))
@@ -147,6 +153,39 @@ export function VenueSettingsPage() {
           <p className="form-hint">Default: 20 min deducted for shifts of 6+ hours. Set to 0 to disable.</p>
         </fieldset>
 
+        <fieldset>
+          <legend>Supervisor</legend>
+          <label>
+            <input
+              type="checkbox"
+              checked={form.supervisor_enabled}
+              onChange={(e) => setForm((f) => ({ ...f, supervisor_enabled: e.target.checked }))}
+            />
+            {' '}Enable supervisor role
+          </label>
+          <label>
+            Label:
+            <input
+              type="text"
+              value={form.supervisor_label}
+              placeholder="Supervisor"
+              maxLength={60}
+              onChange={(e) => setForm((f) => ({ ...f, supervisor_label: e.target.value }))}
+            />
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={form.supervisor_deduct_break}
+              onChange={(e) => setForm((f) => ({ ...f, supervisor_deduct_break: e.target.checked }))}
+            />
+            {' '}Deduct break from supervisor hours
+          </label>
+          <p className="form-hint">
+            Rename the supervisor role for Clock/Manager/exports. Disable to hide supervisor in day-to-day workflows.
+          </p>
+        </fieldset>
+
         {error && <p className="message-error">{error}</p>}
         {success && <p className="message-success">{success}</p>}
         <button type="submit" disabled={saving}>
@@ -168,6 +207,11 @@ export function VenueSettingsPage() {
         .venue-settings-form label input[type="number"] {
           margin-left: 0.5rem;
           width: 4rem;
+          padding: 0.3rem;
+        }
+        .venue-settings-form label input[type="text"] {
+          margin-left: 0.5rem;
+          width: min(18rem, 100%);
           padding: 0.3rem;
         }
         .form-row { display: flex; gap: 1.5rem; flex-wrap: wrap; }
