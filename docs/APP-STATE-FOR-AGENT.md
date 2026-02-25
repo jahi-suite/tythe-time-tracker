@@ -122,27 +122,23 @@ tythe-time-tracker/
 │   └── utils/                      # time_utils, date_utils
 ├── docs/
 │   ├── APP-STATE-FOR-AGENT.md      # This file
-│   └── working-memory/open/        # Ralph task plans (auth, audit, mobile, branding)
+│   └── working-memory/
+│       ├── open/                   # Active Ralph tasks (plan.md + user_story.json)
+│       └── done/                   # Completed tasks — move here when all stories pass
 ├── tt-ts/                          # TypeScript app (Vite + React + Express)
 │   ├── src/                        # Client: pages (Clock, Timesheet, Export, Manager), components, hooks
 │   └── server/                     # Express API, services, exportUtils
-└── ralph/                          # Ralph scripts (run.sh, status.sh, prompts, loops)
+└── ralph/                          # Ralph: run.sh, status.sh, prompts/_template.md
 ```
 
 ---
 
-## Ralph tasks (current)
+## Ralph tasks
 
-- **tt-user-auth-20260222** – User auth, login, manager seed (done).
-- **tt-audit-log-20260222** – Audit log (done).
-- **tt-kari-branding-20260222** – "Powered by Kari Suite" (done).
-- **tt-ts-scaffold-001** – tt-ts scaffold (done).
-- **tt-ts-manage-users-dashboard-20260223** – Card-based Manage Users (done).
-- **tt-ts-app-dashboard-style-20260223** – Dashboard style across tt-ts (in progress).
-- **tt-break-deduction-20260223** – 20min break for 6h+ shifts (in progress).
-- **tt-streamlit-desktop-contrast-20260223** – Desktop form contrast fixes.
+- **Completed** (in `docs/working-memory/done/`): All tasks. Run `./ralph/status.sh` to see.
+- **Open** (in `docs/working-memory/open/`): Active tasks. Create new tasks with plan.md + user_story.json. When all stories pass, **move the task folder from open/ to done/**.
 
-Run a loop: `RALPH_BACKEND=codex-cli ./ralph/loops/<task-id>.sh`. Or `./ralph/run.sh <task-id>`.
+Run: `./ralph/run.sh <task-id>`. Status: `./ralph/status.sh`. Uses `ralph/prompts/_template.md` by default. On failure: record in updates.md what you tried, what worked, what didn't.
 
 ---
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Ralph shared library: configurable agent backend (Claude, Cursor, Codex, or OpenAI Codex CLI).
-# Source this from run.sh and from loops/*.sh.
+# Source this from run.sh.
 # Usage: spawn_agent <repo_root> <prompt_content>
 # Environment: RALPH_BACKEND (claude|cursor|codex|codex-cli), RALPH_MODEL (Cursor/Codex), RALPH_CLAUDE_MODEL (Claude)
 

@@ -3,8 +3,8 @@ set -uo pipefail
 
 # ralph/run.sh — Universal Ralph loop runner.
 #
-# Runs the Cursor CLI in a loop, spawning fresh agents until verification passes.
-# Works with any task that has a plan.md with a verification command.
+# Runs the Cursor CLI in a loop, spawning fresh agents until all stories pass.
+# Requires: plan.md, user_story.json, updates.md. No plan-only mode.
 #
 # Usage:
 #   ./ralph/run.sh <task-id>                   # run the loop
@@ -46,10 +46,12 @@ for arg in "$@"; do
 done
 
 if [ -z "$TASK_ID" ]; then
-  echo "Available tasks:"
+  echo "Tasks in open/ (runnable):"
+  count=0
   for d in "$REPO_ROOT"/docs/working-memory/open/*/; do
-    [ -d "$d" ] && echo "  $(basename "$d")"
+    [ -d "$d" ] && echo "  $(basename "$d")" && count=$((count + 1))
   done
+  [ $count -eq 0 ] && echo "  (none — add new tasks to docs/working-memory/open/ with plan.md + user_story.json)"
   echo ""
   echo "Usage: ./ralph/run.sh <task-id>" >&2
   exit 1
@@ -77,13 +79,17 @@ fail()  { echo -e "\033[1;31m[FAIL]\033[0m $*"; }
 
 PROMPT_FILE="$REPO_ROOT/ralph/prompts/${TASK_ID}.md"
 STORIES_FILE="$ABS_TASK_DIR/user_story.json"
-HAS_STORIES=false
-[ -f "$STORIES_FILE" ] && HAS_STORIES=true
+
+if [ ! -f "$STORIES_FILE" ]; then
+  fail "Task must have user_story.json. No plan-only mode. See ralph/TASK-STRUCTURE.md"
+  exit 1
+fi
 
 if [ ! -f "$PROMPT_FILE" ]; then
   PROMPT_FILE=$(ls "$REPO_ROOT"/ralph/prompts/*"${TASK_ID}"* 2>/dev/null | head -1 || true)
-  if [ -z "$PROMPT_FILE" ] || [ ! -f "$PROMPT_FILE" ]; then
-    fail "No prompt found at ralph/prompts/${TASK_ID}.md"
+  [ -z "$PROMPT_FILE" ] || [ ! -f "$PROMPT_FILE" ] && PROMPT_FILE="$REPO_ROOT/ralph/prompts/_template.md"
+  if [ ! -f "$PROMPT_FILE" ]; then
+    fail "No prompt found. Create ralph/prompts/${TASK_ID}.md or use _template.md"
     exit 1
   fi
 fi
@@ -124,11 +130,7 @@ for s in d['stories']:
 # ── Status mode ──────────────────────────────────────────────
 if [ "$MODE" = "status" ]; then
   info "Task: $TASK_ID"
-  if $HAS_STORIES; then
-    story_status
-  else
-    info "No user_story.json — task uses verification command from plan.md"
-  fi
+  story_status
   exit 0
 fi
 
@@ -149,42 +151,30 @@ MAX_RETRIES=3
 while [ $ITERATION -lt $MAX_ITERATIONS ]; do
   ITERATION=$((ITERATION + 1))
 
-  if $HAS_STORIES; then
-    REMAINING=$(remaining_stories)
-    if [ "$REMAINING" -eq 0 ]; then
-      ok "All stories complete!"
-      exit 0
-    fi
-
-    TARGET=$(next_story)
-    if [ "$TARGET" = "$LAST_STORY" ]; then
-      RETRY=$((RETRY + 1))
-      [ $RETRY -ge $MAX_RETRIES ] && { fail "$TARGET failed after $MAX_RETRIES retries"; exit 1; }
-      warn "Retrying $TARGET (attempt $((RETRY + 1))/$MAX_RETRIES)"
-    else
-      RETRY=0
-      LAST_STORY="$TARGET"
-    fi
-
-    info "[$ITERATION/$MAX_ITERATIONS] Story: $TARGET ($REMAINING remaining)"
-
-    if [ "$MODE" = "dry-run" ]; then
-      echo "  Would run: $TARGET"
-      exit 0
-    fi
-
-    PROMPT=$(sed "s|{{STORY_ID}}|${TARGET}|g; s|{{TASK_ID}}|${TASK_ID}|g; s|{{TASK_DIR}}|${TASK_DIR}|g" "$PROMPT_FILE")
-  else
-    info "[$ITERATION/$MAX_ITERATIONS]"
-
-    if [ "$MODE" = "dry-run" ]; then
-      echo "  Would run prompt: $PROMPT_FILE"
-      exit 0
-    fi
-
-    PROMPT=$(sed "s|{{TASK_ID}}|${TASK_ID}|g; s|{{TASK_DIR}}|${TASK_DIR}|g" "$PROMPT_FILE")
+  REMAINING=$(remaining_stories)
+  if [ "$REMAINING" -eq 0 ]; then
+    ok "All stories complete!"
+    exit 0
   fi
 
+  TARGET=$(next_story)
+  if [ "$TARGET" = "$LAST_STORY" ]; then
+    RETRY=$((RETRY + 1))
+    [ $RETRY -ge $MAX_RETRIES ] && { fail "$TARGET failed after $MAX_RETRIES retries"; exit 1; }
+    warn "Retrying $TARGET (attempt $((RETRY + 1))/$MAX_RETRIES)"
+  else
+    RETRY=0
+    LAST_STORY="$TARGET"
+  fi
+
+  info "[$ITERATION/$MAX_ITERATIONS] Story: $TARGET ($REMAINING remaining)"
+
+  if [ "$MODE" = "dry-run" ]; then
+    echo "  Would run: $TARGET"
+    exit 0
+  fi
+
+  PROMPT=$(sed "s|{{STORY_ID}}|${TARGET}|g; s|{{TASK_ID}}|${TASK_ID}|g; s|{{TASK_DIR}}|${TASK_DIR}|g" "$PROMPT_FILE")
   spawn "$PROMPT"
 
   [ "$MODE" = "once" ] && { info "Single iteration (--once): done"; exit 0; }
