@@ -43,7 +43,8 @@ export async function clockIn(
   employeeName: string,
   isSupervisor: boolean,
   userId?: string | null,
-  venueId?: string | null
+  venueId?: string | null,
+  auditUsername?: string | null
 ): Promise<[boolean, string]> {
   const existing = userId
     ? await repo.getOpenShiftByUserId(userId, employeeName, venueId)
@@ -51,20 +52,40 @@ export async function clockIn(
   if (existing) return [false, `${employeeName} already has an open shift`]
   const venueSettings = await getVenueSettings(venueId)
   const payRateType = determinePayRateType(isSupervisor, undefined, venueSettings)
-  await repo.createTimeEntry(employeeName, new Date(), payRateType, null, userId, venueId)
+  const entry = await repo.createTimeEntry(employeeName, new Date(), payRateType, null, userId, venueId)
+  await logChange(
+    'add',
+    DB.TIME_ENTRIES_TABLE,
+    entry.id,
+    (auditUsername ?? employeeName).trim(),
+    undefined,
+    { ...timeEntryToAudit(entry), event: 'clock_in' },
+    venueId
+  )
   return [true, `${employeeName} clocked in successfully (${payRateType} Rate)`]
 }
 
 export async function clockOut(
   employeeName: string,
   userId?: string | null,
-  venueId?: string | null
+  venueId?: string | null,
+  auditUsername?: string | null
 ): Promise<[boolean, string]> {
   const openShift = userId
     ? await repo.getOpenShiftByUserId(userId, employeeName, venueId)
     : await repo.getOpenShift(employeeName, venueId)
   if (!openShift) return [false, `No open shift found for ${employeeName}`]
-  await repo.closeShift(openShift.id, new Date(), venueId)
+  const before = timeEntryToAudit(openShift)
+  const updated = await repo.closeShift(openShift.id, new Date(), venueId)
+  await logChange(
+    'edit',
+    DB.TIME_ENTRIES_TABLE,
+    updated.id,
+    (auditUsername ?? employeeName).trim(),
+    before,
+    { ...timeEntryToAudit(updated), event: 'clock_out' },
+    venueId
+  )
   return [true, `${employeeName} clocked out successfully`]
 }
 

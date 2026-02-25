@@ -18,7 +18,7 @@ router.post('/in', async (req, res) => {
     return
   }
   const { isSupervisor } = req.body ?? {}
-  const [ok, msg] = await timeTracking.clockIn(user.display_name, isSupervisor === true, user.id, venueId)
+  const [ok, msg] = await timeTracking.clockIn(user.display_name, isSupervisor === true, user.id, venueId, user.username)
   if (!ok) {
     res.status(400).json({ error: msg })
     return
@@ -33,7 +33,7 @@ router.post('/out', async (req, res) => {
     res.status(400).json({ error: 'Venue context missing' })
     return
   }
-  const [ok, msg] = await timeTracking.clockOut(user.display_name, user.id, venueId)
+  const [ok, msg] = await timeTracking.clockOut(user.display_name, user.id, venueId, user.username)
   if (!ok) {
     res.status(400).json({ error: msg })
     return

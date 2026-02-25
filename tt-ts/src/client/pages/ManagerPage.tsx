@@ -25,6 +25,8 @@ function formatAuditDescription(l: AuditLog): string {
   }
   if (l.target_table === 'time_entries') {
     const emp = who || 'unknown'
+    if (event === 'clock_in') return `Clocked in: ${emp}`
+    if (event === 'clock_out') return `Clocked out: ${emp}`
     if (l.action === 'add') return `Shift added: ${emp}`
     if (l.action === 'edit') return `Shift edited: ${emp}`
     if (l.action === 'delete') return `Shift deleted: ${emp}`
