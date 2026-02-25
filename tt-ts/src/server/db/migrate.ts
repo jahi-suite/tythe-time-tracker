@@ -84,6 +84,66 @@ async function ensureVenueSchema(
   return venueRes.rows[0].id
 }
 
+async function ensureVenueSettingsColumns(client: DbClient): Promise<void> {
+  const venueSettingsColumns = [
+    {
+      name: 'enhanced_enabled',
+      type: 'BOOLEAN NOT NULL DEFAULT TRUE',
+    },
+    {
+      name: 'enhanced_start_hour',
+      type: 'INTEGER NOT NULL DEFAULT 19',
+    },
+    {
+      name: 'enhanced_end_hour',
+      type: 'INTEGER NOT NULL DEFAULT 4',
+    },
+    {
+      name: 'break_deduct_enabled',
+      type: 'BOOLEAN NOT NULL DEFAULT TRUE',
+    },
+    {
+      name: 'break_deduct_minutes',
+      type: 'INTEGER NOT NULL DEFAULT 20',
+    },
+    {
+      name: 'break_threshold_hours',
+      type: 'NUMERIC(5,2) NOT NULL DEFAULT 6',
+    },
+  ] as const
+
+  for (const column of venueSettingsColumns) {
+    if (await columnExists(client, DB.VENUES_TABLE, column.name)) continue
+
+    await client.query(
+      `ALTER TABLE ${DB.VENUES_TABLE}
+       ADD COLUMN ${column.name} ${column.type}`
+    )
+    console.log(`[migrate] Added ${DB.VENUES_TABLE}.${column.name} column`)
+  }
+
+  const backfillRes = await client.query(
+    `UPDATE ${DB.VENUES_TABLE}
+     SET enhanced_enabled = COALESCE(enhanced_enabled, TRUE),
+         enhanced_start_hour = COALESCE(enhanced_start_hour, 19),
+         enhanced_end_hour = COALESCE(enhanced_end_hour, 4),
+         break_deduct_enabled = COALESCE(break_deduct_enabled, TRUE),
+         break_deduct_minutes = COALESCE(break_deduct_minutes, 20),
+         break_threshold_hours = COALESCE(break_threshold_hours, 6)
+     WHERE enhanced_enabled IS NULL
+        OR enhanced_start_hour IS NULL
+        OR enhanced_end_hour IS NULL
+        OR break_deduct_enabled IS NULL
+        OR break_deduct_minutes IS NULL
+        OR break_threshold_hours IS NULL`
+  )
+  if ((backfillRes.rowCount ?? 0) > 0) {
+    console.log(
+      `[migrate] Backfilled ${backfillRes.rowCount} ${DB.VENUES_TABLE} row(s) with venue settings defaults`
+    )
+  }
+}
+
 async function ensureVenueColumnIndexAndFk(
   client: DbClient,
   tableName: string,
@@ -123,6 +183,7 @@ export async function runMigrations(): Promise<void> {
 
   try {
     const defaultVenueId = await ensureVenueSchema(client)
+    await ensureVenueSettingsColumns(client)
 
     await ensureVenueColumnIndexAndFk(client, DB.USERS_TABLE)
     await ensureVenueColumnIndexAndFk(client, DB.TIME_ENTRIES_TABLE)
