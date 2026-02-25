@@ -24,7 +24,7 @@
       "id": "ui-landing",
       "title": "Build landing screen inside app",
       "acceptance_criteria": "Route / shows product landing: Hero, three-value bullets (Independent & self-funded, No VC. No roadmap theatre.), Products section (Live: Kari Time, Idea: Kari Rota, Radar: Kari Stock), How we work 1/2/3 steps, CTA + email. If app opens to login/dashboard, implement as logged-out welcome screen.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "ui-copy",

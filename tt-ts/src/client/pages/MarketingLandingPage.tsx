@@ -6,13 +6,13 @@ export function MarketingLandingPage() {
     <div>
       <TopNav />
       <Hero
-        eyebrow="Kari Time"
-        titleLines={['Time tracking for', 'teams that ship']}
-        subtitle="Payroll-ready time tracking for hospitality and operations teams. Minimal UI. Clear exports. Built by a small team that still uses what it ships."
+        eyebrow="Kari Suite"
+        titleLines={['Small team.', 'Real software.']}
+        subtitle="Time tracking for teams that need clean exports, clear screens, and software that works in the real world."
         actions={
           <>
             <a href="/login" className="tt-btn">
-              Log in
+              Open Kari Time
             </a>
             <a href="/venues" className="tt-btn tt-btn--secondary">
               Venues
@@ -21,18 +21,37 @@ export function MarketingLandingPage() {
         }
         meta={
           <>
-            <Tag tone="live">Live now</Tag>
-            <Tag tone="idea">Idea stage</Tag>
-            <Tag tone="radar">On the radar</Tag>
+            <Tag tone="live">Live: Kari Time</Tag>
+            <Tag tone="idea">Idea: Kari Rota</Tag>
+            <Tag tone="radar">Radar: Kari Stock</Tag>
           </>
         }
       />
 
       <Section
+        id="values"
+        kicker="What We Value"
+        title="Independent. Direct. Useful."
+        lede="No roadmap theatre. Build tight. Ship it."
+      >
+        <div className="ks-card-grid">
+          <Card title="Independent & self-funded">
+            Small team decisions. No committee handoffs.
+          </Card>
+          <Card title="No VC. No roadmap theatre.">
+            We build when the work is real and the tool earns its place.
+          </Card>
+          <Card title="Works in the real world.">
+            Built for busy teams, phones in hand, mid-shift.
+          </Card>
+        </div>
+      </Section>
+
+      <Section
         id="products"
         kicker="Products"
-        title="Reusable product cards"
-        lede="These cards are the shared building blocks for the landing pages and app-adjacent screens."
+        title="Three products. One standard."
+        lede="Clear scope. Honest status. Ship the one that solves today's problem."
       >
         <div className="ks-card-grid">
           <Card
@@ -61,23 +80,51 @@ export function MarketingLandingPage() {
         </div>
       </Section>
 
-      <Section id="how-we-work" kicker="How We Work" title="Three steps. No theatre.">
+      <Section
+        id="how-we-work"
+        kicker="How We Work"
+        title="Three steps. No theatre."
+        lede="Start with a real workflow. Tighten the useful path. Repeat."
+      >
         <Steps
           items={[
             {
-              title: 'Start narrow',
-              body: 'Ship the smallest version that handles a real shift, a real rota, or a real export.',
+              title: 'Start with a real job',
+              body: 'Pick one workflow that matters today. Make it usable end to end before adding more.',
             },
             {
-              title: 'Listen in production',
-              body: 'Talk to operators. Keep the UI quiet. Cut the parts that slow people down.',
+              title: 'Ship tight',
+              body: 'Keep the UI quiet, remove friction, and focus on the path people use every day.',
             },
             {
-              title: 'Tighten and repeat',
-              body: 'Make the useful path faster. Keep the product readable on a phone at 6am.',
+              title: 'Listen and iterate',
+              body: 'Watch real usage, fix sharp edges fast, and keep improving what already works.',
             },
           ]}
         />
+      </Section>
+
+      <Section
+        id="contact"
+        kicker="CTA"
+        title="Need time tracking that stays out of the way?"
+        lede="Kari Time is live now. Start with the product or email us if you need a fit check."
+      >
+        <div className="ks-card-grid">
+          <Card title="Open Kari Time" description="Log in and get to the clock, timesheet, and exports.">
+            <a href="/login" className="tt-btn">
+              Open app
+            </a>
+          </Card>
+          <Card title="Email" description="Real inbox. Real response.">
+            <a href="mailto:hello@karisuite.com" className="ks-card__cta">
+              hello@karisuite.com
+            </a>
+          </Card>
+          <Card title="How we build" description="Small team. Real software.">
+            Build tight. Ship it. No roadmap theatre.
+          </Card>
+        </div>
       </Section>
 
       <Footer />
