@@ -7,6 +7,7 @@ import { createRequire } from 'module'
 import { fileURLToPath } from 'url'
 
 import authRoutes from './routes/auth.js'
+import venuesRoutes from './routes/venues.js'
 import clockRoutes from './routes/clock.js'
 import timesheetRoutes from './routes/timesheet.js'
 import shiftsRoutes from './routes/shifts.js'
@@ -143,6 +144,7 @@ export async function createApp() {
   app.use('/api', requireSameOriginForMutations)
 
   app.use('/api/auth', authRoutes)
+  app.use('/api/venues', venuesRoutes)
   app.use('/api/clock', clockRoutes)
   app.use('/api/timesheet', timesheetRoutes)
   app.use('/api/shifts', shiftsRoutes)
