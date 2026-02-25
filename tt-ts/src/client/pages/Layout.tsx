@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { auth } from '../api'
-import { Container, Footer, TopNav } from '../components'
+import { Container, Footer } from '../components'
 
 export function Layout() {
   const { user, logout } = useAuth()
@@ -55,14 +55,6 @@ export function Layout() {
 
   return (
     <div className="app-shell">
-      <TopNav
-        brandLabel="Kari Time"
-        brandHref="/clock"
-        links={pages.map((p) => ({ label: p.label.replace(/^(Employee |Personal |Export |Manager )/, ''), href: p.path }))}
-        cta={undefined}
-        className="app-shell__topnav"
-      />
-
       <Container className="app-shell__content">
         <section className="app-shell__intro" aria-label="Workspace details">
           <div className="app-shell__intro-main">
