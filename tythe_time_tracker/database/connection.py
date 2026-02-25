@@ -37,7 +37,7 @@ def get_db_connection() -> tuple[Optional[connection], Optional[str]]:
         msg = str(e)
         if config is not None:
             msg += f' (attempted user: "{config.user}")'
-        logger.error(f"Database connection failed: {e}")
+        logger.exception("Database connection failed while creating psycopg2 connection: %s", e)
         return None, msg
 
 
@@ -77,7 +77,7 @@ class DatabaseConnection:
             self.connection.commit()
         except Exception as e:
             self.connection.rollback()
-            logger.error(f"Database operation failed: {e}")
+            logger.exception("Database operation failed; transaction rolled back: %s", e)
             raise
         finally:
             if cursor:
@@ -100,7 +100,7 @@ class DatabaseConnection:
                 cursor.execute("SELECT 1")
                 return True
         except Exception as e:
-            logger.error(f"Database connection test failed: {e}")
+            logger.exception("Database connection test failed: %s", e)
             return False
     
     def initialize_tables(self) -> None:
@@ -150,5 +150,5 @@ class DatabaseConnection:
                 
             logger.info("Database tables initialized successfully")
         except Exception as e:
-            logger.error(f"Failed to initialize database tables: {e}")
+            logger.exception("Failed to initialize database tables: %s", e)
             raise RuntimeError(ErrorMessages.DB_INIT_FAILED) from e 
