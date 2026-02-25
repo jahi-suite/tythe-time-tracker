@@ -85,6 +85,9 @@ Pipfile.lock
 # pytest
 .pytest_cache/
 
+# Playwright / test output
+tt-ts/test-results/
+
 # Coverage reports
 htmlcov/
 .coverage
