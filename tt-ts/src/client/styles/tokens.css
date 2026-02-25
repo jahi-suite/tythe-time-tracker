@@ -1,0 +1,84 @@
+:root {
+  /* Layout */
+  --maxWidth: 72rem;
+  --content-padding-inline: 1.25rem;
+
+  /* Spacing scale */
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+
+  /* Typography */
+  --font-family-sans: "DM Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-family-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-size-hero: clamp(2.2rem, 5vw, 3.8rem);
+  --font-size-h2: clamp(1.5rem, 2.2vw, 2rem);
+  --font-size-body: 1rem;
+  --font-size-small: 0.875rem;
+  --line-height-tight: 1.15;
+  --line-height-body: 1.5;
+
+  /* Radius + borders */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.25rem;
+  --radius-pill: 999px;
+  --divider: #ddd8cf;
+  --divider-strong: #cfc7ba;
+  --border-width: 1px;
+
+  /* Color system */
+  --color-canvas: #f7f3eb;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f3eee5;
+  --color-text: #17140f;
+  --color-text-muted: #645c50;
+  --color-brand: #1f4e79;
+  --color-brand-strong: #163a5c;
+  --color-accent: #b6792f;
+  --color-danger: #b91c1c;
+  --focus-ring: rgba(31, 78, 121, 0.24);
+
+  /* Buttons / links / tags */
+  --button-height: 2.5rem;
+  --button-radius: var(--radius-sm);
+  --button-padding-inline: 0.95rem;
+  --button-font-weight: 600;
+  --button-primary-bg: var(--color-brand);
+  --button-primary-border: var(--color-brand);
+  --button-primary-text: #ffffff;
+  --button-primary-bg-hover: var(--color-brand-strong);
+  --button-secondary-bg: #f4f0e8;
+  --button-secondary-border: var(--divider-strong);
+  --button-secondary-text: var(--color-text);
+  --link-color: var(--color-text);
+  --link-color-hover: var(--color-brand-strong);
+  --link-underline-color: rgba(23, 20, 15, 0.2);
+  --tag-radius: var(--radius-pill);
+  --tag-bg: #eee6d8;
+  --tag-border: #dccfb6;
+  --tag-text: #4b3f2c;
+  --tag-padding-y: 0.22rem;
+  --tag-padding-x: 0.55rem;
+  --tag-font-size: 0.75rem;
+
+  /* Legacy aliases used across the app */
+  --tt-primary: var(--color-brand);
+  --tt-primary-dark: var(--color-brand-strong);
+  --tt-text: var(--color-text);
+  --tt-text-muted: var(--color-text-muted);
+  --tt-border: var(--divider);
+  --tt-surface: var(--color-surface);
+  --tt-surface-subtle: var(--color-surface-muted);
+  --tt-surface-muted: var(--color-surface-muted);
+  --tt-card-radius: var(--radius-md);
+  --tt-card-shadow: 0 2px 8px rgba(17, 17, 17, 0.06);
+  --tt-card-shadow-hover: 0 6px 16px rgba(17, 17, 17, 0.1);
+  --tt-heading-font: var(--font-family-sans);
+  --tt-spacing-sm: var(--space-xs);
+  --tt-spacing-md: var(--space-md);
+  --tt-spacing-lg: var(--space-lg);
+  --tt-spacing-xl: var(--space-xl);
+}

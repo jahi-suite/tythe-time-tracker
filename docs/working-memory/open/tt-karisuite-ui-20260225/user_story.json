@@ -6,7 +6,7 @@
       "id": "ui-tokens",
       "title": "Extract design system (tokens)",
       "acceptance_criteria": "Create tt-ts/src/client/styles/tokens.css (or .ts/.scss) with --maxWidth, spacing scale (xs→xl), font sizes (hero/h2/body/small), border radius, dividers, button/link styles, tag/chip styles. Create theme.css that imports tokens. index.css imports theme. No page-level random CSS; everything uses tokens.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "ui-components",

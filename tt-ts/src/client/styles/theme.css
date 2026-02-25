@@ -1,0 +1,92 @@
+@import "./tokens.css";
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  background: var(--color-canvas);
+  color: var(--color-text);
+}
+
+a,
+.tt-link {
+  color: var(--link-color);
+  text-decoration-color: var(--link-underline-color);
+  text-underline-offset: 0.18em;
+}
+
+a:hover,
+a:focus-visible,
+.tt-link:hover,
+.tt-link:focus-visible {
+  color: var(--link-color-hover);
+}
+
+.tt-container {
+  width: min(100% - (var(--content-padding-inline) * 2), var(--maxWidth));
+  margin-inline: auto;
+}
+
+.tt-divider {
+  border: 0;
+  border-top: var(--border-width) solid var(--divider);
+}
+
+.tt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: var(--button-height);
+  padding-inline: var(--button-padding-inline);
+  border-radius: var(--button-radius);
+  border: var(--border-width) solid var(--button-primary-border);
+  background: var(--button-primary-bg);
+  color: var(--button-primary-text);
+  font: inherit;
+  font-weight: var(--button-font-weight);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.tt-btn:hover:not(:disabled),
+.tt-btn:focus-visible {
+  background: var(--button-primary-bg-hover);
+  border-color: var(--button-primary-bg-hover);
+}
+
+.tt-btn--secondary {
+  background: var(--button-secondary-bg);
+  border-color: var(--button-secondary-border);
+  color: var(--button-secondary-text);
+}
+
+.tt-btn--secondary:hover:not(:disabled),
+.tt-btn--secondary:focus-visible {
+  background: #ebe4d8;
+  border-color: #c6baa5;
+}
+
+.tt-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: var(--tag-padding-y) var(--tag-padding-x);
+  border-radius: var(--tag-radius);
+  border: var(--border-width) solid var(--tag-border);
+  background: var(--tag-bg);
+  color: var(--tag-text);
+  font-size: var(--tag-font-size);
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
