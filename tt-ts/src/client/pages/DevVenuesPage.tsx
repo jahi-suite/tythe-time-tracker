@@ -3,6 +3,7 @@ import React from 'react'
 type DevVenue = {
   name: string
   slug: string
+  active: boolean
   staff_count: number
   last_used: string | null
 }
@@ -34,6 +35,8 @@ export function DevVenuesPage() {
   const [state, setState] = React.useState<LoadState>({ kind: 'loading' })
   const [secretInput, setSecretInput] = React.useState('')
   const [submittingSecret, setSubmittingSecret] = React.useState(false)
+  const [actionSlug, setActionSlug] = React.useState<string | null>(null)
+  const [actionError, setActionError] = React.useState<string | null>(null)
 
   const loadVenues = React.useCallback(async () => {
     if (!isLocalhost()) {
@@ -74,6 +77,46 @@ export function DevVenuesPage() {
     void loadVenues()
   }, [loadVenues])
 
+  const handleVenueAction = async (venue: DevVenue, action: 'deactivate' | 'reactivate') => {
+    if (action === 'deactivate') {
+      const confirmed = window.confirm(
+        `Deactivate ${venue.name}? They won't be able to log in.`,
+      )
+      if (!confirmed) return
+    }
+
+    setActionError(null)
+    setActionSlug(venue.slug)
+
+    let res: Response
+    try {
+      res = await fetch(`/api/dev/venues/${encodeURIComponent(venue.slug)}/${action}`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+    } catch {
+      setActionError(`Could not ${action} venue.`)
+      setActionSlug(null)
+      return
+    }
+
+    if (!res.ok) {
+      let message = `Could not ${action} venue (${res.status}).`
+      try {
+        const data = (await res.json()) as { error?: string }
+        if (typeof data.error === 'string' && data.error.trim()) message = data.error
+      } catch {
+        // Ignore JSON parse failures and use the status fallback.
+      }
+      setActionError(message)
+      setActionSlug(null)
+      return
+    }
+
+    setActionSlug(null)
+    await loadVenues()
+  }
+
   const handleSecretSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const secret = secretInput.trim()
@@ -106,6 +149,7 @@ export function DevVenuesPage() {
         )}
 
         {state.kind === 'error' && <p className="message-error">{state.message}</p>}
+        {actionError && <p className="message-error">{actionError}</p>}
 
         {state.kind === 'secret-required' && (
           <form onSubmit={handleSecretSubmit} className="dev-secret-form">
@@ -134,8 +178,10 @@ export function DevVenuesPage() {
                 <tr>
                   <th>Name</th>
                   <th>Slug</th>
+                  <th>Status</th>
                   <th>Staff</th>
                   <th>Last used</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -143,13 +189,42 @@ export function DevVenuesPage() {
                   <tr key={venue.slug}>
                     <td>{venue.name}</td>
                     <td>{venue.slug}</td>
+                    <td>
+                      {venue.active ? (
+                        <span className="status-badge status-badge-active">Active</span>
+                      ) : (
+                        <span className="status-badge status-badge-inactive">Inactive</span>
+                      )}
+                    </td>
                     <td>{venue.staff_count}</td>
                     <td title={venue.last_used ?? ''}>{formatLastUsed(venue.last_used)}</td>
+                    <td>
+                      {venue.active && venue.slug !== 'tythe' && (
+                        <button
+                          type="button"
+                          className="venue-action-button venue-action-danger"
+                          disabled={actionSlug === venue.slug}
+                          onClick={() => void handleVenueAction(venue, 'deactivate')}
+                        >
+                          {actionSlug === venue.slug ? 'Deactivating...' : 'Deactivate'}
+                        </button>
+                      )}
+                      {!venue.active && (
+                        <button
+                          type="button"
+                          className="venue-action-button venue-action-primary"
+                          disabled={actionSlug === venue.slug}
+                          onClick={() => void handleVenueAction(venue, 'reactivate')}
+                        >
+                          {actionSlug === venue.slug ? 'Reactivating...' : 'Reactivate'}
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
                 {state.venues.length === 0 && (
                   <tr>
-                    <td colSpan={4}>No venues found.</td>
+                    <td colSpan={6}>No venues found.</td>
                   </tr>
                 )}
               </tbody>
@@ -233,6 +308,51 @@ export function DevVenuesPage() {
         }
         .dev-venues-table td {
           font-size: 0.95rem;
+        }
+        .status-badge {
+          display: inline-flex;
+          align-items: center;
+          border-radius: 999px;
+          padding: 0.12rem 0.55rem;
+          font-size: 0.78rem;
+          font-weight: 600;
+          line-height: 1.4;
+          border: 1px solid transparent;
+          white-space: nowrap;
+        }
+        .status-badge-active {
+          color: #065f46;
+          background: #ecfdf5;
+          border-color: #a7f3d0;
+        }
+        .status-badge-inactive {
+          color: #991b1b;
+          background: #fef2f2;
+          border-color: #fecaca;
+        }
+        .venue-action-button {
+          border: 1px solid #d1d5db;
+          border-radius: 6px;
+          padding: 0.35rem 0.6rem;
+          font-size: 0.85rem;
+          font-weight: 600;
+          background: #fff;
+          cursor: pointer;
+          white-space: nowrap;
+        }
+        .venue-action-button:disabled {
+          opacity: 0.6;
+          cursor: default;
+        }
+        .venue-action-primary {
+          color: #1d4ed8;
+          border-color: #bfdbfe;
+          background: #eff6ff;
+        }
+        .venue-action-danger {
+          color: #b91c1c;
+          border-color: #fecaca;
+          background: #fef2f2;
         }
         @media (max-width: 640px) {
           .dev-venues-card {
