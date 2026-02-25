@@ -101,6 +101,11 @@ spawn_agent() {
     else
       gemini_cmd="$gemini_bin"
     fi
+    # Export GEMINI_API_KEY from ~/.gemini/.env if not already set
+    if [ -z "${GEMINI_API_KEY:-}" ] && [ -f "${HOME}/.gemini/.env" ]; then
+      # shellcheck source=/dev/null
+      set -a && . "${HOME}/.gemini/.env" && set +a
+    fi
     (
       cd "$repo_root" && printf '%s' "$prompt_content" | $gemini_cmd --yolo \
         --model "${RALPH_GEMINI_MODEL:-gemini-3-pro}"
