@@ -283,12 +283,11 @@ export async function runMigrations(): Promise<void> {
       console.log('[migrate] Added time_entries.user_id foreign key')
     }
 
-    // Fix audit_log: NULL out venue_id for rows that were incorrectly backfilled
-    // (backfill set all NULL to Tythe; rows where target user/entry is in another venue should be NULL)
+    // Fix audit_log: delete rows that were incorrectly backfilled to Tythe
+    // (backfill set all NULL to Tythe; rows where target user/entry is in another venue should not show in any venue)
     const fixAuditUserVenue = await client.query(
-      `UPDATE ${DB.AUDIT_LOG_TABLE} a
-       SET ${DB.VENUE_ID_COLUMN} = NULL
-       FROM ${DB.USERS_TABLE} u
+      `DELETE FROM ${DB.AUDIT_LOG_TABLE} a
+       USING ${DB.USERS_TABLE} u
        WHERE a.target_table = $1
          AND a.target_id = u.${DB.ID_COLUMN}
          AND a.${DB.VENUE_ID_COLUMN} IS NOT NULL
@@ -297,12 +296,11 @@ export async function runMigrations(): Promise<void> {
       [DB.USERS_TABLE]
     )
     if (fixAuditUserVenue.rowCount && fixAuditUserVenue.rowCount > 0) {
-      console.log(`[migrate] Fixed ${fixAuditUserVenue.rowCount} audit_log row(s) with mismatched user venue`)
+      console.log(`[migrate] Removed ${fixAuditUserVenue.rowCount} audit_log row(s) with mismatched user venue`)
     }
     const fixAuditEntryVenue = await client.query(
-      `UPDATE ${DB.AUDIT_LOG_TABLE} a
-       SET ${DB.VENUE_ID_COLUMN} = NULL
-       FROM ${DB.TIME_ENTRIES_TABLE} te
+      `DELETE FROM ${DB.AUDIT_LOG_TABLE} a
+       USING ${DB.TIME_ENTRIES_TABLE} te
        WHERE a.target_table = $1
          AND a.target_id = te.${DB.ID_COLUMN}
          AND a.${DB.VENUE_ID_COLUMN} IS NOT NULL
@@ -311,7 +309,7 @@ export async function runMigrations(): Promise<void> {
       [DB.TIME_ENTRIES_TABLE]
     )
     if (fixAuditEntryVenue.rowCount && fixAuditEntryVenue.rowCount > 0) {
-      console.log(`[migrate] Fixed ${fixAuditEntryVenue.rowCount} audit_log row(s) with mismatched time_entry venue`)
+      console.log(`[migrate] Removed ${fixAuditEntryVenue.rowCount} audit_log row(s) with mismatched time_entry venue`)
     }
 
     // Fix users with empty display_name (prevents "Unknown user")
