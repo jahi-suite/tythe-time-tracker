@@ -8,7 +8,7 @@ type FooterProps = {
   className?: string
 }
 
-export function Footer({ email = 'hello@karisuite.com', company = 'Kari Suite', className }: FooterProps) {
+export function Footer({ email = 'jahi@karisuite.com', company = 'Kari Suite', className }: FooterProps) {
   const year = new Date().getFullYear()
 
   return (
