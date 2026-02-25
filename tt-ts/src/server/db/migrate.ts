@@ -220,6 +220,62 @@ async function ensureVenueColumnIndexAndFk(
   }
 }
 
+async function ensureEmailVerificationColumns(client: DbClient): Promise<void> {
+  if (!(await columnExists(client, DB.VENUES_TABLE, DB.EMAIL_VERIFIED_COLUMN))) {
+    await client.query(
+      `ALTER TABLE ${DB.VENUES_TABLE}
+       ADD COLUMN ${DB.EMAIL_VERIFIED_COLUMN} BOOLEAN NOT NULL DEFAULT FALSE`
+    );
+    console.log(`[migrate] Added ${DB.VENUES_TABLE}.${DB.EMAIL_VERIFIED_COLUMN} column`);
+  }
+  if (!(await columnExists(client, DB.VENUES_TABLE, DB.VERIFICATION_TOKEN_HASH_COLUMN))) {
+    await client.query(
+      `ALTER TABLE ${DB.VENUES_TABLE}
+       ADD COLUMN ${DB.VERIFICATION_TOKEN_HASH_COLUMN} TEXT NULL`
+    );
+    console.log(`[migrate] Added ${DB.VENUES_TABLE}.${DB.VERIFICATION_TOKEN_HASH_COLUMN} column`);
+  }
+  if (!(await columnExists(client, DB.VENUES_TABLE, DB.VERIFICATION_SENT_AT_COLUMN))) {
+    await client.query(
+      `ALTER TABLE ${DB.VENUES_TABLE}
+       ADD COLUMN ${DB.VERIFICATION_SENT_AT_COLUMN} TIMESTAMPTZ NULL`
+    );
+    console.log(`[migrate] Added ${DB.VENUES_TABLE}.${DB.VERIFICATION_SENT_AT_COLUMN} column`);
+  }
+  if (!(await columnExists(client, DB.VENUES_TABLE, DB.IS_FOUNDER_COLUMN))) {
+    await client.query(
+      `ALTER TABLE ${DB.VENUES_TABLE}
+       ADD COLUMN ${DB.IS_FOUNDER_COLUMN} BOOLEAN NOT NULL DEFAULT FALSE`
+    );
+    console.log(`[migrate] Added ${DB.VENUES_TABLE}.${DB.IS_FOUNDER_COLUMN} column`);
+  }
+  if (!(await columnExists(client, DB.VENUES_TABLE, DB.SUBSCRIPTION_TIER_COLUMN))) {
+    await client.query(
+      `ALTER TABLE ${DB.VENUES_TABLE}
+       ADD COLUMN ${DB.SUBSCRIPTION_TIER_COLUMN} TEXT NOT NULL DEFAULT 'FREE'`
+    );
+    console.log(`[migrate] Added ${DB.VENUES_TABLE}.${DB.SUBSCRIPTION_TIER_COLUMN} column`);
+  }
+    if (!(await columnExists(client, DB.VENUES_TABLE, DB.ADMIN_EMAIL_COLUMN))) {
+    await client.query(
+      `ALTER TABLE ${DB.VENUES_TABLE}
+       ADD COLUMN ${DB.ADMIN_EMAIL_COLUMN} TEXT NULL`
+    );
+    console.log(`[migrate] Added ${DB.VENUES_TABLE}.${DB.ADMIN_EMAIL_COLUMN} column`);
+  }
+
+  // Seed tythebarn with founder flags
+  await client.query(
+    `INSERT INTO ${DB.VENUES_TABLE} (slug, name, ${DB.IS_FOUNDER_COLUMN}, ${DB.EMAIL_VERIFIED_COLUMN}, ${DB.SUBSCRIPTION_TIER_COLUMN})
+     VALUES ('tythebarn', 'Tythe Barn', TRUE, TRUE, 'FOUNDER')
+     ON CONFLICT (slug) DO UPDATE
+     SET ${DB.IS_FOUNDER_COLUMN} = TRUE,
+         ${DB.EMAIL_VERIFIED_COLUMN} = TRUE,
+         ${DB.SUBSCRIPTION_TIER_COLUMN} = 'FOUNDER'`
+  );
+  console.log(`[migrate] Seeded tythebarn with founder flags`);
+}
+
 export async function runMigrations(): Promise<void> {
   const pool = getPool()
   const client = await pool.connect()
@@ -228,6 +284,7 @@ export async function runMigrations(): Promise<void> {
     const defaultVenueId = await ensureVenueSchema(client)
     await ensureVenueActiveColumn(client)
     await ensureVenueSettingsColumns(client)
+    await ensureEmailVerificationColumns(client)
 
     await ensureVenueColumnIndexAndFk(client, DB.USERS_TABLE)
     await ensureVenueColumnIndexAndFk(client, DB.TIME_ENTRIES_TABLE)

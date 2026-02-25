@@ -48,6 +48,22 @@ export interface VenueSettings {
   supervisor_deduct_break: boolean
 }
 
+export type SubscriptionTier = 'FREE' | 'FOUNDER'
+
+export interface Venue {
+  id: string
+  slug: string
+  name: string
+  active: boolean
+  email_verified: boolean
+  verification_token_hash: string | null
+  verification_sent_at: Date | null
+  is_founder: boolean
+  subscription_tier: SubscriptionTier
+  admin_email: string | null
+  created_at: Date
+}
+
 export interface TimeSplit {
   standard_hours: number
   enhanced_hours: number

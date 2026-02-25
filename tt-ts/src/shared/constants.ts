@@ -23,6 +23,12 @@ export const DB = {
   STANDARD_RATE_COLUMN: 'standard_rate',
   ENHANCED_RATE_COLUMN: 'enhanced_rate',
   SUPERVISOR_RATE_COLUMN: 'supervisor_rate',
+  EMAIL_VERIFIED_COLUMN: 'email_verified',
+  VERIFICATION_TOKEN_HASH_COLUMN: 'verification_token_hash',
+  VERIFICATION_SENT_AT_COLUMN: 'verification_sent_at',
+  IS_FOUNDER_COLUMN: 'is_founder',
+  SUBSCRIPTION_TIER_COLUMN: 'subscription_tier',
+  ADMIN_EMAIL_COLUMN: 'admin_email',
   DEFAULT_PAY_RATE: 'Standard',
 } as const
 

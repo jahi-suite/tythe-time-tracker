@@ -24,7 +24,7 @@ check() {
 check npm run build >/dev/null 2>&1
 
 # Migration: venues has new columns (migrate.ts or repository)
-if grep -q 'email_verified\|verification_token_hash\|is_founder' "$REPO_ROOT/tt-ts/src/server" 2>/dev/null; then
+if grep -rq 'email_verified\|verification_token_hash\|is_founder' "$REPO_ROOT/tt-ts/src" 2>/dev/null; then
   echo "[PASS] Migration columns present"
   PASS=$((PASS + 1))
 else
@@ -33,8 +33,8 @@ else
 fi
 
 # Founder rule: tythebarn exempt
-check grep -q 'tythebarn' "$REPO_ROOT/tt-ts/src/server" 2>/dev/null
-check grep -q 'founding test partner\|founder' "$REPO_ROOT/tt-ts/src/server" 2>/dev/null
+check grep -rq 'tythebarn' "$REPO_ROOT/tt-ts/src" 2>/dev/null
+check grep -rq 'founding test partner\|founder' "$REPO_ROOT/tt-ts/src" 2>/dev/null
 
 # EmailService exists
 if [ -f "$REPO_ROOT/tt-ts/src/server/services/emailService.ts" ] || [ -f "$REPO_ROOT/tt-ts/src/server/services/email.ts" ]; then
@@ -46,11 +46,11 @@ else
 fi
 
 # Verification route exists
-check grep -q 'verify-email\|verifyEmail' "$REPO_ROOT/tt-ts/src/server" 2>/dev/null
+check grep -rq 'verify-email\|verifyEmail' "$REPO_ROOT/tt-ts/src/server" 2>/dev/null
 
 # Access gate / middleware
-check grep -q 'email_verified\|verify-email-pending' "$REPO_ROOT/tt-ts/src/server" 2>/dev/null
-check grep -q 'verify-email-pending\|VerifyPending' "$REPO_ROOT/tt-ts/src/client" 2>/dev/null
+check grep -rq 'email_verified\|verify-email-pending' "$REPO_ROOT/tt-ts/src/server" 2>/dev/null
+check grep -rq 'verify-email-pending\|VerifyPending' "$REPO_ROOT/tt-ts/src/client" 2>/dev/null
 
 # Docs
 check [ -f "$REPO_ROOT/docs/google-email-setup.md" ] 2>/dev/null
