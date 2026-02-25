@@ -10,9 +10,16 @@ type DevVenue = {
 type LoadState =
   | { kind: 'loading' }
   | { kind: 'disabled' }
+  | { kind: 'localhost-only' }
   | { kind: 'secret-required'; error?: string }
   | { kind: 'error'; message: string }
   | { kind: 'ready'; venues: DevVenue[] }
+
+function isLocalhost(): boolean {
+  if (typeof window === 'undefined') return false
+  const host = window.location.hostname.toLowerCase()
+  return host === 'localhost' || host === '127.0.0.1' || host === '[::1]'
+}
 
 function formatLastUsed(value: string | null): string {
   if (!value) return 'Never'
@@ -29,6 +36,11 @@ export function DevVenuesPage() {
   const [submittingSecret, setSubmittingSecret] = React.useState(false)
 
   const loadVenues = React.useCallback(async () => {
+    if (!isLocalhost()) {
+      setState({ kind: 'localhost-only' })
+      return
+    }
+
     setState({ kind: 'loading' })
 
     let res: Response
@@ -84,6 +96,10 @@ export function DevVenuesPage() {
         <p className="dev-venues-subtitle">Venue names, slugs, staff count, and last activity.</p>
 
         {state.kind === 'loading' && <p>Loading venues...</p>}
+
+        {state.kind === 'localhost-only' && (
+          <p>Dev venues is only available on localhost. It will never work on the main site.</p>
+        )}
 
         {state.kind === 'disabled' && (
           <p>Dev venues list is disabled. Set DEV_VENUES_ENABLED=true to enable.</p>
