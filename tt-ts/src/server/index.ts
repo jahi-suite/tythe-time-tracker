@@ -14,6 +14,7 @@ import shiftsRoutes from './routes/shifts.js'
 import usersRoutes from './routes/users.js'
 import auditRoutes from './routes/audit.js'
 import exportRoutes from './routes/export.js'
+import devRoutes from './routes/dev.js'
 import { requireSameOriginForMutations } from './middleware/csrf.js'
 import { getSessionCookieOptions } from './sessionConfig.js'
 import { getPool } from './db/connection.js'
@@ -151,6 +152,7 @@ export async function createApp() {
   app.use('/api/users', usersRoutes)
   app.use('/api/audit', auditRoutes)
   app.use('/api/export', exportRoutes)
+  app.use('/api/dev', devRoutes)
 
   return app
 }
