@@ -7,6 +7,8 @@ export function ClockPage() {
   const displayName = user?.display_name || user?.username || 'User'
   const [openShift, setOpenShift] = useState<{ id: string; clock_in: string; pay_rate_type: string } | null>(null)
   const [isSupervisor, setIsSupervisor] = useState(false)
+  const [supervisorEnabled, setSupervisorEnabled] = useState(true)
+  const [supervisorLabel, setSupervisorLabel] = useState('Supervisor')
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   const loadOpenShift = async () => {
@@ -19,9 +21,27 @@ export function ClockPage() {
   }
 
   useEffect(() => {
-    // Preload venue settings from /api/venues/current/settings for non-admin supervisor UI logic.
-    void venues.currentSettings().catch(() => undefined)
+    let cancelled = false
+
+    const loadVenueSettings = async () => {
+      try {
+        // Clock reads /api/venues/current/settings so non-admin users can apply venue supervisor settings.
+        const settings = await venues.currentSettings()
+        if (cancelled) return
+        setSupervisorEnabled(settings.supervisor_enabled)
+        setSupervisorLabel(settings.supervisor_label || 'Supervisor')
+        if (!settings.supervisor_enabled) setIsSupervisor(false)
+      } catch {
+        // Keep defaults to preserve existing clock-in behavior when settings cannot be loaded.
+      }
+    }
+
+    void loadVenueSettings()
     loadOpenShift()
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const handleClockIn = async () => {
@@ -63,7 +83,7 @@ export function ClockPage() {
           <span className="stat-label">Current Status</span>
         </div>
         <div className="stat-card">
-          <span className="stat-value">{isSupervisor ? 'Supervisor' : 'Employee'}</span>
+          <span className="stat-value">{isSupervisor ? supervisorLabel : 'Employee'}</span>
           <span className="stat-label">Next Clock In Role</span>
         </div>
         <div className="stat-card">
@@ -74,14 +94,16 @@ export function ClockPage() {
       <div className="cards-grid">
         <div className="card">
           <h3>Clock In/Out</h3>
-          <label>
-            <input
-              type="checkbox"
-              checked={isSupervisor}
-              onChange={(e) => setIsSupervisor(e.target.checked)}
-            />
-            Supervisor Role
-          </label>
+          {supervisorEnabled && (
+            <label>
+              <input
+                type="checkbox"
+                checked={isSupervisor}
+                onChange={(e) => setIsSupervisor(e.target.checked)}
+              />
+              {supervisorLabel} Role
+            </label>
+          )}
           <div className="btn-row">
             <button onClick={handleClockIn} className="btn-primary" disabled={!!openShift}>
               Clock In
