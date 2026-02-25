@@ -162,9 +162,7 @@ export function VenueLandingPage() {
         )}
 
         <p className="venue-landing-footer">
-          <a href="/kari-time-marketing.html" target="_blank" rel="noopener noreferrer">
-            Learn more
-          </a>
+          <Link to="/">← Back to home</Link>
         </p>
       </div>
 

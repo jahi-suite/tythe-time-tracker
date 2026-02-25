@@ -2,6 +2,7 @@ import React from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 
+import { MarketingLandingPage } from './pages/MarketingLandingPage'
 import { VenueLandingPage } from './pages/VenueLandingPage'
 import { LoginPage, FirstSetupPage } from './pages/LoginPage'
 import { Layout } from './pages/Layout'
@@ -75,7 +76,8 @@ function AppRoutes() {
     )
   return (
     <Routes>
-      <Route path="/" element={<VenueLandingPage />} />
+      <Route path="/" element={<MarketingLandingPage />} />
+      <Route path="/venues" element={<VenueLandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/:venueSlug/login" element={<LoginPage />} />
       <Route path="/terms" element={<TermsPage />} />
