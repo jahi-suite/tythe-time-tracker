@@ -126,7 +126,7 @@ tythe-time-tracker/
 ├── tt-ts/                          # TypeScript app (Vite + React + Express)
 │   ├── src/                        # Client: pages (Clock, Timesheet, Export, Manager), components, hooks
 │   └── server/                     # Express API, services, exportUtils
-└── ralph/                          # Ralph scripts (run.sh, status.sh, prompts, loops)
+└── ralph/                          # Ralph: run.sh, status.sh, prompts, verify-*.sh
 ```
 
 ---
@@ -142,7 +142,7 @@ tythe-time-tracker/
 - **tt-break-deduction-20260223** – 20min break for 6h+ shifts (in progress).
 - **tt-streamlit-desktop-contrast-20260223** – Desktop form contrast fixes.
 
-Run a loop: `RALPH_BACKEND=codex-cli ./ralph/run.sh <task-id>`.
+Run a loop: `RALPH_BACKEND=codex-cli ./ralph/run.sh <task-id>`. Status: `./ralph/status.sh`. Every task requires plan.md + user_story.json + updates.md. On failure: record in updates.md what you tried, what worked, what didn't.
 
 ---
 
