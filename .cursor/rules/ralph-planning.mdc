@@ -26,7 +26,7 @@ When the user asks for a Ralph task or to "create a Ralph plan/loop":
 
 ### Execution Agent (Ralph)
 
-Spawned by the loop script. Reads the plan, implements one phase per iteration, commits, updates. Does NOT run verify scripts (user runs those).
+Spawned by the loop script. Reads the plan, implements one phase per iteration, commits, updates. May run verify scripts to see current state.
 
 ## Forbidden
 

@@ -6,7 +6,7 @@ Read `docs/working-memory/open/tt-codebase-cleanup-20260225/plan.md`. Do **ONE s
 
 ## Rules
 
-- Do NOT run verify scripts — the user runs those
+- Run ./ralph/verify-tt-codebase-cleanup-20260225.sh to see current failures
 - Do ONE atomic unit of work (one story from the plan)
 - Commit immediately with conventional prefix (fix:, chore:, docs:)
 - Update the task's updates.md with timestamp and what was done
@@ -18,4 +18,8 @@ Read `docs/working-memory/open/tt-codebase-cleanup-20260225/plan.md`. Do **ONE s
 - **Docs**: consolidate, align with current setup, remove obsolete
 - **Code**: unused imports (conservative; no risky dead-code removal)
 
-**Pick the next incomplete story**: Read `updates.md` to see what's done. Skip completed stories (cleanup-01 through cleanup-06 are done). The verify script fails because there are still 32 open tasks (target < 20) — so do **cleanup-05/06**: archive more completed tasks from `open/` to `done/` until open count < 20.
+**Pick the next incomplete story**: Read `updates.md` to see what's done. Skip completed stories (cleanup-01 through cleanup-06 are done).
+
+**Verify output** is injected by the loop below. Address the FAIL lines. Map failures to plan stories:
+- Root cruft (debug_env.py etc.) → **cleanup-02**
+- farm-scaled.jpg not referenced → **cleanup-03**

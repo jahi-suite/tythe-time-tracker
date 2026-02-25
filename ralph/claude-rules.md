@@ -21,7 +21,7 @@ ls docs/working-memory/open/
 1. Read plan.md (and user_story.json if present) to find what to do
 2. Make ONE change (one file or one story)
 3. Commit immediately
-4. Run verification if defined
+4. Run verification if defined (grep, tsc, npm run build, ./ralph/verify-*.sh, etc.)
 5. Update updates.md with what you did
 
 Do NOT try to complete an entire multi-step task in one session.

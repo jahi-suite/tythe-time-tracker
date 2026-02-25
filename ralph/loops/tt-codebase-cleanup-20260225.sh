@@ -29,11 +29,22 @@ info "Cleaning up codebase..."
 ITERATION=0
 while [ $ITERATION -lt $MAX_ITERATIONS ]; do
   ITERATION=$((ITERATION + 1))
-  if verify; then
+  VERIFY_OUTPUT=$(verify 2>&1) || true
+  if echo "$VERIFY_OUTPUT" | grep -qE 'passed, 0 failed'; then
     ok "Codebase cleanup complete at iteration $ITERATION"
     exit 0
   fi
+  # Inject verify output so Ralph sees actual failures
   PROMPT=$(sed "s|{{TASK_ID}}|$TASK_ID|g; s|{{TASK_DIR}}|$TASK_DIR|g" "$PROMPT_FILE")
+  PROMPT="$PROMPT
+
+---
+**Verify output (current state):**
+\`\`\`
+$VERIFY_OUTPUT
+\`\`\`
+Address the FAIL lines above. Do ONE story per iteration.
+"
   info "[$ITERATION/$MAX_ITERATIONS] Spawning agent..."
   spawn_agent "$REPO_ROOT" "$PROMPT" || true
   sleep "$SLEEP"
