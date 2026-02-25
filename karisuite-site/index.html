@@ -320,22 +320,30 @@ section { padding: 96px 48px; border-top: 1px solid var(--rule); }
 }
 
 .suite-endnote {
-  padding: 24px 28px;
+  padding: 36px 40px;
   background: rgba(200,133,58,0.05);
   border: 1px solid rgba(200,133,58,0.15);
   border-radius: 2px;
   margin-top: 16px;
 }
+.suite-endnote-headline {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.3rem, 2.2vw, 1.7rem);
+  font-style: italic;
+  color: var(--cream);
+  line-height: 1.4;
+  margin-bottom: 18px;
+}
 .suite-endnote p {
-  font-size: 14.5px;
-  color: rgba(243,237,227,0.52);
-  line-height: 1.75;
-  max-width: 80ch;
+  font-size: 14px;
+  color: rgba(243,237,227,0.45);
+  line-height: 1.78;
+  max-width: 72ch;
   margin: 0;
 }
 
 /* HOW WE WORK */
-.how-grid { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--rule); }
+.how-grid { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--rule); margin: 0 0 0 0; }
 @media (max-width: 680px) { .how-grid { grid-template-columns: 1fr; } }
 
 .how-item { padding: 40px 32px; border-right: 1px solid var(--rule); }
@@ -405,7 +413,7 @@ footer { border-top: 1px solid var(--rule); padding: 36px 48px; }
     <div class="hero-kicker">Kari Suite</div>
     <h1 class="hero-h1">Small team.<br><em>Real software.</em></h1>
     <p class="hero-p">
-      We're two people who build practical software for real-world problems. Not demos. Not MVPs that go nowhere. Tools that people actually use, every day, to make their work easier.
+      We're a small independent studio that builds practical software for real-world problems. Not demos. Not MVPs that go nowhere. Tools that people actually use, every day, to make their work easier.
     </p>
     <div class="hero-btns">
       <a href="#products" class="btn btn-solid">See what we've built</a>
@@ -413,7 +421,7 @@ footer { border-top: 1px solid var(--rule); padding: 36px 48px; }
     </div>
     <div class="hero-badge">
       <span class="badge-item">Independent &amp; self-funded</span>
-      <span class="badge-item">2-person team</span>
+      <span class="badge-item">Small &amp; independent</span>
       <span class="badge-item">Built from real problems</span>
       <span class="badge-item">No VC. No roadmap theatre.</span>
     </div>
@@ -428,10 +436,10 @@ footer { border-top: 1px solid var(--rule); padding: 36px 48px; }
         "We build things we wish existed — then we make them available to everyone who needs them."
       </div>
       <div class="about-body r d1">
-        <p>Kari Suite is a two-person independent software company. We build focused, practical tools — each one starting with a real frustration, a specific moment where the existing options were too expensive, too complicated, or just completely wrong for the job.</p>
+        <p>Kari Suite is a small independent software company. We build focused, practical tools — each one starting with a real frustration, a specific moment where the existing options were too expensive, too complicated, or just completely wrong for the job.</p>
         <p>We're not a startup chasing a series A. We're not building features to impress investors. We build things we need, make them work properly, and put them in front of the people who need them too.</p>
-        <p>Right now we're focused on hospitality — one industry, one live product, one real problem solved. Where we go next depends on where the next real problem is. We're not mapping that out in advance.</p>
-        <div class="team-line">person team, building software that actually ships</div>
+        <p>Right now we have one live product, built for one specific industry, solving one real problem. Where we go next depends on where the next real problem is. We're not mapping that out in advance.</p>
+        <div class="team-line">independent studio, building software that actually ships</div>
       </div>
     </div>
   </div>
@@ -441,7 +449,7 @@ footer { border-top: 1px solid var(--rule); padding: 36px 48px; }
   <div class="container">
     <span class="s-label r">Products</span>
     <h2 class="s-h2 r">One product live.<br>More being figured out.</h2>
-    <p class="s-intro r">We started in hospitality because that's where the first real problem was. Kari Time is live and in use. What comes next is still taking shape — but the direction is clear.</p>
+    <p class="s-intro r">We started where the first real problem found us. Kari Time is live and in use. What comes next is still taking shape — but the direction is clear.</p>
 
     <div class="products-grid">
       <a href="https://time.karisuite.com/" class="p-card r">
@@ -449,7 +457,7 @@ footer { border-top: 1px solid var(--rule); padding: 36px 48px; }
         <div class="p-name">Kari <em>Time</em></div>
         <p class="p-desc">Shift tracking and payroll-ready exports for hospitality venues and small teams. Clock in, set your rates, export. No paper, no spreadsheets, no month-end chaos.</p>
         <div class="p-tags">
-          <span class="p-tag">Hospitality</span>
+          <span class="p-tag">Venues &amp; teams</span>
           <span class="p-tag">Shift tracking</span>
           <span class="p-tag">Payroll exports</span>
         </div>
@@ -461,7 +469,7 @@ footer { border-top: 1px solid var(--rule); padding: 36px 48px; }
         <div class="p-name" style="color:rgba(243,237,227,0.35);">Kari <em style="color:rgba(232,168,85,0.35);">Rota</em></div>
         <p class="p-desc">The idea: staff scheduling that connects directly to Kari Time so your rota feeds your timesheets automatically. Still early — but it's the obvious next problem to solve.</p>
         <div class="p-tags">
-          <span class="p-tag">Hospitality</span>
+          <span class="p-tag">Shift-based teams</span>
           <span class="p-tag">Scheduling</span>
           <span class="p-tag">Idea stage</span>
         </div>
@@ -472,7 +480,7 @@ footer { border-top: 1px solid var(--rule); padding: 36px 48px; }
         <div class="p-name" style="color:rgba(243,237,227,0.35);">Kari <em style="color:rgba(232,168,85,0.35);">Stock</em></div>
         <p class="p-desc">The idea: simple stock and wastage tracking for bars and kitchens. No spreadsheets, no clipboards. Nothing we'd build until Kari Time is where it needs to be.</p>
         <div class="p-tags">
-          <span class="p-tag">Hospitality</span>
+          <span class="p-tag">Bars &amp; kitchens</span>
           <span class="p-tag">Stock control</span>
           <span class="p-tag">Idea stage</span>
         </div>
@@ -485,50 +493,7 @@ footer { border-top: 1px solid var(--rule); padding: 36px 48px; }
   <div class="container">
     <span class="s-label r">Where this is going</span>
     <h2 class="s-h2 r">The bigger picture.</h2>
-    <p class="s-intro r">One industry for now. But the long-term idea is a hospitality suite where shifts, rotas, and stock all talk to each other — and eventually, tools for other industries too. We're not promising a roadmap. We're building one thing at a time, properly.</p>
-
-    <div class="suite-flow r">
-      <div class="suite-step">
-        <div class="suite-step-top">
-          <div class="suite-badge live">Live now</div>
-          <div class="suite-name">Kari <em>Time</em></div>
-        </div>
-        <p>Shift tracking and payroll exports for hospitality venues. Real people using it today.</p>
-      </div>
-
-      <div class="suite-connector">
-        <div class="suite-line"></div>
-        <div class="suite-arrow-label">then</div>
-        <div class="suite-line"></div>
-      </div>
-
-      <div class="suite-step" style="opacity:0.55;">
-        <div class="suite-step-top">
-          <div class="suite-badge soon">Idea</div>
-          <div class="suite-name">Kari <em>Rota</em></div>
-        </div>
-        <p>Scheduling that feeds directly into timesheets. Eliminate the gap between rota and payroll.</p>
-      </div>
-
-      <div class="suite-connector" style="opacity:0.4;">
-        <div class="suite-line"></div>
-        <div class="suite-arrow-label">then</div>
-        <div class="suite-line"></div>
-      </div>
-
-      <div class="suite-step" style="opacity:0.35;">
-        <div class="suite-step-top">
-          <div class="suite-badge pipeline">Radar</div>
-          <div class="suite-name">Kari <em>Stock</em></div>
-        </div>
-        <p>Stock and wastage tracking that understands your shifts and covers. One less clipboard.</p>
-      </div>
-    </div>
-
-    <div class="suite-endnote r">
-      <p>The goal isn't to build three products quickly. It's to build one product well, then the next one well, until they connect into something genuinely useful — a suite that understands how a venue actually operates. Beyond hospitality, we're open. Good problems exist everywhere.</p>
-    </div>
-
+    <p class="s-intro r">We're not building a company around one industry. We're building a company around a way of working — find a real problem, build something that solves it properly, ship it. Then find the next one. Kari Suite is the name, not the category. It goes wherever the problems are.</p>
   </div>
 </section>
 
@@ -536,7 +501,7 @@ footer { border-top: 1px solid var(--rule); padding: 36px 48px; }
   <div class="container">
     <span class="s-label r">How we work</span>
     <h2 class="s-h2 r">The way we build things.</h2>
-    <p class="s-intro r">Two people, no process theatre. Just a clear way of deciding what to build and how to build it.</p>
+    <p class="s-intro r">No process theatre. Just a clear way of deciding what to build and how to build it.</p>
 
     <div class="how-grid r">
       <div class="how-item">
@@ -567,7 +532,7 @@ footer { border-top: 1px solid var(--rule); padding: 36px 48px; }
     <div class="cta-side">
       <a href="https://time.karisuite.com/" class="btn btn-solid">Try Kari Time</a>
       <a href="mailto:jahi@karisuite.com" class="btn btn-line">Get in touch</a>
-      <span class="cta-note">jahi@karisuite.com</span>
+      <span class="cta-note"><a href="mailto:jahi@karisuite.com" style="color:inherit;text-decoration:none;">jahi@karisuite.com</a></span>
     </div>
   </div>
 </div>
@@ -575,9 +540,10 @@ footer { border-top: 1px solid var(--rule); padding: 36px 48px; }
 <footer>
   <div class="foot-inner">
     <div>
-      <div class="foot-brand">Kari<span> Suite</span></div>
+      <div class="foot-brand"><a href="https://karisuite.com/" style="color:inherit;text-decoration:none;">Kari<span> Suite</span></a></div>
       <div class="foot-sub">Software for the real world</div>
-      <div class="foot-copy">© 2026 Kari Suite. Independent &amp; self-funded.</div>
+      <div class="foot-copy">© 2026 <a href="https://karisuite.com/" target="_blank" rel="noopener noreferrer" style="color:rgba(243,237,227,0.5);text-decoration:none;">Kari Suite</a>. Independent &amp; self-funded.</div>
+      <div class="foot-email" style="margin-top:8px;font-size:12.5px;"><a href="mailto:jahi@karisuite.com" style="color:rgba(243,237,227,0.4);text-decoration:none;">jahi@karisuite.com</a></div>
     </div>
     <div class="foot-links">
       <a href="https://time.karisuite.com/">Kari Time</a>
@@ -588,10 +554,23 @@ footer { border-top: 1px solid var(--rule); padding: 36px 48px; }
 </footer>
 
 <script>
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); obs.unobserve(e.target); } });
-  }, { threshold: 0.07, rootMargin: '0px 0px -36px 0px' });
-  document.querySelectorAll('.r').forEach(el => obs.observe(el));
+  const els = document.querySelectorAll('.r');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08 });
+
+  els.forEach(el => {
+    el.style.transition = 'opacity 0.7s ease, transform 0.7s ease';
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(18px)';
+    observer.observe(el);
+  });
 </script>
 </body>
 </html>
