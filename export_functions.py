@@ -386,14 +386,21 @@ def export_to_excel(entries, filename="timesheet_export.xlsx", start_date=None, 
     # Calculate overall summary
     overall_summary = calculate_summary(entries)
     
-    # Styling constants
-    _header_font = Font(bold=True, size=11)
-    _header_fill = PatternFill(start_color='F2F2F2', end_color='F2F2F2', fill_type='solid')
+    # Styling constants - professional dark header, visible borders
+    _header_font = Font(bold=True, size=11, color='FFFFFF')
+    _header_fill = PatternFill(start_color='2F5496', end_color='2F5496', fill_type='solid')
+    _totals_fill = PatternFill(start_color='E7E6E6', end_color='E7E6E6', fill_type='solid')
     _thin_border = Border(
-        left=Side(style='thin', color='D9D9D9'),
-        right=Side(style='thin', color='D9D9D9'),
-        top=Side(style='thin', color='D9D9D9'),
-        bottom=Side(style='thin', color='D9D9D9'),
+        left=Side(style='thin', color='7F7F7F'),
+        right=Side(style='thin', color='7F7F7F'),
+        top=Side(style='thin', color='7F7F7F'),
+        bottom=Side(style='thin', color='7F7F7F'),
+    )
+    _header_border = Border(
+        top=Side(style='medium', color='2F5496'),
+        left=Side(style='thin', color='2F5496'),
+        bottom=Side(style='medium', color='2F5496'),
+        right=Side(style='thin', color='2F5496'),
     )
     _col_widths = [22, 12, 10, 10, 12, 12, 14, 24, 14, 12, 34, 15, 12, 12, 13, 12]
 
@@ -416,12 +423,17 @@ def export_to_excel(entries, filename="timesheet_export.xlsx", start_date=None, 
             cell = staff_sheet.cell(row=1, column=col_idx)
             cell.font = _header_font
             cell.fill = _header_fill
-            cell.border = Border(bottom=Side(style='thin', color='BFBFBF'))
+            cell.border = _header_border
         for row_idx in range(1, len(df_hierarchical) + 2):
+            first_cell_val = staff_sheet.cell(row=row_idx, column=1).value
+            is_totals_row = first_cell_val and 'TOTALS' in str(first_cell_val)
             for col_idx in range(1, min(len(df_hierarchical.columns) + 1, len(_col_widths) + 1)):
                 cell = staff_sheet.cell(row=row_idx, column=col_idx)
                 if cell.value is not None and str(cell.value).strip():
                     cell.border = _thin_border
+                if is_totals_row:
+                    cell.fill = _totals_fill
+                    cell.font = Font(bold=True)
 
         # Overall summary sheet
         summary_data = {
@@ -454,7 +466,7 @@ def export_to_excel(entries, filename="timesheet_export.xlsx", start_date=None, 
             cell = summary_sheet.cell(row=1, column=col_idx)
             cell.font = _header_font
             cell.fill = _header_fill
-            cell.border = Border(bottom=Side(style='thin', color='BFBFBF'))
+            cell.border = _header_border
         for row_idx in range(1, len(summary_df) + 1):
             for col_idx in (1, 2):
                 cell = summary_sheet.cell(row=row_idx, column=col_idx)

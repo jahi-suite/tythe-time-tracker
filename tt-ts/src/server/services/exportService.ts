@@ -96,26 +96,35 @@ export async function exportToExcel(
   ]
   const staffHeaderRow = ws.getRow(1)
   staffHeaderRow.eachCell((cell) => {
-    cell.font = { bold: true, size: 11 }
+    cell.font = { bold: true, size: 11, color: { argb: 'FFFFFFFF' } }
     cell.fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: 'FFF2F2F2' },
+      fgColor: { argb: 'FF2F5496' },
     }
     cell.border = {
-      bottom: { style: 'thin', color: { argb: 'FFBFBFBF' } },
+      top: { style: 'medium' as const, color: { argb: 'FF2F5496' } },
+      left: { style: 'thin' as const, color: { argb: 'FF2F5496' } },
+      bottom: { style: 'medium' as const, color: { argb: 'FF2F5496' } },
+      right: { style: 'thin' as const, color: { argb: 'FF2F5496' } },
     }
+    cell.alignment = { wrapText: true, vertical: 'middle' as const }
   })
   const staffTableBorder = {
-    top: { style: 'thin' as const, color: { argb: 'FFD9D9D9' } },
-    left: { style: 'thin' as const, color: { argb: 'FFD9D9D9' } },
-    bottom: { style: 'thin' as const, color: { argb: 'FFD9D9D9' } },
-    right: { style: 'thin' as const, color: { argb: 'FFD9D9D9' } },
+    top: { style: 'thin' as const, color: { argb: 'FF7F7F7F' } },
+    left: { style: 'thin' as const, color: { argb: 'FF7F7F7F' } },
+    bottom: { style: 'thin' as const, color: { argb: 'FF7F7F7F' } },
+    right: { style: 'thin' as const, color: { argb: 'FF7F7F7F' } },
+  }
+  const totalsRowFill = {
+    type: 'pattern' as const,
+    pattern: 'solid' as const,
+    fgColor: { argb: 'FFE7E6E6' },
   }
 
   for (const [summaryKey, data] of Object.entries(staffSummary)) {
     const employee = data.employee_label
-    ws.addRow([
+    const totalsRow = ws.addRow([
       `📊 ${employee} - TOTALS`,
       '',
       '',
@@ -133,6 +142,10 @@ export async function exportToExcel(
       formatPay(data.supervisor_pay),
       formatPay(data.total_pay),
     ])
+    totalsRow.eachCell((cell) => {
+      cell.fill = totalsRowFill
+      cell.font = { bold: true }
+    })
 
     let employeeShiftRowIndex = 0
     for (const entry of sortedEntries) {
@@ -221,14 +234,17 @@ export async function exportToExcel(
   ]
   const summaryHeaderRow = summaryWs.getRow(1)
   summaryHeaderRow.eachCell((cell) => {
-    cell.font = { bold: true, size: 11 }
+    cell.font = { bold: true, size: 11, color: { argb: 'FFFFFFFF' } }
     cell.fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: 'FFF2F2F2' },
+      fgColor: { argb: 'FF2F5496' },
     }
     cell.border = {
-      bottom: { style: 'thin', color: { argb: 'FFBFBFBF' } },
+      top: { style: 'medium' as const, color: { argb: 'FF2F5496' } },
+      left: { style: 'thin' as const, color: { argb: 'FF2F5496' } },
+      bottom: { style: 'medium' as const, color: { argb: 'FF2F5496' } },
+      right: { style: 'thin' as const, color: { argb: 'FF2F5496' } },
     }
   })
   summaryWs.addRow(['Total Hours (net of break)', overall.hours])
