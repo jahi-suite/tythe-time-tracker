@@ -360,6 +360,10 @@ body {
 .workspace-shell__main .user-card-username {
   color: rgba(243, 237, 227, 0.8);
 }
+.workspace-shell__main .user-card-pay-rates {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--rule);
+}
 .workspace-shell__main .user-card-pay-rates label {
   color: var(--cream);
 }
