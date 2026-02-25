@@ -13,6 +13,7 @@ gcloud run deploy "$SERVICE" \
   --source . \
   --region "$REGION" \
   --project "$PROJECT" \
-  --allow-unauthenticated
+  --allow-unauthenticated \
+  --no-invoker-iam-check
 
 echo "Done. Map karisuite.com and www.karisuite.com in Cloud Run Domain mappings."
