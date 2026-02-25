@@ -1,0 +1,17 @@
+{
+  "modelConfigs": {
+    "overrides": [
+      {
+        "match": { "model": "gemini-2.0-flash" },
+        "modelConfig": {
+          "generateContentConfig": {
+            "thinkingConfig": {
+              "includeThoughts": false,
+              "thinkingBudget": 0
+            }
+          }
+        }
+      }
+    ]
+  }
+}
