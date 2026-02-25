@@ -24,7 +24,7 @@
       "id": "excel-ui-04",
       "title": "Style Overall Summary sheet",
       "acceptance_criteria": "Overall Summary sheet: header row (Metric, Value) styled (bold, fill, border). Data rows bordered. Column widths set. Consistent with Staff sheet styling.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "excel-ui-05",

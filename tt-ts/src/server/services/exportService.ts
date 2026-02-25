@@ -202,6 +202,22 @@ export async function exportToExcel(
     { hours: 0, shifts: 0 }
   )
   summaryWs.addRow(['Metric', 'Value'])
+  summaryWs.columns = [
+    { width: 28 },
+    { width: 48 },
+  ]
+  const summaryHeaderRow = summaryWs.getRow(1)
+  summaryHeaderRow.eachCell((cell) => {
+    cell.font = { bold: true, size: 11 }
+    cell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFF2F2F2' },
+    }
+    cell.border = {
+      bottom: { style: 'thin', color: { argb: 'FFBFBFBF' } },
+    }
+  })
   summaryWs.addRow(['Total Hours (net of break)', overall.hours])
   summaryWs.addRow(['Total Shifts', overall.shifts])
   summaryWs.addRow(['Unique Employees', Object.keys(staffSummary).length])
@@ -210,6 +226,23 @@ export async function exportToExcel(
   }
   summaryWs.addRow([])
   summaryWs.addRow(['Note', breakDeductionNote])
+
+  for (let rowNumber = 1; rowNumber <= summaryWs.rowCount; rowNumber++) {
+    const row = summaryWs.getRow(rowNumber)
+    let hasContent = false
+    for (let columnNumber = 1; columnNumber <= 2; columnNumber++) {
+      const value = row.getCell(columnNumber).value
+      if (value !== null && value !== undefined && value !== '') {
+        hasContent = true
+        break
+      }
+    }
+    if (!hasContent) continue
+
+    for (let columnNumber = 1; columnNumber <= 2; columnNumber++) {
+      summaryWs.getCell(rowNumber, columnNumber).border = staffTableBorder
+    }
+  }
 
   return Buffer.from(await wb.xlsx.writeBuffer())
 }
