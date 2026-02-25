@@ -47,3 +47,25 @@ def load_app_config_values() -> dict:
         "log_level": "INFO",
         "manager_password": manager_password,
     }
+
+
+def load_seed_manager_credentials() -> tuple[str, str]:
+    """Load seed manager credentials from Streamlit secrets if present."""
+    import streamlit as st
+
+    secrets = getattr(st, "secrets", None)
+    if secrets is None:
+        return "", ""
+
+    for sec in ("SUPABASE", "supabase"):
+        try:
+            sub = secrets[sec]
+            username = sub.get("SEED_MANAGER_USERNAME") or sub.get("seed_manager_username") or ""
+            password = sub.get("SEED_MANAGER_PASSWORD") or sub.get("seed_manager_password") or ""
+            username, password = str(username).strip(), str(password).strip()
+            if username and password:
+                return username, password
+        except (KeyError, TypeError, AttributeError):
+            continue
+
+    return "", ""
