@@ -127,8 +127,14 @@ export async function authenticateUser(
     password_hash: string
     role: string
     display_name: string
+    standard_rate: number | null
+    enhanced_rate: number | null
+    supervisor_rate: number | null
   }>(
     `SELECT u.id, u.username, u.password_hash, u.role,
+       u.${DB.STANDARD_RATE_COLUMN} AS standard_rate,
+       u.${DB.ENHANCED_RATE_COLUMN} AS enhanced_rate,
+       u.${DB.SUPERVISOR_RATE_COLUMN} AS supervisor_rate,
        COALESCE(NULLIF(TRIM(display_name), ''), NULLIF(TRIM(username), ''), 'User') AS display_name
      FROM ${DB.USERS_TABLE} u
      JOIN ${DB.VENUES_TABLE} v ON v.${DB.ID_COLUMN} = u.${DB.VENUE_ID_COLUMN}
@@ -145,6 +151,9 @@ export async function authenticateUser(
     username: row.username,
     role: row.role as AuthUser['role'],
     display_name: row.display_name,
+    standard_rate: row.standard_rate,
+    enhanced_rate: row.enhanced_rate,
+    supervisor_rate: row.supervisor_rate,
   }
 }
 
@@ -157,10 +166,16 @@ export async function getAuthUserById(
     username: string
     role: string
     display_name: string
+    standard_rate: number | null
+    enhanced_rate: number | null
+    supervisor_rate: number | null
   }>(
     `SELECT u.id,
        COALESCE(NULLIF(TRIM(u.username), ''), 'user') AS username,
        u.role,
+       u.${DB.STANDARD_RATE_COLUMN} AS standard_rate,
+       u.${DB.ENHANCED_RATE_COLUMN} AS enhanced_rate,
+       u.${DB.SUPERVISOR_RATE_COLUMN} AS supervisor_rate,
        COALESCE(NULLIF(TRIM(u.display_name), ''), NULLIF(TRIM(u.username), ''), 'User') AS display_name
      FROM ${DB.USERS_TABLE} u
      JOIN ${DB.VENUES_TABLE} v ON v.${DB.ID_COLUMN} = u.${DB.VENUE_ID_COLUMN}
@@ -178,6 +193,9 @@ export async function getAuthUserById(
     username: row.username,
     role: row.role as AuthUser['role'],
     display_name: row.display_name,
+    standard_rate: row.standard_rate,
+    enhanced_rate: row.enhanced_rate,
+    supervisor_rate: row.supervisor_rate,
   }
 }
 

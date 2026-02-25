@@ -31,6 +31,9 @@ export interface AuthUser {
   username: string
   role: UserRole
   display_name: string
+  standard_rate?: number | null
+  enhanced_rate?: number | null
+  supervisor_rate?: number | null
 }
 
 export interface VenueSettings {

@@ -21,6 +21,9 @@ export interface AuthUser {
   username: string
   role: 'employee' | 'manager' | 'admin'
   display_name: string
+  standard_rate?: number | null
+  enhanced_rate?: number | null
+  supervisor_rate?: number | null
   venue?: { slug: string; name: string }
 }
 

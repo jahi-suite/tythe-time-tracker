@@ -192,7 +192,13 @@ router.get('/me', async (req, res) => {
   req.session!.user = freshUser
   req.session!.venue_id = venue.id
   req.session!.venue_slug = venue.slug
-  res.json({ ...freshUser, venue: { slug: venue.slug, name: venue.name } })
+  res.json({
+    ...freshUser,
+    standard_rate: freshUser.standard_rate ?? null,
+    enhanced_rate: freshUser.enhanced_rate ?? null,
+    supervisor_rate: freshUser.supervisor_rate ?? null,
+    venue: { slug: venue.slug, name: venue.name },
+  })
 })
 
 router.post('/change-password', authMutationRateLimit, requireAuth, async (req, res) => {
