@@ -9,3 +9,4 @@
 - 2026-02-25 14:14:06 GMT: Completed `scope-02` (time-tracking venue scoping). `time_entries` repo reads/writes now accept `venueId` filters (timesheets, open shifts, shift CRUD), and `clock`/`timesheet`/`shifts` routes require session `venue_id` and pass it through `timeTracking`.
 - 2026-02-25 14:16:45 GMT: Completed `scope-03` (export/audit venue scoping). Export PDF/Excel routes now require `req.session.venue_id` and pass it into venue-scoped timesheet reads; audit route now requires session `venue_id` and repository `getAuditLogs` filters by `venue_id`.
 - 2026-02-25 14:19:26 GMT: Completed `scope-04` (venue-aware logo display). `Layout.tsx`, `LoginPage`, and `FirstSetupPage` now show `tythe-logo.png` only for `tythe`; other venues use `kari-logo.png`.
+- 2026-02-25 14:21:18 GMT: Completed `scope-05` (logout UX redirect). `Layout.tsx` logout flow now redirects to `/venues` after session logout so users return to the venue picker.

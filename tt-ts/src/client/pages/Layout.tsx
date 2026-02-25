@@ -28,7 +28,7 @@ export function Layout() {
     await logout()
     // Delay so browser processes Set-Cookie from logout response before we navigate (deploy trigger)
     await new Promise((r) => setTimeout(r, 150))
-    window.location.href = user?.venue?.slug ? `/${user.venue.slug}/login` : '/login'
+    window.location.href = '/venues'
   }
 
   const handleChangePassword = async (e: React.FormEvent) => {
