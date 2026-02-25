@@ -12,7 +12,7 @@
       "id": "excel-ui-02",
       "title": "Set column widths",
       "acceptance_criteria": "Staff Hours & Shifts sheet: each column has a sensible width so content fits. Staff Name ~18, Date ~12, Clock-In/Out ~10, Hours columns ~10, Pay columns ~12. Use worksheet.columns or column width API.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "excel-ui-03",

@@ -76,6 +76,24 @@ export async function exportToExcel(
     'Total Pay',
   ]
   ws.addRow(headers)
+  ws.columns = [
+    { width: 22 }, // Staff Name
+    { width: 12 }, // Date
+    { width: 10 }, // Clock-In
+    { width: 10 }, // Clock-Out
+    { width: 12 }, // Standard Hours
+    { width: 12 }, // Enhanced Hours
+    { width: 14 }, // Supervisor Hours
+    { width: 24 }, // Total Hours (net of break)
+    { width: 14 }, // Break Deducted
+    { width: 12 }, // Total Shifts
+    { width: 34 }, // Pay Rate Type
+    { width: 15 }, // Supervisor Flag
+    { width: 12 }, // Standard Pay
+    { width: 12 }, // Enhanced Pay
+    { width: 13 }, // Supervisor Pay
+    { width: 12 }, // Total Pay
+  ]
   const staffHeaderRow = ws.getRow(1)
   staffHeaderRow.eachCell((cell) => {
     cell.font = { bold: true, size: 11 }
