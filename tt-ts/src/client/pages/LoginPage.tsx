@@ -1,13 +1,17 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { auth } from '../api'
+import { auth, venues } from '../api'
 
 export function LoginPage() {
   const { login } = useAuth()
   const { venueSlug } = useParams()
   const effectiveVenueSlug = (venueSlug || 'tythe').trim() || 'tythe'
+  const [venueName, setVenueName] = useState<string | null>(null)
   const [username, setUsername] = useState('')
+  useEffect(() => {
+    venues.getBySlug(effectiveVenueSlug).then((v) => setVenueName(v.name)).catch(() => setVenueName(effectiveVenueSlug))
+  }, [effectiveVenueSlug])
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -33,7 +37,7 @@ export function LoginPage() {
       <img src="/tythe-logo.png" alt="Tythe Barn" width={200} style={{ display: 'block', margin: '0 auto 1rem' }} />
       <div className="login-hero">
         <p className="login-eyebrow">Secure Access</p>
-        <h1 className="login-title">Employee Portal — The Tythe Barn</h1>
+        <h1 className="login-title">Employee Portal — {venueName ?? effectiveVenueSlug}</h1>
         <p className="login-subtitle">Employee and manager timekeeping for daily operations.</p>
       </div>
       <form onSubmit={handleLogin} className="login-form">

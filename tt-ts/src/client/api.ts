@@ -21,6 +21,7 @@ export interface AuthUser {
   username: string
   role: 'employee' | 'manager' | 'admin'
   display_name: string
+  venue?: { slug: string; name: string }
 }
 
 export interface VenueSearchResult {
@@ -36,6 +37,8 @@ export interface CreateVenueResponse {
 export const venues = {
   search: (q: string) =>
     fetchApi<VenueSearchResult[]>(`/venues/search?q=${encodeURIComponent(q)}`),
+  getBySlug: (slug: string) =>
+    fetchApi<{ slug: string; name: string }>(`/venues/${encodeURIComponent(slug)}`),
   create: (data: {
     venueName: string
     adminUsername: string

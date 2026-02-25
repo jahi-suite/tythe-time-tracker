@@ -5,6 +5,7 @@ import { auth } from '../api'
 
 export function Layout() {
   const { user, logout } = useAuth()
+  const venueName = user?.venue?.name ?? 'The Tythe Barn'
   const navigate = useNavigate()
   const location = useLocation()
   const [currentPassword, setCurrentPassword] = useState('')
@@ -26,7 +27,7 @@ export function Layout() {
     await logout()
     // Delay so browser processes Set-Cookie from logout response before we navigate (deploy trigger)
     await new Promise((r) => setTimeout(r, 150))
-    window.location.href = '/login'
+    window.location.href = user?.venue?.slug ? `/${user.venue.slug}/login` : '/login'
   }
 
   const handleChangePassword = async (e: React.FormEvent) => {
@@ -60,8 +61,8 @@ export function Layout() {
             height={48}
           />
           <div>
-            <p className="app-header-kicker">Tythe Barn</p>
-            <h1>Employee Portal — The Tythe Barn</h1>
+            <p className="app-header-kicker">{venueName}</p>
+            <h1>Employee Portal — {venueName}</h1>
           </div>
         </div>
       </header>

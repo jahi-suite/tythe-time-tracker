@@ -120,7 +120,7 @@ router.post('/login', loginRateLimit, async (req, res) => {
         res.status(500).json({ error: 'Login failed' })
         return
       }
-      res.json(user)
+      res.json({ ...user, venue: { slug: venue.slug, name: venue.name } })
     })
   })
 })
@@ -146,6 +146,11 @@ router.get('/me', async (req, res) => {
   const sessionUser = req.session?.user
   const sessionVenueId = req.session?.venue_id
   const sessionVenueSlug = req.session?.venue_slug
+  const requestedVenueSlug = String(req.query?.venue_slug ?? '').trim() || null
+  if (requestedVenueSlug && sessionVenueSlug && requestedVenueSlug !== sessionVenueSlug) {
+    res.status(401).json({ error: 'Not authenticated' })
+    return
+  }
   if (!sessionUser) {
     res.status(401).json({ error: 'Not authenticated' })
     return
@@ -187,7 +192,7 @@ router.get('/me', async (req, res) => {
   req.session!.user = freshUser
   req.session!.venue_id = venue.id
   req.session!.venue_slug = venue.slug
-  res.json(freshUser)
+  res.json({ ...freshUser, venue: { slug: venue.slug, name: venue.name } })
 })
 
 router.post('/change-password', authMutationRateLimit, requireAuth, async (req, res) => {

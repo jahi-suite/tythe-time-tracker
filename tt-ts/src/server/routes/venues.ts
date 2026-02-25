@@ -4,6 +4,7 @@ import { DB } from '../../shared/constants.js'
 import { hashPassword } from '../auth/index.js'
 import { getClient, query } from '../db/connection.js'
 import { createIpRateLimit } from '../middleware/rateLimit.js'
+import * as auth from '../auth/index.js'
 
 const router = Router()
 
@@ -73,6 +74,20 @@ router.get('/search', async (req, res) => {
       name: row.name,
     }))
   )
+})
+
+router.get('/:slug', async (req, res) => {
+  const slug = String(req.params.slug ?? '').trim()
+  if (!slug) {
+    res.status(400).json({ error: 'Slug required' })
+    return
+  }
+  const venue = await auth.getVenueBySlug(slug)
+  if (!venue) {
+    res.status(404).json({ error: 'Venue not found' })
+    return
+  }
+  res.json({ slug: venue.slug, name: venue.name })
 })
 
 router.post('/', createVenueRateLimit, async (req, res) => {

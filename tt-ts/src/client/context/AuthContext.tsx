@@ -16,7 +16,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refresh = useCallback(async () => {
     try {
       const { auth } = await import('../api')
-      const u = await auth.me()
+      const pathMatch = typeof window !== 'undefined' ? window.location.pathname.match(/^\/([^/]+)\/login\/?$/) : null
+      const venueSlug = pathMatch?.[1] ?? undefined
+      const u = await auth.me(venueSlug)
       // Reject incomplete users client-side: force logout if both identifiers empty
       if (u && !(u.display_name?.trim() || u.username?.trim())) {
         await auth.logout()
