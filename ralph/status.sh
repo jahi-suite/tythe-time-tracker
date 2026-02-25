@@ -24,7 +24,9 @@ show_task() {
 
   echo -e "${B}$task_id${NC}"
 
-  if [ -f "$stories" ]; then
+  if [ ! -f "$stories" ]; then
+    echo -e "  ${R}Missing user_story.json — all tasks must use plan.md + user_story.json. See ralph/TASK-STRUCTURE.md${NC}"
+  else
     python3 -c "
 import json
 d = json.load(open('$stories'))
@@ -37,8 +39,6 @@ for s in d['stories']:
     mark = '\033[32m+\033[0m' if s['passes'] else '\033[31m-\033[0m'
     print(f'    {mark} {s[\"id\"]}: {s[\"title\"]}')
 "
-  else
-    echo "  (no user_story.json — check plan.md for verification)"
   fi
 
   if [ -f "$task_dir/updates.md" ]; then

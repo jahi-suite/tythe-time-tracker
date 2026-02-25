@@ -7,6 +7,16 @@ alwaysApply: true
 
 Each agent session starts with fresh context. Progress persists through CODE ON DISK and GIT COMMITS, not conversation history.
 
+## Canonical Task Structure (One Way Only)
+
+Every task has exactly three artifacts:
+
+- **plan.md** — PRD/context: what and why, affected files, verification command
+- **user_story.json** — Small user stories with acceptance criteria; each story has `id`, `title`, `acceptance_criteria`, `passes`
+- **updates.md** — Progress log and failure notes
+
+There is no plan-only mode. All tasks use user_story.json.
+
 ## On Session Start
 
 Before doing anything:
@@ -17,17 +27,19 @@ git status
 ls docs/working-memory/open/
 ```
 
-- Read active task folders: plan.md, updates.md, user_story.json (if present)
+- Read active task folder: plan.md, updates.md, user_story.json
 - If a verification command exists in plan.md, run it to see current state
 - Do NOT rely on prior conversation context
 
 ## Do ONE Atomic Unit of Work
 
-1. Read plan.md (and user_story.json if present) to find what to do
-2. Make ONE change (one file or one story)
+1. Read plan.md and user_story.json to find the next unpassed story
+2. Implement that story per its acceptance criteria (one atomic change)
 3. Commit immediately
 4. Run verification if defined (grep, npm run build, tsc, etc. — NOT ./ralph/verify-*.sh or ./tt-ts/scripts/verify-*.sh; those are for the user to run)
-5. Update updates.md with what you did
+5. Update updates.md:
+   - **If criteria met:** what you did; set `passes: true` for that story
+   - **If criteria not met:** what you tried, what worked, what didn't, what to try next (feeds the retry loop)
 
 Do NOT try to complete an entire multi-step task in one session.
 
@@ -40,9 +52,9 @@ External verification decides completion:
 - Build commands
 - Custom verification scripts
 
-## Update Working Memory
+## Failure → Retry Loop
 
-After progress, update the task's updates.md with timestamp and what was done.
+When a story does not pass: record in updates.md what you tried, what worked, what didn't. The next iteration reads this and tries again with that context. Do not leave failed attempts undocumented.
 
 ## If No Active Task
 

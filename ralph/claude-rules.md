@@ -12,13 +12,13 @@ git status
 ls docs/working-memory/open/
 ```
 
-- Read active task folders: plan.md, updates.md, user_story.json (if present)
+- Read active task folder: plan.md, updates.md, user_story.json (all required)
 - If a verification command exists in plan.md, run it to see current state
 - Do NOT rely on prior conversation context
 
 ## Do ONE Atomic Unit of Work
 
-1. Read plan.md (and user_story.json if present) to find what to do
+1. Read plan.md and user_story.json to find the next unpassed story
 2. Make ONE change (one file or one story)
 3. Commit immediately
 4. Run verification if defined
@@ -38,6 +38,7 @@ External verification decides completion:
 ## Update Working Memory
 
 After progress, update the task's updates.md with timestamp and what was done.
+If criteria were not met: record what you tried, what worked, what didn't, what to try next.
 
 ## If No Active Task
 
