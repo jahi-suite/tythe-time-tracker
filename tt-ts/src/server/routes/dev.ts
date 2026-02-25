@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { DB } from '../../shared/constants.js'
 import { query } from '../db/connection.js'
+import { requireDevSecret, requireDevVenuesEnabled } from '../middleware/dev.js'
 
 const router = Router()
 
@@ -11,23 +12,7 @@ type DevVenueRow = {
   last_used: Date | null
 }
 
-router.get('/venues', async (req, res) => {
-  if (process.env.DEV_VENUES_ENABLED !== 'true') {
-    res.status(404).json({ error: 'Not found' })
-    return
-  }
-
-  const configuredSecret = process.env.DEV_SECRET?.trim()
-  if (configuredSecret) {
-    const headerSecret = req.get('X-Dev-Secret')?.trim()
-    const cookieSecret =
-      typeof req.cookies?.dev_secret === 'string' ? req.cookies.dev_secret.trim() : undefined
-    if (headerSecret !== configuredSecret && cookieSecret !== configuredSecret) {
-      res.status(401).json({ error: 'Unauthorized' })
-      return
-    }
-  }
-
+router.get('/venues', requireDevVenuesEnabled, requireDevSecret, async (_req, res) => {
   const result = await query<DevVenueRow>(
     `SELECT v.name,
             v.slug,
