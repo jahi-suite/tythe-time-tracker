@@ -1,0 +1,36 @@
+{
+  "initiative": "tt-excel-ui-20260225",
+  "updated": "2026-02-25",
+  "stories": [
+    {
+      "id": "excel-ui-01",
+      "title": "Style header row",
+      "acceptance_criteria": "Staff Hours & Shifts sheet: header row has bold font, subtle background fill (e.g. light grey), and bottom border. Use ExcelJS cell styling (font.bold, fill, border).",
+      "passes": false
+    },
+    {
+      "id": "excel-ui-02",
+      "title": "Set column widths",
+      "acceptance_criteria": "Staff Hours & Shifts sheet: each column has a sensible width so content fits. Staff Name ~18, Date ~12, Clock-In/Out ~10, Hours columns ~10, Pay columns ~12. Use worksheet.columns or column width API.",
+      "passes": false
+    },
+    {
+      "id": "excel-ui-03",
+      "title": "Add cell borders",
+      "acceptance_criteria": "Staff Hours & Shifts sheet: data cells have thin borders so the sheet reads as a table. Header row and data rows both bordered. Total rows and shift rows included.",
+      "passes": false
+    },
+    {
+      "id": "excel-ui-04",
+      "title": "Style Overall Summary sheet",
+      "acceptance_criteria": "Overall Summary sheet: header row (Metric, Value) styled (bold, fill, border). Data rows bordered. Column widths set. Consistent with Staff sheet styling.",
+      "passes": false
+    },
+    {
+      "id": "excel-ui-05",
+      "title": "Polish: readability",
+      "acceptance_criteria": "Optional: light alternate row shading for shift rows, or subtle visual separation between employee blocks. Keep it professional and not noisy. If minimal change is better, skip and mark done.",
+      "passes": false
+    }
+  ]
+}
