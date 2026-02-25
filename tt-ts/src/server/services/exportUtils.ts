@@ -70,7 +70,7 @@ export function splitShiftByRate(
 
 export function applyBreakDeduction(
   split: ShiftSplit,
-  _venueSettings?: VenueSettings | null
+  venueSettings?: VenueSettings | null
 ): ShiftSplit {
   const adjusted: ShiftSplit = {
     Standard: Math.round((Number(split.Standard) || 0) * 100) / 100,
@@ -82,9 +82,12 @@ export function applyBreakDeduction(
   if (totalHours < 6) return adjusted
 
   const breakHours = 20 / 60
-  const order: Array<keyof ShiftSplit> = ['Standard', 'Enhanced', 'Supervisor']
-  let majority: keyof ShiftSplit = 'Standard'
-  let maxHours = adjusted.Standard
+  const deductSupervisor = venueSettings?.supervisor_deduct_break ?? true
+  const order: Array<keyof ShiftSplit> = deductSupervisor
+    ? ['Standard', 'Enhanced', 'Supervisor']
+    : ['Standard', 'Enhanced']
+  let majority: keyof ShiftSplit | null = order[0] ?? null
+  let maxHours = majority ? adjusted[majority] : 0
 
   for (const key of order.slice(1)) {
     if (adjusted[key] > maxHours) {
@@ -92,6 +95,8 @@ export function applyBreakDeduction(
       maxHours = adjusted[key]
     }
   }
+
+  if (!majority) return adjusted
 
   adjusted[majority] = Math.max(0, adjusted[majority] - Math.min(adjusted[majority], breakHours))
 
