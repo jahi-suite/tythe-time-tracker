@@ -10,7 +10,7 @@ import {
   getStaffSummaryKey,
   type UserRatesMap,
 } from './exportUtils.js'
-import { getAllUsers } from '../auth/index.js'
+import { getAllUsers, getVenueSettings } from '../auth/index.js'
 
 async function getUserRatesMap(): Promise<UserRatesMap> {
   const users = await getAllUsers()
@@ -31,7 +31,8 @@ async function getUserRatesMap(): Promise<UserRatesMap> {
 export async function exportToExcel(
   entries: TimeEntry[],
   startDate?: Date | null,
-  endDate?: Date | null
+  endDate?: Date | null,
+  venueId?: string | null
 ): Promise<Buffer> {
   const breakDeductionNote =
     'Hours and pay shown are ALREADY net of the 20-minute unpaid break for shifts of 6+ hours. Do not deduct break again.'
@@ -45,7 +46,8 @@ export async function exportToExcel(
   }
 
   const userRatesMap = await getUserRatesMap()
-  const staffSummary = calculateStaffSummary(entries, userRatesMap)
+  const venueSettings = await getVenueSettings(venueId)
+  const staffSummary = calculateStaffSummary(entries, userRatesMap, venueSettings)
   const sortedEntries = [...entries].sort(
     (a, b) =>
       a.employee.toLowerCase().localeCompare(b.employee.toLowerCase()) ||
@@ -99,8 +101,8 @@ export async function exportToExcel(
     for (const entry of sortedEntries) {
       if (getStaffSummaryKey(entry) !== summaryKey) continue
       const isSupervisor = entry.pay_rate_type === 'Supervisor'
-      const grossSplit = splitShiftByRate(entry.clock_in, entry.clock_out, isSupervisor)
-      const split = applyBreakDeduction(grossSplit)
+      const grossSplit = splitShiftByRate(entry.clock_in, entry.clock_out, isSupervisor, venueSettings)
+      const split = applyBreakDeduction(grossSplit, venueSettings)
       const grossHours = grossSplit.Standard + grossSplit.Enhanced + grossSplit.Supervisor
       const breakDeducted = grossHours >= 6 ? '20 min' : '—'
       const bstIn = convertToBst(entry.clock_in)
@@ -159,7 +161,7 @@ export async function exportToExcel(
   return Buffer.from(await wb.xlsx.writeBuffer())
 }
 
-export async function exportToPdf(entries: TimeEntry[]): Promise<Buffer> {
+export async function exportToPdf(entries: TimeEntry[], venueId?: string | null): Promise<Buffer> {
   const chunks: Buffer[] = []
   const doc = new PDFDocument({ margin: 50 })
 
@@ -174,7 +176,8 @@ export async function exportToPdf(entries: TimeEntry[]): Promise<Buffer> {
   }
 
   const userRatesMap = await getUserRatesMap()
-  const staffSummary = calculateStaffSummary(entries, userRatesMap)
+  const venueSettings = await getVenueSettings(venueId)
+  const staffSummary = calculateStaffSummary(entries, userRatesMap, venueSettings)
   const sortedEntries = [...entries].sort(
     (a, b) =>
       a.employee.toLowerCase().localeCompare(b.employee.toLowerCase()) ||
@@ -214,7 +217,8 @@ export async function exportToPdf(entries: TimeEntry[]): Promise<Buffer> {
       if (getStaffSummaryKey(entry) !== summaryKey) continue
       const isSupervisor = entry.pay_rate_type === 'Supervisor'
       const split = applyBreakDeduction(
-        splitShiftByRate(entry.clock_in, entry.clock_out, isSupervisor)
+        splitShiftByRate(entry.clock_in, entry.clock_out, isSupervisor, venueSettings),
+        venueSettings
       )
       const bstIn = convertToBst(entry.clock_in)
       const bstOut = entry.clock_out ? convertToBst(entry.clock_out) : null

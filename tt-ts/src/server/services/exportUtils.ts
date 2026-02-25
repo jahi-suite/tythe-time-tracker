@@ -1,4 +1,4 @@
-import type { TimeEntry } from '../../shared/types.js'
+import type { TimeEntry, VenueSettings } from '../../shared/types.js'
 import { convertToBst } from '../utils/timeUtils.js'
 
 export interface ShiftSplit {
@@ -10,7 +10,8 @@ export interface ShiftSplit {
 export function splitShiftByRate(
   clockIn: Date,
   clockOut: Date | null,
-  isSupervisor: boolean
+  isSupervisor: boolean,
+  venueSettings?: VenueSettings | null
 ): ShiftSplit {
   if (!clockOut) return { Standard: 0, Enhanced: 0, Supervisor: 0 }
   if (isSupervisor) {
@@ -22,30 +23,42 @@ export function splitShiftByRate(
   const bstInMs = bstIn.getTime()
   const bstOutMs = bstOut.getTime()
   if (bstOutMs <= bstInMs) return { Standard: 0, Enhanced: 0, Supervisor: 0 }
+  if (venueSettings && !venueSettings.enhanced_enabled) {
+    const total = (bstOutMs - bstInMs) / (1000 * 3600)
+    return { Standard: Math.round(total * 100) / 100, Enhanced: 0, Supervisor: 0 }
+  }
 
   const dayMs = 24 * 60 * 60 * 1000
   const bstInDate = new Date(bstIn.getFullYear(), bstIn.getMonth(), bstIn.getDate())
   const bstOutDate = new Date(bstOut.getFullYear(), bstOut.getMonth(), bstOut.getDate())
-
-  let enhancedStart: Date
-  let enhancedEnd: Date
-  if (bstIn.getHours() < 4) {
-    enhancedStart = new Date(bstInDate.getTime() - dayMs)
-    enhancedStart.setHours(19, 0, 0, 0)
-    enhancedEnd = new Date(bstInDate.getTime())
-    enhancedEnd.setHours(4, 0, 0, 0)
-  } else {
-    enhancedStart = new Date(bstInDate.getTime())
-    enhancedStart.setHours(19, 0, 0, 0)
-    enhancedEnd = new Date(bstInDate.getTime() + dayMs)
-    enhancedEnd.setHours(4, 0, 0, 0)
+  const startHour = venueSettings?.enhanced_start_hour ?? 19
+  const endHour = venueSettings?.enhanced_end_hour ?? 4
+  const totalHours = (bstOutMs - bstInMs) / (1000 * 3600)
+  if (startHour === endHour) {
+    return { Standard: 0, Enhanced: Math.round(totalHours * 100) / 100, Supervisor: 0 }
   }
 
-  const enhStart = Math.max(bstInMs, enhancedStart.getTime())
-  const enhEnd = Math.min(bstOutMs, enhancedEnd.getTime())
-  const enhancedHours =
-    enhStart < enhEnd ? Math.max((enhEnd - enhStart) / (1000 * 3600), 0) : 0
-  const totalHours = (bstOutMs - bstInMs) / (1000 * 3600)
+  let enhancedMs = 0
+  for (
+    let cursorDay = bstInDate.getTime() - dayMs;
+    cursorDay <= bstOutDate.getTime();
+    cursorDay += dayMs
+  ) {
+    const windowStart = new Date(cursorDay)
+    windowStart.setHours(startHour, 0, 0, 0)
+    const windowEnd = new Date(cursorDay)
+    if (startHour < endHour) {
+      windowEnd.setHours(endHour, 0, 0, 0)
+    } else {
+      windowEnd.setTime(cursorDay + dayMs)
+      windowEnd.setHours(endHour, 0, 0, 0)
+    }
+    const enhStart = Math.max(bstInMs, windowStart.getTime())
+    const enhEnd = Math.min(bstOutMs, windowEnd.getTime())
+    if (enhStart < enhEnd) enhancedMs += enhEnd - enhStart
+  }
+
+  const enhancedHours = Math.max(enhancedMs / (1000 * 3600), 0)
   const standardHours = totalHours - enhancedHours
 
   return {
@@ -55,7 +68,10 @@ export function splitShiftByRate(
   }
 }
 
-export function applyBreakDeduction(split: ShiftSplit): ShiftSplit {
+export function applyBreakDeduction(
+  split: ShiftSplit,
+  _venueSettings?: VenueSettings | null
+): ShiftSplit {
   const adjusted: ShiftSplit = {
     Standard: Math.round((Number(split.Standard) || 0) * 100) / 100,
     Enhanced: Math.round((Number(split.Enhanced) || 0) * 100) / 100,
@@ -125,13 +141,15 @@ export function getStaffSummaryKey(entry: TimeEntry): string {
 
 export function calculateStaffSummary(
   entries: TimeEntry[],
-  userRatesMap?: UserRatesMap
+  userRatesMap?: UserRatesMap,
+  venueSettings?: VenueSettings | null
 ): Record<string, StaffSummaryData> {
   const staffSummary: Record<string, StaffSummaryData> = {}
   for (const entry of entries) {
     const isSupervisor = entry.pay_rate_type === 'Supervisor'
     const split = applyBreakDeduction(
-      splitShiftByRate(entry.clock_in, entry.clock_out, isSupervisor)
+      splitShiftByRate(entry.clock_in, entry.clock_out, isSupervisor, venueSettings),
+      venueSettings
     )
     const emp = entry.employee
     const key = getStaffSummaryKey(entry)
