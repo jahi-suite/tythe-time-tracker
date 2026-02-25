@@ -13,6 +13,7 @@ import { ManagerPage } from './pages/ManagerPage'
 import { VenueSettingsPage } from './pages/VenueSettingsPage'
 import { TermsPage } from './pages/TermsPage'
 import { PrivacyPage } from './pages/PrivacyPage'
+import { DevVenuesPage } from './pages/DevVenuesPage'
 
 function AppRoutes() {
   const { user, loading } = useAuth()
@@ -54,6 +55,7 @@ function AppRoutes() {
       <Routes>
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/dev/venues" element={<DevVenuesPage />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<Navigate to="/clock" replace />} />
           <Route path="clock" element={<ClockPage />} />
@@ -71,6 +73,7 @@ function AppRoutes() {
       <Routes>
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/dev/venues" element={<DevVenuesPage />} />
         <Route path="/login" element={<FirstSetupPage />} />
         <Route path="/:venueSlug/login" element={<FirstSetupPage />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
@@ -80,6 +83,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<MarketingLandingPage />} />
       <Route path="/venues" element={<VenueLandingPage />} />
+      <Route path="/dev/venues" element={<DevVenuesPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/:venueSlug/login" element={<LoginPage />} />
       <Route path="/terms" element={<TermsPage />} />
