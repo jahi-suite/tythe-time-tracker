@@ -36,55 +36,72 @@ export async function createTimeEntry(
   clockIn: Date,
   payRateType: PayRateType,
   clockOut?: Date | null,
-  userId?: string | null
+  userId?: string | null,
+  venueId?: string | null
 ): Promise<TimeEntry> {
   const { query } = await import('./connection.js')
   const res = await query<TimeEntryRow>(
     `INSERT INTO ${DB.TIME_ENTRIES_TABLE} 
-     (${DB.USER_ID_COLUMN}, ${DB.EMPLOYEE_COLUMN}, ${DB.CLOCK_IN_COLUMN}, ${DB.CLOCK_OUT_COLUMN}, ${DB.PAY_RATE_TYPE_COLUMN})
-     VALUES ($1, $2, $3, $4, $5)
+     (${DB.USER_ID_COLUMN}, ${DB.EMPLOYEE_COLUMN}, ${DB.CLOCK_IN_COLUMN}, ${DB.CLOCK_OUT_COLUMN}, ${DB.PAY_RATE_TYPE_COLUMN}, ${DB.VENUE_ID_COLUMN})
+     VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING ${DB.ID_COLUMN}, ${DB.USER_ID_COLUMN}, ${DB.EMPLOYEE_COLUMN}, ${DB.CLOCK_IN_COLUMN}, ${DB.CLOCK_OUT_COLUMN}, ${DB.PAY_RATE_TYPE_COLUMN}, ${DB.CREATED_AT_COLUMN}`,
-    [userId ?? null, employee.trim(), clockIn, clockOut ?? null, payRateType]
+    [userId ?? null, employee.trim(), clockIn, clockOut ?? null, payRateType, venueId ?? null]
   )
   return rowToTimeEntry(res.rows[0])
 }
 
-export async function getOpenShift(employee: string): Promise<TimeEntry | null> {
+export async function getOpenShift(
+  employee: string,
+  venueId?: string | null
+): Promise<TimeEntry | null> {
   const { query } = await import('./connection.js')
   const res = await query<TimeEntryRow>(
     `SELECT ${DB.ID_COLUMN}, ${DB.USER_ID_COLUMN}, ${DB.EMPLOYEE_COLUMN}, ${DB.CLOCK_IN_COLUMN}, ${DB.CLOCK_OUT_COLUMN}, ${DB.PAY_RATE_TYPE_COLUMN}, ${DB.CREATED_AT_COLUMN}
      FROM ${DB.TIME_ENTRIES_TABLE}
-     WHERE LOWER(${DB.EMPLOYEE_COLUMN}) = LOWER($1) AND ${DB.CLOCK_OUT_COLUMN} IS NULL
+     WHERE LOWER(${DB.EMPLOYEE_COLUMN}) = LOWER($1)
+       AND ${DB.CLOCK_OUT_COLUMN} IS NULL
+       AND ($2::uuid IS NULL OR ${DB.VENUE_ID_COLUMN} = $2::uuid)
      ORDER BY ${DB.CLOCK_IN_COLUMN} DESC LIMIT 1`,
-    [employee.trim()]
+    [employee.trim(), venueId?.trim() || null]
   )
   return res.rows[0] ? rowToTimeEntry(res.rows[0]) : null
 }
 
 export async function getOpenShiftByUserId(
   userId: string,
-  fallbackEmployee?: string | null
+  fallbackEmployee?: string | null,
+  venueId?: string | null
 ): Promise<TimeEntry | null> {
   const { query } = await import('./connection.js')
   const params: unknown[] = [userId]
   let sql = `SELECT ${DB.ID_COLUMN}, ${DB.USER_ID_COLUMN}, ${DB.EMPLOYEE_COLUMN}, ${DB.CLOCK_IN_COLUMN}, ${DB.CLOCK_OUT_COLUMN}, ${DB.PAY_RATE_TYPE_COLUMN}, ${DB.CREATED_AT_COLUMN}
      FROM ${DB.TIME_ENTRIES_TABLE}
-     WHERE ${DB.USER_ID_COLUMN} = $1 AND ${DB.CLOCK_OUT_COLUMN} IS NULL`
+     WHERE (${DB.USER_ID_COLUMN} = $1 AND ${DB.CLOCK_OUT_COLUMN} IS NULL`
   if (fallbackEmployee?.trim()) {
     params.push(fallbackEmployee.trim())
     sql += ` OR (${DB.USER_ID_COLUMN} IS NULL AND LOWER(${DB.EMPLOYEE_COLUMN}) = LOWER($${params.length}) AND ${DB.CLOCK_OUT_COLUMN} IS NULL)`
   }
+  sql += `)`
+  params.push(venueId?.trim() || null)
+  sql += ` AND ($${params.length}::uuid IS NULL OR ${DB.VENUE_ID_COLUMN} = $${params.length}::uuid)`
   sql += ` ORDER BY ${DB.CLOCK_IN_COLUMN} DESC LIMIT 1`
   const res = await query<TimeEntryRow>(sql, params)
   return res.rows[0] ? rowToTimeEntry(res.rows[0]) : null
 }
 
-export async function closeShift(entryId: string, clockOut: Date): Promise<TimeEntry> {
+export async function closeShift(
+  entryId: string,
+  clockOut: Date,
+  venueId?: string | null
+): Promise<TimeEntry> {
   const { query } = await import('./connection.js')
   const res = await query<TimeEntryRow>(
-    `UPDATE ${DB.TIME_ENTRIES_TABLE} SET ${DB.CLOCK_OUT_COLUMN} = $1 WHERE ${DB.ID_COLUMN} = $2
+    `UPDATE ${DB.TIME_ENTRIES_TABLE}
+     SET ${DB.CLOCK_OUT_COLUMN} = $1
+     WHERE ${DB.ID_COLUMN} = $2
+       AND ($3::uuid IS NULL OR ${DB.VENUE_ID_COLUMN} = $3::uuid)
      RETURNING ${DB.ID_COLUMN}, ${DB.USER_ID_COLUMN}, ${DB.EMPLOYEE_COLUMN}, ${DB.CLOCK_IN_COLUMN}, ${DB.CLOCK_OUT_COLUMN}, ${DB.PAY_RATE_TYPE_COLUMN}, ${DB.CREATED_AT_COLUMN}`,
-    [clockOut, entryId]
+    [clockOut, entryId, venueId?.trim() || null]
   )
   if (!res.rows[0]) throw new Error(`Time entry ${entryId} not found`)
   return rowToTimeEntry(res.rows[0])
@@ -93,12 +110,15 @@ export async function closeShift(entryId: string, clockOut: Date): Promise<TimeE
 export async function getEmployeeTimesheet(
   employee: string,
   startDate?: Date | null,
-  endDate?: Date | null
+  endDate?: Date | null,
+  venueId?: string | null
 ): Promise<TimeEntry[]> {
   const { query } = await import('./connection.js')
   let sql = `SELECT ${DB.ID_COLUMN}, ${DB.USER_ID_COLUMN}, ${DB.EMPLOYEE_COLUMN}, ${DB.CLOCK_IN_COLUMN}, ${DB.CLOCK_OUT_COLUMN}, ${DB.PAY_RATE_TYPE_COLUMN}, ${DB.CREATED_AT_COLUMN}
      FROM ${DB.TIME_ENTRIES_TABLE} WHERE LOWER(${DB.EMPLOYEE_COLUMN}) = LOWER($1)`
   const params: unknown[] = [employee.trim()]
+  params.push(venueId?.trim() || null)
+  sql += ` AND ($${params.length}::uuid IS NULL OR ${DB.VENUE_ID_COLUMN} = $${params.length}::uuid)`
   if (startDate) {
     params.push(startDate)
     sql += ` AND DATE(${DB.CLOCK_IN_COLUMN}) >= $${params.length}`
@@ -116,7 +136,8 @@ export async function getEmployeeTimesheetByUserId(
   userId: string,
   fallbackEmployee?: string | null,
   startDate?: Date | null,
-  endDate?: Date | null
+  endDate?: Date | null,
+  venueId?: string | null
 ): Promise<TimeEntry[]> {
   const { query } = await import('./connection.js')
   const params: unknown[] = [userId]
@@ -128,6 +149,8 @@ export async function getEmployeeTimesheetByUserId(
     sql += ` OR (${DB.USER_ID_COLUMN} IS NULL AND LOWER(${DB.EMPLOYEE_COLUMN}) = LOWER($${params.length}))`
   }
   sql += `)`
+  params.push(venueId?.trim() || null)
+  sql += ` AND ($${params.length}::uuid IS NULL OR ${DB.VENUE_ID_COLUMN} = $${params.length}::uuid)`
   if (startDate) {
     params.push(startDate)
     sql += ` AND DATE(${DB.CLOCK_IN_COLUMN}) >= $${params.length}`
@@ -143,12 +166,14 @@ export async function getEmployeeTimesheetByUserId(
 
 export async function getAllTimesheets(
   startDate?: Date | null,
-  endDate?: Date | null
+  endDate?: Date | null,
+  venueId?: string | null
 ): Promise<TimeEntry[]> {
   const { query } = await import('./connection.js')
   let sql = `SELECT ${DB.ID_COLUMN}, ${DB.USER_ID_COLUMN}, ${DB.EMPLOYEE_COLUMN}, ${DB.CLOCK_IN_COLUMN}, ${DB.CLOCK_OUT_COLUMN}, ${DB.PAY_RATE_TYPE_COLUMN}, ${DB.CREATED_AT_COLUMN}
      FROM ${DB.TIME_ENTRIES_TABLE} WHERE 1=1`
-  const params: unknown[] = []
+  const params: unknown[] = [venueId?.trim() || null]
+  sql += ` AND ($1::uuid IS NULL OR ${DB.VENUE_ID_COLUMN} = $1::uuid)`
   if (startDate) {
     params.push(startDate)
     sql += ` AND DATE(${DB.CLOCK_IN_COLUMN}) >= $${params.length}`
@@ -162,12 +187,17 @@ export async function getAllTimesheets(
   return res.rows.map(rowToTimeEntry)
 }
 
-export async function getTimeEntryById(entryId: string): Promise<TimeEntry | null> {
+export async function getTimeEntryById(
+  entryId: string,
+  venueId?: string | null
+): Promise<TimeEntry | null> {
   const { query } = await import('./connection.js')
   const res = await query<TimeEntryRow>(
     `SELECT ${DB.ID_COLUMN}, ${DB.USER_ID_COLUMN}, ${DB.EMPLOYEE_COLUMN}, ${DB.CLOCK_IN_COLUMN}, ${DB.CLOCK_OUT_COLUMN}, ${DB.PAY_RATE_TYPE_COLUMN}, ${DB.CREATED_AT_COLUMN}
-     FROM ${DB.TIME_ENTRIES_TABLE} WHERE ${DB.ID_COLUMN} = $1`,
-    [entryId]
+     FROM ${DB.TIME_ENTRIES_TABLE}
+     WHERE ${DB.ID_COLUMN} = $1
+       AND ($2::uuid IS NULL OR ${DB.VENUE_ID_COLUMN} = $2::uuid)`,
+    [entryId, venueId?.trim() || null]
   )
   return res.rows[0] ? rowToTimeEntry(res.rows[0]) : null
 }
@@ -177,25 +207,32 @@ export async function updateTimeEntry(
   employee: string,
   clockIn: Date,
   clockOut: Date | null,
-  payRateType: PayRateType
+  payRateType: PayRateType,
+  venueId?: string | null
 ): Promise<TimeEntry> {
   const { query } = await import('./connection.js')
   const res = await query<TimeEntryRow>(
     `UPDATE ${DB.TIME_ENTRIES_TABLE}
      SET ${DB.EMPLOYEE_COLUMN} = $1, ${DB.CLOCK_IN_COLUMN} = $2, ${DB.CLOCK_OUT_COLUMN} = $3, ${DB.PAY_RATE_TYPE_COLUMN} = $4
      WHERE ${DB.ID_COLUMN} = $5
+       AND ($6::uuid IS NULL OR ${DB.VENUE_ID_COLUMN} = $6::uuid)
      RETURNING ${DB.ID_COLUMN}, ${DB.USER_ID_COLUMN}, ${DB.EMPLOYEE_COLUMN}, ${DB.CLOCK_IN_COLUMN}, ${DB.CLOCK_OUT_COLUMN}, ${DB.PAY_RATE_TYPE_COLUMN}, ${DB.CREATED_AT_COLUMN}`,
-    [employee.trim(), clockIn, clockOut, payRateType, entryId]
+    [employee.trim(), clockIn, clockOut, payRateType, entryId, venueId?.trim() || null]
   )
   if (!res.rows[0]) throw new Error(`Time entry ${entryId} not found`)
   return rowToTimeEntry(res.rows[0])
 }
 
-export async function deleteTimeEntry(entryId: string): Promise<boolean> {
+export async function deleteTimeEntry(
+  entryId: string,
+  venueId?: string | null
+): Promise<boolean> {
   const { query } = await import('./connection.js')
   const res = await query(
-    `DELETE FROM ${DB.TIME_ENTRIES_TABLE} WHERE ${DB.ID_COLUMN} = $1`,
-    [entryId]
+    `DELETE FROM ${DB.TIME_ENTRIES_TABLE}
+     WHERE ${DB.ID_COLUMN} = $1
+       AND ($2::uuid IS NULL OR ${DB.VENUE_ID_COLUMN} = $2::uuid)`,
+    [entryId, venueId?.trim() || null]
   )
   return (res.rowCount ?? 0) > 0
 }
