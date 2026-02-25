@@ -25,7 +25,7 @@ else
 fi
 
 # --- API checks DEV_VENUES_ENABLED ---
-if grep -qE "DEV_VENUES_ENABLED|dev.*venues.*enabled" tt-ts/src/server/ 2>/dev/null; then
+if grep -rqE "DEV_VENUES_ENABLED|dev.*venues.*enabled" tt-ts/src/server/ 2>/dev/null; then
   echo "PASS: API checks DEV_VENUES_ENABLED"
   PASS=$((PASS+1))
 else
