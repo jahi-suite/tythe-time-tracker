@@ -19,7 +19,11 @@ export function Layout() {
 
   const isManager = user?.role === 'manager' || user?.role === 'admin'
   const isAdmin = user?.role === 'admin'
-  const formatRate = (rate?: number | null) => (rate == null ? 'Not set' : `£${rate.toFixed(2)}/hr`)
+  const formatRate = (rate?: number | string | null) => {
+    if (rate == null || rate === '') return 'Not set'
+    const n = typeof rate === 'string' ? parseFloat(rate) : rate
+    return Number.isNaN(n) ? 'Not set' : `£${n.toFixed(2)}/hr`
+  }
   const pages = [
     { path: '/clock', label: 'Clock' },
     { path: '/timesheet', label: 'Timesheet' },
@@ -65,41 +69,41 @@ export function Layout() {
 
   return (
     <div className="app-shell">
-      <Container className="app-shell__content">
-        <section className="app-shell__intro" aria-label="Workspace details">
-          <div className="app-shell__intro-main">
-            <div className="app-shell__brand-row">
+      <Container className="workspace-shell__content">
+        <section className="workspace-shell__intro" aria-label="Workspace details">
+          <div className="workspace-shell__intro-main">
+            <div className="workspace-shell__brand-row">
               <img
                 src={isTytheVenue ? '/tythe-logo.png' : '/kari-logo.png'}
                 alt={isTytheVenue ? 'Tythe Barn' : 'Kari Suite'}
-                className="app-shell__venue-logo"
+                className="workspace-shell__venue-logo"
                 width={44}
                 height={44}
               />
               <div>
-                <p className="app-shell__kicker">{venueName}</p>
-                <h1 className="app-shell__title">Kari Time</h1>
+                <p className="workspace-shell__kicker">{venueName}</p>
+                <h1 className="workspace-shell__title">Kari Time</h1>
               </div>
             </div>
-            <p className="app-shell__subtle">
+            <p className="workspace-shell__subtle">
               <strong>{displayName}</strong> ({user?.role})
             </p>
           </div>
-          <div className="app-shell__actions">
+          <div className="workspace-shell__actions">
             <button onClick={handleLogout} className="btn-secondary" type="button">
               Logout
             </button>
           </div>
         </section>
 
-        <div className="app-shell__nav" role="navigation" aria-label="Workspace sections">
+        <div className="workspace-shell__nav" role="navigation" aria-label="Workspace sections">
           {pages.map((p) => {
             const isActive = location.pathname === p.path
             return (
               <button
                 key={p.path}
                 type="button"
-                className={`app-shell__nav-link${isActive ? ' active' : ''}`}
+                className={`workspace-shell__nav-link${isActive ? ' active' : ''}`}
                 aria-current={isActive ? 'page' : undefined}
                 onClick={() => navigate(p.path)}
               >
@@ -109,10 +113,10 @@ export function Layout() {
           })}
         </div>
 
-        <div className="app-shell__support-grid">
-          <details className="app-shell__panel">
+        <div className="workspace-shell__support-grid">
+          <details className="workspace-shell__panel">
             <summary>Password</summary>
-            <form onSubmit={handleChangePassword} className="app-shell__password-form">
+            <form onSubmit={handleChangePassword} className="workspace-shell__password-form">
               <input
                 type="password"
                 placeholder="Current password"
@@ -137,7 +141,7 @@ export function Layout() {
             </form>
           </details>
 
-          <details className="app-shell__panel pay-rate-info">
+          <details className="workspace-shell__panel pay-rate-info">
             <summary>Pay rates</summary>
             <p>
               <strong>Standard:</strong> {formatRate(user?.standard_rate)}
@@ -149,12 +153,12 @@ export function Layout() {
           </details>
         </div>
 
-        <main className="app-shell__main">
+        <main className="workspace-shell__main">
           <Outlet />
         </main>
       </Container>
 
-      <Footer className="app-shell__footer" />
+      <Footer className="workspace-shell__footer" />
     </div>
   )
 }
