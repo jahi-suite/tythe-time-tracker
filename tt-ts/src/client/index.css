@@ -228,10 +228,147 @@ body {
   color: var(--cream);
 }
 
+.workspace-shell__main .tabs button {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--rule);
+  color: rgba(243, 237, 227, 0.8);
+}
+.workspace-shell__main .tabs button:hover:not(.active) {
+  background: rgba(200, 133, 58, 0.08);
+  color: var(--cream);
+}
 .workspace-shell__main .tabs button.active {
   background: rgba(200, 133, 58, 0.22);
   border-color: rgba(200, 133, 58, 0.35);
   color: var(--cream);
+}
+
+.workspace-shell__main input,
+.workspace-shell__main select,
+.workspace-shell__main textarea {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--rule);
+  color: var(--cream);
+}
+.workspace-shell__main input::placeholder,
+.workspace-shell__main textarea::placeholder {
+  color: rgba(243, 237, 227, 0.4);
+}
+.workspace-shell__main input:focus,
+.workspace-shell__main select:focus,
+.workspace-shell__main textarea:focus {
+  outline-color: rgba(232, 168, 85, 0.4);
+  border-color: rgba(200, 133, 58, 0.4);
+}
+
+.workspace-shell__main .message-success {
+  background: rgba(110, 168, 137, 0.12);
+  border-color: rgba(110, 168, 137, 0.3);
+  color: rgba(243, 237, 227, 0.9);
+}
+.workspace-shell__main .message-error {
+  background: rgba(187, 102, 112, 0.15);
+  border-color: rgba(187, 102, 112, 0.35);
+  color: rgba(243, 237, 227, 0.9);
+}
+.workspace-shell__main .message-info {
+  background: rgba(109, 148, 189, 0.12);
+  border-color: rgba(109, 148, 189, 0.3);
+  color: rgba(243, 237, 227, 0.9);
+}
+
+.workspace-shell__main .btn-primary {
+  background: rgba(200, 133, 58, 0.35);
+  border-color: rgba(200, 133, 58, 0.5);
+  color: var(--cream);
+}
+.workspace-shell__main .btn-primary:hover:not(:disabled) {
+  background: rgba(200, 133, 58, 0.45);
+  border-color: rgba(232, 168, 85, 0.5);
+}
+.workspace-shell__main .btn-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--rule);
+  color: rgba(243, 237, 227, 0.85);
+}
+.workspace-shell__main .btn-secondary:hover:not(:disabled) {
+  background: rgba(200, 133, 58, 0.1);
+  border-color: rgba(200, 133, 58, 0.3);
+  color: var(--cream);
+}
+.workspace-shell__main .btn-danger {
+  background: rgba(185, 28, 28, 0.4);
+  border-color: rgba(185, 28, 28, 0.55);
+  color: rgba(243, 237, 227, 0.95);
+}
+.workspace-shell__main .btn-danger:hover:not(:disabled) {
+  background: rgba(185, 28, 28, 0.55);
+  border-color: rgba(185, 28, 28, 0.7);
+}
+
+.workspace-shell__main table {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: var(--rule);
+}
+.workspace-shell__main th,
+.workspace-shell__main td {
+  border-color: var(--rule);
+  color: rgba(243, 237, 227, 0.9);
+}
+.workspace-shell__main th {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--cream);
+}
+
+.workspace-shell__main .card h3,
+.workspace-shell__main label {
+  color: rgba(243, 237, 227, 0.9);
+}
+
+.workspace-shell__main button:not(.tabs button):not(.btn-primary):not(.btn-secondary):not(.btn-danger) {
+  background: rgba(200, 133, 58, 0.2);
+  border-color: rgba(200, 133, 58, 0.35);
+  color: var(--cream);
+}
+.workspace-shell__main button:hover:not(:disabled):not(.tabs button):not(.btn-primary):not(.btn-secondary):not(.btn-danger) {
+  background: rgba(200, 133, 58, 0.3);
+  border-color: rgba(232, 168, 85, 0.4);
+}
+
+.workspace-shell__main .timesheet-table-wrap {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: var(--rule);
+}
+.workspace-shell__main .timesheet-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02);
+}
+.workspace-shell__main .timesheet-table tbody tr:hover {
+  background: rgba(200, 133, 58, 0.06);
+}
+.workspace-shell__main .timesheet-pay-rate-badge {
+  background: rgba(200, 133, 58, 0.15);
+  border-color: rgba(200, 133, 58, 0.3);
+  color: var(--amber-l);
+}
+
+.workspace-shell__main .manage-users-section summary {
+  color: var(--cream);
+}
+.workspace-shell__main .badge-entry-id {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--rule);
+  color: rgba(243, 237, 227, 0.7);
+}
+.workspace-shell__main .badge-role-admin,
+.workspace-shell__main .badge-role-manager,
+.workspace-shell__main .badge-role-employee {
+  opacity: 0.9;
+}
+.workspace-shell__main .badge-status-active,
+.workspace-shell__main .badge-status-inactive,
+.workspace-shell__main .badge-status-complete,
+.workspace-shell__main .badge-status-in-progress {
+  opacity: 0.9;
 }
 
 .workspace-shell__footer {
