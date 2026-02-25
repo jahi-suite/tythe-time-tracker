@@ -262,6 +262,7 @@ export async function getAuditLogs(filters?: {
   start_date?: Date
   end_date?: Date
   limit?: number
+  venue_id?: string | null
 }): Promise<AuditLogEntry[]> {
   const { query } = await import('./connection.js')
   let sql = `SELECT id, action, target_table, target_id, changed_by, old_values, new_values, created_at
@@ -286,6 +287,10 @@ export async function getAuditLogs(filters?: {
   if (filters?.end_date) {
     params.push(filters.end_date)
     sql += ` AND created_at <= $${params.length}`
+  }
+  if (filters?.venue_id) {
+    params.push(filters.venue_id)
+    sql += ` AND ${DB.VENUE_ID_COLUMN} = $${params.length}`
   }
   sql += ' ORDER BY created_at DESC'
   if (filters?.limit) {

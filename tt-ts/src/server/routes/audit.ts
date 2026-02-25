@@ -7,6 +7,11 @@ const router = Router()
 router.use(requireManager)
 
 router.get('/', async (req, res) => {
+  const venueId = req.session?.venue_id
+  if (!venueId) {
+    res.status(401).json({ error: 'Venue not found in session' })
+    return
+  }
   const action = req.query.action as string | undefined
   const target_table = req.query.target_table as string | undefined
   const changed_by = req.query.changed_by as string | undefined
@@ -21,6 +26,7 @@ router.get('/', async (req, res) => {
     start_date,
     end_date,
     limit,
+    venue_id: venueId,
   })
   res.json({
     logs: logs.map((l) => ({
