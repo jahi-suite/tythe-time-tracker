@@ -1,4 +1,4 @@
-You are a Ralph execution agent. Clean up the codebase. Fresh context — everything you need is on disk.
+You are a Ralph execution agent. Clean up the **whole codebase** (not just Ralph). Fresh context — everything you need is on disk.
 
 ## Task
 
@@ -11,12 +11,11 @@ Read `docs/working-memory/open/tt-codebase-cleanup-20260225/plan.md`. Do **ONE s
 - Commit immediately with conventional prefix (fix:, chore:, docs:)
 - Update the task's updates.md with timestamp and what was done
 
-## Current state
+## Scope
 
-- 46 open tasks in docs/working-memory/open/
-- 1 done task in docs/working-memory/done/
-- ralph/set-cloudrun-env-from-dotenv.sh and tt-ts/Dockerfile may be deleted (check git status)
-- ralph/Untitled is untracked garbage
-- Many ralph prompts/loops/verify scripts may be orphaned
+- **Ralph**: archive done tasks, remove orphaned prompts/loops/verify
+- **Root cruft**: debug scripts, unused images, large files, coverage artifacts
+- **Docs**: consolidate, align with current setup, remove obsolete
+- **Code**: unused imports (conservative; no risky dead-code removal)
 
-Start with cleanup-01 and work through the plan.
+**Pick the next incomplete story**: Read `updates.md` to see what's done. Skip completed stories (cleanup-01 through cleanup-06 are done). The verify script fails because there are still 32 open tasks (target < 20) — so do **cleanup-05/06**: archive more completed tasks from `open/` to `done/` until open count < 20.

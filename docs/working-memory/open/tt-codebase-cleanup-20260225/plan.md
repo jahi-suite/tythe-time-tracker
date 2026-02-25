@@ -1,51 +1,70 @@
 # Task: tt-codebase-cleanup-20260225
 
 > Created: 2026-02-25 | Status: in progress
-> **Goal**: Clean up the codebase — archive stale tasks, remove orphaned Ralph artifacts, fix broken state, consolidate docs.
+> **Goal**: Clean up the **whole codebase** — Ralph artifacts, root cruft, docs, dead code. Use Ralph to do it.
 
 ## Current Mess
 
-- **46 open tasks** in `docs/working-memory/open/` — many are likely done or stale
-- **1 done task** in `docs/working-memory/done/` — tt-cicd-github-gcp-20260224
-- **42 prompts**, **42 loops**, **30 verify scripts** in ralph/ — many orphaned for completed tasks
-- **Broken state**: `ralph/set-cloudrun-env-from-dotenv.sh` and `tt-ts/Dockerfile` deleted (git status)
-- **Untracked**: `ralph/Untitled` — garbage file
-- **Docs**: CICD_SETUP.md, GCP_CLOUD_RUN_SETUP.md may have conflicting or outdated info
+**Ralph & working memory:**
+- 46 open tasks in `docs/working-memory/open/` — many done or stale
+- 42 prompts, 42 loops, 30 verify scripts — many orphaned
+- ralph/Untitled, missing set-cloudrun-env-from-dotenv.sh (if deleted)
+
+**Root-level cruft:**
+- debug_env.py, debug_shift.py, check_gitignore.py, test_connection.py, update_database.py — one-off scripts?
+- farm-scaled.jpg (95KB) — unused image?
+- google-cloud-cli-linux-x86_64.tar.gz, google-cloud-sdk/ — in .gitignore but may be committed; remove if tracked
+- .coverage, coverage.xml, htmlcov/ — in .gitignore; ensure not committed
+
+**Docs:**
+- README.md, STREAMLIT_CLOUD_DATABASE.md, GITHUB_LOGIN_STEPS.md, SUPABASE_SETUP.md, claude.md — consolidate, remove obsolete
+- docs/CICD_SETUP.md, docs/GCP_CLOUD_RUN_SETUP.md — align with current Cloud Run setup
+
+**Code:**
+- Python: tythe_time_tracker/, app.py, export_functions.py — dead code, unused imports?
+- tt-ts/: dead code, unused imports?
 
 ## Stories (in order)
 
 ### Phase 1: Fix broken state
 
-1. **cleanup-01** — Restore `ralph/set-cloudrun-env-from-dotenv.sh` if missing (used for Cloud Run env from .env). Check git history.
-2. **cleanup-02** — Restore `tt-ts/Dockerfile` if missing. Root Dockerfile builds tt-ts; tt-ts/Dockerfile may exist for local/different builds. Check git.
-3. **cleanup-03** — Delete `ralph/Untitled` (untracked garbage).
+1. **cleanup-01** — Restore ralph/set-cloudrun-env-from-dotenv.sh if missing. Delete ralph/Untitled.
 
-### Phase 2: Archive completed open tasks
+### Phase 2: Root-level cruft
 
-4. **cleanup-04** — For each task in `docs/working-memory/open/`, check if it's done (updates.md says completed, or verify passes, or code exists). Move done tasks to `docs/working-memory/done/`. Do in batches of 5–10 per commit.
-5. **cleanup-05** — Continue archiving until all completed tasks are in done/.
+2. **cleanup-02** — Remove or archive one-off scripts: debug_env.py, debug_shift.py, check_gitignore.py, test_connection.py, update_database.py. Only remove if confirmed unused (grep for imports).
+3. **cleanup-03** — Remove farm-scaled.jpg if unused. Check if google-cloud-cli*.tar.gz or google-cloud-sdk are tracked; add to .gitignore if missing, remove from repo if committed.
+4. **cleanup-04** — Ensure coverage.xml, htmlcov, .coverage are in .gitignore and not committed.
 
-### Phase 3: Remove orphaned Ralph artifacts
+### Phase 3: Archive completed open tasks
 
-6. **cleanup-06** — For each task in `docs/working-memory/done/`, ensure prompts/loops/verify exist or remove orphans. For tasks with no plan in open/ or done/, the prompt/loop/verify may be orphaned — list them.
-7. **cleanup-07** — Remove orphaned ralph artifacts: prompts, loops, verify scripts that have no corresponding task in open/ or done/. Keep artifacts for tasks that exist in done/ (for reference).
-8. **cleanup-08** — Optionally: remove prompts/loops/verify for done tasks if we want a lean ralph/ (only active-task artifacts). Or keep them for done tasks as historical reference. **Decision**: Keep for done tasks; remove only truly orphaned (task folder never existed or was deleted).
+5. **cleanup-05** — For each task in docs/working-memory/open/, check if done. Move done tasks to done/. Batches of 5–10 per commit.
+6. **cleanup-06** — Continue archiving until open count < 20.
 
-### Phase 4: Consolidate docs
+### Phase 4: Remove orphaned Ralph artifacts
 
-9. **cleanup-09** — Review docs/CICD_SETUP.md, docs/GCP_CLOUD_RUN_SETUP.md for accuracy. Align with current setup: Cloud Run (kari-time, karitime, karisuite-site), regions (europe-west1), deploy scripts.
-10. **cleanup-10** — Remove or consolidate duplicate/obsolete docs. Check README.md, STREAMLIT_CLOUD_DATABASE.md, GITHUB_LOGIN_STEPS.md — ensure they're current or archived.
+7. **cleanup-07** — Remove prompts/loops/verify that have no task in open/ or done/. Keep for done tasks.
 
-### Phase 5: Final verification
+### Phase 5: Consolidate docs
 
-11. **cleanup-11** — Run verification: `git status` clean (or known uncommitted), `ls docs/working-memory/open/` shows only active tasks, ralph/ has no orphaned files.
+8. **cleanup-08** — Align docs/CICD_SETUP.md, docs/GCP_CLOUD_RUN_SETUP.md with current setup (kari-time, karitime, karisuite-site, europe-west1).
+9. **cleanup-09** — Consolidate root docs: README, STREAMLIT_CLOUD_DATABASE, GITHUB_LOGIN_STEPS, SUPABASE_SETUP. Move obsolete to docs/archive/ or remove.
+10. **cleanup-10** — Remove duplicate/obsolete docs (e.g. docs/streamlit-secrets-example.toml vs secrets-to-paste-in-streamlit.toml).
 
-## Key Files
+### Phase 6: Code cleanup (optional, conservative)
 
-- `docs/working-memory/open/` — 46 task folders
-- `docs/working-memory/done/` — archive target
-- `ralph/prompts/`, `ralph/loops/`, `ralph/verify-*.sh` — artifacts to prune
-- `docs/CICD_SETUP.md`, `docs/GCP_CLOUD_RUN_SETUP.md` — docs to align
+11. **cleanup-11** — Python: remove unused imports (e.g. ruff check --select I). Do not remove "dead" code unless clearly unused.
+12. **cleanup-12** — tt-ts: remove unused imports. Run tsc --noEmit, npm run build to verify.
+
+### Phase 7: Final verification
+
+13. **cleanup-13** — Run verify script. git status clean. No large files in repo.
+
+## Key Paths
+
+- Root: app.py, export_functions.py, debug_*.py, *.md
+- docs/, ralph/, docs/working-memory/
+- tt-ts/, tythe_time_tracker/
 
 ## Verification
 
@@ -56,5 +75,4 @@
 ## Notes
 
 - Do ONE story per Ralph iteration. Commit after each.
-- When archiving, move the whole task folder (plan.md, updates.md) to done/.
-- Be conservative: if unsure whether a task is done, leave it in open/.
+- Be conservative: if unsure, leave it. Grep before removing.
