@@ -1,6 +1,6 @@
 # Task: tt-karisuite-ui-20260225
 
-> Created: 2026-02-25 | Status: open
+> Created: 2026-02-25 | Status: done
 > **Goal**: Reskin and restructure the tt-ts app UI to match the look/feel of KariSuite.com. Minimal, confident typography. Lots of whitespace. Centered max-width layout. Product sibling, not admin panel.
 
 ## Product positioning (KariSuite.com)
