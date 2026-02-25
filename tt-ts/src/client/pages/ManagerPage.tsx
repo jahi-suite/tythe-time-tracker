@@ -1,6 +1,36 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { timesheet, shifts, users, audit, exportExcelUrl, exportPdfUrl, type User as ApiUser } from '../api'
+import { timesheet, shifts, users, audit, exportExcelUrl, exportPdfUrl, type User as ApiUser, type AuditLog } from '../api'
+
+function formatAuditDescription(l: AuditLog): string {
+  const tbl = l.target_table === 'users' ? 'user' : 'shift'
+  const ov = (l.old_values as Record<string, unknown> | null) ?? {}
+  const nv = (l.new_values as Record<string, unknown> | null) ?? {}
+  const event = (nv.event ?? ov.event) as string | undefined
+  const employee = (nv.employee ?? ov.employee) as string | undefined
+  const displayName = (nv.display_name ?? ov.display_name) as string | undefined
+  const who = displayName ?? employee ?? ''
+
+  if (l.target_table === 'users') {
+    if (l.action === 'add') return event === 'first_setup_manager_created' ? 'First manager created' : `User added${who ? `: ${who}` : ''}`
+    if (l.action === 'delete') return `User deleted${who ? `: ${who}` : ''}`
+    if (event === 'user_activated') return `User activated: ${who || 'unknown'}`
+    if (event === 'user_deactivated') return `User deactivated: ${who || 'unknown'}`
+    if (event === 'pay_rates_updated') return `Pay rates updated: ${who || 'unknown'}`
+    if (event === 'user_role_change') return `Role changed: ${who || 'unknown'}`
+    if (event === 'password_reset_completed') return `Password reset: ${who || 'unknown'}`
+    if (event === 'user_promoted_to_admin') return `Promoted to admin: ${who || 'unknown'}`
+    if (event === 'user_update') return `User updated: ${who || 'unknown'}`
+    return `User ${l.action}ed${who ? `: ${who}` : ''}`
+  }
+  if (l.target_table === 'time_entries') {
+    const emp = who || 'unknown'
+    if (l.action === 'add') return `Shift added: ${emp}`
+    if (l.action === 'edit') return `Shift edited: ${emp}`
+    if (l.action === 'delete') return `Shift deleted: ${emp}`
+  }
+  return `${tbl} ${l.action}ed`
+}
 
 type AddShiftFormState = {
   employeeName: string
@@ -317,7 +347,7 @@ function UserCard({
 export function ManagerPage() {
   const { user } = useAuth()
   const [entries, setEntries] = useState<Array<{ id: string; employee: string; clock_in: string; clock_out: string | null; pay_rate_type: string }>>([])
-  const [auditLogs, setAuditLogs] = useState<Array<{ id: string; action: string; changed_by: string; created_at: string }>>([])
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([])
   const [userList, setUserList] = useState<ApiUser[]>([])
   const [userListError, setUserListError] = useState('')
   const [tab, setTab] = useState<'entries' | 'add' | 'edit' | 'delete' | 'users' | 'audit'>('entries')
@@ -1236,7 +1266,7 @@ export function ManagerPage() {
                       Log: {l.id}
                     </span>
                   </div>
-                  <p className="audit-card-action">{l.action}</p>
+                  <p className="audit-card-action">{formatAuditDescription(l)}</p>
                 </article>
               ))}
             </div>
