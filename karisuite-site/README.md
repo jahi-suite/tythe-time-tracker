@@ -2,6 +2,14 @@
 
 Static site for the Kari Suite homepage. Deploy to Cloud Run for karisuite.com and www.karisuite.com.
 
+## Run locally
+
+```bash
+./karisuite-site/run-local.sh
+```
+
+Then open http://localhost:8080
+
 - **index.html** — Home page
 - **privacy.html** — Privacy policy (links to Kari Time privacy for product details)
 - **kari-time-marketing.html** — Redirects to https://time.karisuite.com/
