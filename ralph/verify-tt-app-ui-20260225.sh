@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Verify tt-app-ui-20260225: venue login style, no duplicate tabs, pay rates panel
-set -e
+# Verify tt-app-ui-20260225: full app marketing style, no duplicate tabs, pay rates panel
+set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT/tt-ts"
@@ -22,6 +22,12 @@ check() {
 
 # Build must pass
 check npm run build >/dev/null 2>&1
+
+# Marketing tokens in index.css (--night, --cream, --amber)
+check grep -q '0d0b09\|f3ede3\|c8853a' "$REPO_ROOT/tt-ts/src/client/index.css"
+
+# Body or app-shell uses dark background
+check grep -A 6 'body {' "$REPO_ROOT/tt-ts/src/client/index.css" | grep -qE 'var\(--night\)|#0d0b09'
 
 # No duplicate nav: Layout must not have BOTH TopNav with page links AND app-shell__nav
 if grep -q 'TopNav' "$REPO_ROOT/tt-ts/src/client/pages/Layout.tsx" && \
