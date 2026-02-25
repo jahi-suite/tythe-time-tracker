@@ -101,8 +101,10 @@ spawn_agent() {
     else
       gemini_cmd="$gemini_bin"
     fi
-    # Export GEMINI_API_KEY from ~/.gemini/.env if not already set
-    if [ -z "${GEMINI_API_KEY:-}" ] && [ -f "${HOME}/.gemini/.env" ]; then
+    # Prefer OAuth (gemini login) over API key. If user logged in with `gemini` CLI, use that.
+    if [ -f "${HOME}/.gemini/oauth_creds.json" ]; then
+      unset GEMINI_API_KEY
+    elif [ -z "${GEMINI_API_KEY:-}" ] && [ -f "${HOME}/.gemini/.env" ]; then
       # shellcheck source=/dev/null
       set -a && . "${HOME}/.gemini/.env" && set +a
     fi
