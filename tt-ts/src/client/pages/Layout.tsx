@@ -20,11 +20,11 @@ export function Layout() {
   const isManager = user?.role === 'manager' || user?.role === 'admin'
   const isAdmin = user?.role === 'admin'
   const pages = [
-    { path: '/clock', label: 'Employee Clock In/Out' },
-    { path: '/timesheet', label: 'Personal Timesheet' },
-    { path: '/export', label: 'Export Timesheet' },
-    ...(isManager ? [{ path: '/manager', label: 'Manager Dashboard' }] : []),
-    ...(isAdmin ? [{ path: '/venue-settings', label: 'Venue Settings' }] : []),
+    { path: '/clock', label: 'Clock' },
+    { path: '/timesheet', label: 'Timesheet' },
+    { path: '/export', label: 'Exports' },
+    ...(isManager ? [{ path: '/manager', label: 'Manager' }] : []),
+    ...(isAdmin ? [{ path: '/venue-settings', label: 'Venue' }] : []),
   ]
 
   const handleLogout = async () => {
@@ -76,11 +76,11 @@ export function Layout() {
               />
               <div>
                 <p className="app-shell__kicker">{venueName}</p>
-                <h1 className="app-shell__title">Employee Portal</h1>
+                <h1 className="app-shell__title">Kari Time</h1>
               </div>
             </div>
             <p className="app-shell__subtle">
-              Signed in as <strong>{displayName}</strong> ({user?.role})
+              <strong>{displayName}</strong> ({user?.role})
             </p>
           </div>
           <div className="app-shell__actions">
@@ -109,7 +109,7 @@ export function Layout() {
 
         <div className="app-shell__support-grid">
           <details className="app-shell__panel">
-            <summary>Change my password</summary>
+            <summary>Password</summary>
             <form onSubmit={handleChangePassword} className="app-shell__password-form">
               <input
                 type="password"
@@ -136,9 +136,9 @@ export function Layout() {
           </details>
 
           <details className="app-shell__panel pay-rate-info">
-            <summary>Pay Rate Information</summary>
+            <summary>Pay rates</summary>
             <p>
-              <strong>Pay Rate Rules:</strong> Standard (4AM–7PM), Enhanced (7PM–4AM), Supervisor (when selected).
+              <strong>Rules:</strong> Standard (4AM-7PM), Enhanced (7PM-4AM), Supervisor (when selected).
             </p>
           </details>
         </div>

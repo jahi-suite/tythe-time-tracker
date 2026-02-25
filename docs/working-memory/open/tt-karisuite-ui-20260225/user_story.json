@@ -30,7 +30,7 @@
       "id": "ui-copy",
       "title": "Copy/tone pass",
       "acceptance_criteria": "Update microcopy to match KariSuite tone: short, direct, no fluff. Avoid enterprise/powerful/robust. Examples: 'No roadmap theatre.', 'Build tight. Ship it.', 'Works in the real world.'",
-      "passes": false
+      "passes": true
     },
     {
       "id": "ui-qa",

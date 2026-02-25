@@ -42,9 +42,9 @@ export function LoginPage() {
         style={{ display: 'block', margin: '0 auto 1rem' }}
       />
       <div className="login-hero">
-        <p className="login-eyebrow">Secure Access</p>
-        <h1 className="login-title">Employee Portal — {venueName ?? effectiveVenueSlug}</h1>
-        <p className="login-subtitle">Employee and manager timekeeping for daily operations.</p>
+        <p className="login-eyebrow">Kari Time</p>
+        <h1 className="login-title">Sign in — {venueName ?? effectiveVenueSlug}</h1>
+        <p className="login-subtitle">Clock in. Check timesheets. Export when needed.</p>
       </div>
       <form onSubmit={handleLogin} className="login-form">
         <input
@@ -113,9 +113,9 @@ export function FirstSetupPage() {
         style={{ display: 'block', margin: '0 auto 1rem' }}
       />
       <div className="login-hero">
-        <p className="login-eyebrow">First-Time Setup</p>
-        <h1 className="login-title">Create Your Admin Account</h1>
-        <p className="login-subtitle">No accounts exist yet. Create the first manager account to get started.</p>
+        <p className="login-eyebrow">First setup</p>
+        <h1 className="login-title">Create admin account</h1>
+        <p className="login-subtitle">No accounts yet. Create the first manager account.</p>
       </div>
       <form onSubmit={handleSubmit} className="login-form">
         <input
@@ -148,7 +148,7 @@ export function FirstSetupPage() {
         />
         {error && <p className="message-error">{error}</p>}
         <button type="submit" disabled={loading}>
-          Create admin account
+          Create account
         </button>
       </form>
     </div>

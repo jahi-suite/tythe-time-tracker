@@ -51,7 +51,7 @@ export function MarketingLandingPage() {
         id="products"
         kicker="Products"
         title="Three products. One standard."
-        lede="Clear scope. Honest status. Ship the one that solves today's problem."
+        lede="Clear scope. Honest status. Build what solves today's problem."
       >
         <div className="ks-card-grid">
           <Card
@@ -64,7 +64,7 @@ export function MarketingLandingPage() {
           <Card
             tag={<Tag tone="idea">Idea stage</Tag>}
             title="Kari Rota"
-            description="Planning and coverage tools without enterprise drag."
+            description="Planning and coverage tools for small teams."
             ctaLabel="Coming later"
           >
             No roadmap theatre. Build when the need is real.
@@ -107,11 +107,11 @@ export function MarketingLandingPage() {
       <Section
         id="contact"
         kicker="CTA"
-        title="Need time tracking that stays out of the way?"
-        lede="Kari Time is live now. Start with the product or email us if you need a fit check."
+        title="Need time tracking that just works?"
+        lede="Kari Time is live now. Open it or email us."
       >
         <div className="ks-card-grid">
-          <Card title="Open Kari Time" description="Log in and get to the clock, timesheet, and exports.">
+          <Card title="Open Kari Time" description="Clock in. Check timesheets. Export payroll.">
             <a href="/login" className="tt-btn">
               Open app
             </a>
