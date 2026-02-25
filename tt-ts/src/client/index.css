@@ -360,6 +360,9 @@ body {
 .workspace-shell__main .user-card-username {
   color: rgba(243, 237, 227, 0.8);
 }
+.workspace-shell__main .user-card-pay-rates label {
+  color: var(--cream);
+}
 .workspace-shell__main .badge-entry-id {
   background: rgba(255, 255, 255, 0.06);
   border-color: var(--rule);
@@ -741,6 +744,13 @@ tbody tr:last-child td { border-bottom: 0; }
 .pay-rate-info p {
   margin: 0.55rem 0 0 0;
   line-height: 1.35;
+}
+
+.workspace-shell .pay-rate-info,
+.workspace-shell .pay-rate-info summary,
+.workspace-shell .pay-rate-info p,
+.workspace-shell .pay-rate-info strong {
+  color: rgba(243, 237, 227, 0.9);
 }
 
 .sidebar-nav-section {
