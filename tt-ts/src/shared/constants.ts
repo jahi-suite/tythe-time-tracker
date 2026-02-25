@@ -3,10 +3,12 @@
  */
 
 export const DB = {
+  VENUES_TABLE: 'venues',
   TIME_ENTRIES_TABLE: 'time_entries',
   USERS_TABLE: 'users',
   AUDIT_LOG_TABLE: 'audit_log',
   ID_COLUMN: 'id',
+  VENUE_ID_COLUMN: 'venue_id',
   USER_ID_COLUMN: 'user_id',
   EMPLOYEE_COLUMN: 'employee',
   CLOCK_IN_COLUMN: 'clock_in',
