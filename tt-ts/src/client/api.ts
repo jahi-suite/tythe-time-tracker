@@ -23,6 +23,36 @@ export interface AuthUser {
   display_name: string
 }
 
+export interface VenueSearchResult {
+  slug: string
+  name: string
+}
+
+export interface CreateVenueResponse {
+  redirectUrl: string
+  venue: { slug: string; name: string }
+}
+
+export const venues = {
+  search: (q: string) =>
+    fetchApi<VenueSearchResult[]>(`/venues/search?q=${encodeURIComponent(q)}`),
+  create: (data: {
+    venueName: string
+    adminUsername: string
+    adminDisplayName: string
+    adminPassword: string
+  }) =>
+    fetchApi<CreateVenueResponse>('/venues', {
+      method: 'POST',
+      body: JSON.stringify({
+        venueName: data.venueName,
+        username: data.adminUsername,
+        displayName: data.adminDisplayName,
+        password: data.adminPassword,
+      }),
+    }),
+}
+
 export const auth = {
   me: (venueSlug?: string) =>
     fetchApi<AuthUser>(`/auth/me${venueSlug ? `?venue_slug=${encodeURIComponent(venueSlug)}` : ''}`),
