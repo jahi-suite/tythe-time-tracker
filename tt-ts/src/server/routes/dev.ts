@@ -8,6 +8,7 @@ const router = Router()
 type DevVenueRow = {
   name: string
   slug: string
+  active: boolean
   staff_count: number
   last_used: Date | null
 }
@@ -16,6 +17,7 @@ router.get('/venues', requireDevVenuesEnabled, requireDevSecret, async (_req, re
   const result = await query<DevVenueRow>(
     `SELECT v.name,
             v.slug,
+            v.active,
             COALESCE(u.staff_count, 0) AS staff_count,
             te.last_used
      FROM ${DB.VENUES_TABLE} v
@@ -37,6 +39,7 @@ router.get('/venues', requireDevVenuesEnabled, requireDevSecret, async (_req, re
     result.rows.map((row) => ({
       name: row.name,
       slug: row.slug,
+      active: row.active,
       staff_count: row.staff_count ?? 0,
       last_used: row.last_used ? row.last_used.toISOString() : null,
     }))
