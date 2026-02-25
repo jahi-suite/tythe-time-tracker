@@ -44,9 +44,15 @@
    - If fail: what was tried, what worked, what didn't, what to try next
 7. Next iteration reads failure notes and retries
 
+## Folder structure
+
+- **open/** — Active tasks (run.sh only runs tasks in open/)
+- **done/** — Completed tasks (all stories pass)
+- **archive/** — Plan-only tasks (no user_story.json); move to open/ and add user_story.json to run
+
 ## Migrating Plan-Only Tasks
 
-Tasks that currently have only plan.md with inline stories need a user_story.json. For each story in the plan:
+Tasks in archive/ or with only plan.md need a user_story.json. For each story in the plan:
 
 1. Add an entry to `stories` with `id`, `title`, `acceptance_criteria`, `passes: false`
 2. Extract or write testable acceptance criteria from the plan prose

@@ -131,16 +131,10 @@ tythe-time-tracker/
 
 ---
 
-## Ralph tasks (current)
+## Ralph tasks
 
-- **tt-user-auth-20260222** – User auth, login, manager seed (done).
-- **tt-audit-log-20260222** – Audit log (done).
-- **tt-kari-branding-20260222** – "Powered by Kari Suite" (done).
-- **tt-ts-scaffold-001** – tt-ts scaffold (done).
-- **tt-ts-manage-users-dashboard-20260223** – Card-based Manage Users (done).
-- **tt-ts-app-dashboard-style-20260223** – Dashboard style across tt-ts (in progress).
-- **tt-break-deduction-20260223** – 20min break for 6h+ shifts (in progress).
-- **tt-streamlit-desktop-contrast-20260223** – Desktop form contrast fixes.
+- **Completed** (in `docs/working-memory/done/`): tt-user-auth, tt-audit-log, tt-kari-branding, tt-mobile-fix, tt-mobile-safari-regex, tt-passwords-admin, tt-pay-rates, tt-ui-polish, tt-user-edit-delete, tt-export-manager, tt-first-admin-ui.
+- **Open** (in `docs/working-memory/open/`): Run `./ralph/status.sh` to see current tasks. Tasks require plan.md + user_story.json to run.
 
 Run a loop: `RALPH_BACKEND=codex-cli ./ralph/run.sh <task-id>`. Status: `./ralph/status.sh`. Every task requires plan.md + user_story.json + updates.md. On failure: record in updates.md what you tried, what worked, what didn't.
 

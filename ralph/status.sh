@@ -53,6 +53,7 @@ TARGET="${1:-}"
 
 if [ -n "$TARGET" ]; then
   TASK_DIR="$REPO_ROOT/docs/working-memory/open/$TARGET"
+  [ ! -d "$TASK_DIR" ] && TASK_DIR="$REPO_ROOT/docs/working-memory/done/$TARGET"
   if [ ! -d "$TASK_DIR" ]; then
     echo "Task not found: $TARGET" >&2
     exit 1

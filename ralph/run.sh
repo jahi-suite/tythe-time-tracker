@@ -46,10 +46,12 @@ for arg in "$@"; do
 done
 
 if [ -z "$TASK_ID" ]; then
-  echo "Available tasks:"
+  echo "Tasks in open/ (runnable):"
+  count=0
   for d in "$REPO_ROOT"/docs/working-memory/open/*/; do
-    [ -d "$d" ] && echo "  $(basename "$d")"
+    [ -d "$d" ] && echo "  $(basename "$d")" && count=$((count + 1))
   done
+  [ $count -eq 0 ] && echo "  (none — add tasks to docs/working-memory/open/ or move from archive/ and add user_story.json)"
   echo ""
   echo "Usage: ./ralph/run.sh <task-id>" >&2
   exit 1
