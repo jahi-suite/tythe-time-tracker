@@ -1,14 +1,29 @@
-import type { TimeEntry, PayRateType, TimeSplit } from '../../shared/types.js'
+import type { TimeEntry, PayRateType, TimeSplit, VenueSettings } from '../../shared/types.js'
 import { DB } from '../../shared/constants.js'
 import * as repo from '../db/repository.js'
 import { logChange } from '../audit.js'
+import { getVenueSettings } from '../auth/index.js'
 import { getHourInBst, convertToUtc } from '../utils/timeUtils.js'
 
-function determinePayRateType(isSupervisor: boolean, clockIn?: Date): PayRateType {
+function isEnhancedHour(hour: number, venueSettings?: VenueSettings | null): boolean {
+  const settings = venueSettings ?? null
+  if (settings && !settings.enhanced_enabled) return false
+  const startHour = settings?.enhanced_start_hour ?? 19
+  const endHour = settings?.enhanced_end_hour ?? 4
+  if (startHour === endHour) return true
+  if (startHour < endHour) return hour >= startHour && hour < endHour
+  return hour >= startHour || hour < endHour
+}
+
+function determinePayRateType(
+  isSupervisor: boolean,
+  clockIn?: Date,
+  venueSettings?: VenueSettings | null
+): PayRateType {
   if (isSupervisor) return 'Supervisor'
   const time = clockIn ?? new Date()
   const hour = getHourInBst(time)
-  if (hour >= 19 || hour < 4) return 'Enhanced'
+  if (isEnhancedHour(hour, venueSettings)) return 'Enhanced'
   return 'Standard'
 }
 
@@ -34,7 +49,8 @@ export async function clockIn(
     ? await repo.getOpenShiftByUserId(userId, employeeName, venueId)
     : await repo.getOpenShift(employeeName, venueId)
   if (existing) return [false, `${employeeName} already has an open shift`]
-  const payRateType = determinePayRateType(isSupervisor)
+  const venueSettings = await getVenueSettings(venueId)
+  const payRateType = determinePayRateType(isSupervisor, undefined, venueSettings)
   await repo.createTimeEntry(employeeName, new Date(), payRateType, null, userId, venueId)
   return [true, `${employeeName} clocked in successfully (${payRateType} Rate)`]
 }
@@ -108,7 +124,8 @@ export async function addShift(
       clockOutTime.getMinutes()
     )
   }
-  const payRateType = payRateOverride ?? determinePayRateType(isSupervisor, clockInUtc)
+  const venueSettings = await getVenueSettings(venueId)
+  const payRateType = payRateOverride ?? determinePayRateType(isSupervisor, clockInUtc, venueSettings)
   const entry = await repo.createTimeEntry(employeeName, clockInUtc, payRateType, clockOutUtc, null, venueId)
   await logChange('add', DB.TIME_ENTRIES_TABLE, entry.id, auditUsername, undefined, timeEntryToAudit(entry))
   return [true, `Shift added for ${employeeName} (${payRateType} Rate)`]
@@ -145,7 +162,8 @@ export async function editShift(
       clockOutTime.getMinutes()
     )
   }
-  const payRateType = payRateOverride ?? determinePayRateType(isSupervisor, clockInUtc)
+  const venueSettings = await getVenueSettings(venueId)
+  const payRateType = payRateOverride ?? determinePayRateType(isSupervisor, clockInUtc, venueSettings)
   const updated = await repo.updateTimeEntry(
     entryId,
     employeeName,
@@ -180,14 +198,14 @@ export async function getShiftById(
   return repo.getTimeEntryById(entryId, venueId)
 }
 
-export function calculateTimeSplit(entry: TimeEntry): TimeSplit {
+export function calculateTimeSplit(entry: TimeEntry, venueSettings?: VenueSettings | null): TimeSplit {
   if (!entry.clock_out) return { standard_hours: 0, enhanced_hours: 0, supervisor_hours: 0 }
   const totalHours = (entry.clock_out.getTime() - entry.clock_in.getTime()) / (1000 * 3600)
   if (entry.pay_rate_type === 'Supervisor') {
     return { standard_hours: 0, enhanced_hours: 0, supervisor_hours: Math.round(totalHours * 100) / 100 }
   }
   const hour = getHourInBst(entry.clock_in)
-  if (hour >= 19 || hour < 4) {
+  if (isEnhancedHour(hour, venueSettings)) {
     return { standard_hours: 0, enhanced_hours: Math.round(totalHours * 100) / 100, supervisor_hours: 0 }
   }
   return { standard_hours: Math.round(totalHours * 100) / 100, enhanced_hours: 0, supervisor_hours: 0 }
