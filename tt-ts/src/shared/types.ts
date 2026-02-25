@@ -40,6 +40,9 @@ export interface VenueSettings {
   break_deduct_enabled: boolean
   break_deduct_minutes: number
   break_threshold_hours: number
+  supervisor_enabled: boolean
+  supervisor_label: string
+  supervisor_deduct_break: boolean
 }
 
 export interface TimeSplit {

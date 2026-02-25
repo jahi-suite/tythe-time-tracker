@@ -120,6 +120,9 @@ router.put('/:slug/settings', requireAdmin, async (req, res) => {
   const break_deduct_enabled = body.break_deduct_enabled
   const break_deduct_minutes = body.break_deduct_minutes != null ? Number(body.break_deduct_minutes) : undefined
   const break_threshold_hours = body.break_threshold_hours != null ? Number(body.break_threshold_hours) : undefined
+  const supervisor_enabled = body.supervisor_enabled
+  const supervisor_label = body.supervisor_label != null ? String(body.supervisor_label).trim() : undefined
+  const supervisor_deduct_break = body.supervisor_deduct_break
 
   const updates: string[] = []
   const values: unknown[] = []
@@ -147,6 +150,18 @@ router.put('/:slug/settings', requireAdmin, async (req, res) => {
   if (break_threshold_hours != null && Number.isFinite(break_threshold_hours) && break_threshold_hours >= 0 && break_threshold_hours <= 24) {
     updates.push(`break_threshold_hours = $${i++}`)
     values.push(break_threshold_hours)
+  }
+  if (typeof supervisor_enabled === 'boolean') {
+    updates.push(`supervisor_enabled = $${i++}`)
+    values.push(supervisor_enabled)
+  }
+  if (supervisor_label != null && supervisor_label.length > 0 && supervisor_label.length <= 64) {
+    updates.push(`supervisor_label = $${i++}`)
+    values.push(supervisor_label)
+  }
+  if (typeof supervisor_deduct_break === 'boolean') {
+    updates.push(`supervisor_deduct_break = $${i++}`)
+    values.push(supervisor_deduct_break)
   }
   if (updates.length === 0) {
     res.status(400).json({ error: 'No valid settings to update' })

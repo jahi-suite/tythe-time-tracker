@@ -14,6 +14,9 @@ const DEFAULT_VENUE_SETTINGS: VenueSettings = {
   break_deduct_enabled: true,
   break_deduct_minutes: DEFAULT_BREAK_DEDUCT_MINUTES,
   break_threshold_hours: DEFAULT_BREAK_THRESHOLD_HOURS,
+  supervisor_enabled: true,
+  supervisor_label: 'Supervisor',
+  supervisor_deduct_break: true,
 }
 
 function isValidPayRateValue(value: number | null): boolean {
@@ -72,13 +75,19 @@ export async function getVenueSettings(venueId?: string | null): Promise<VenueSe
     break_deduct_enabled: boolean | null
     break_deduct_minutes: number | null
     break_threshold_hours: number | string | null
+    supervisor_enabled: boolean | null
+    supervisor_label: string | null
+    supervisor_deduct_break: boolean | null
   }>(
     `SELECT enhanced_enabled,
             enhanced_start_hour,
             enhanced_end_hour,
             break_deduct_enabled,
             break_deduct_minutes,
-            break_threshold_hours::double precision AS break_threshold_hours
+            break_threshold_hours::double precision AS break_threshold_hours,
+            supervisor_enabled,
+            supervisor_label,
+            supervisor_deduct_break
      FROM ${DB.VENUES_TABLE}
      WHERE ${DB.ID_COLUMN} = $1`,
     [trimmedVenueId]
@@ -97,6 +106,11 @@ export async function getVenueSettings(venueId?: string | null): Promise<VenueSe
       row.break_threshold_hours === null
         ? DEFAULT_VENUE_SETTINGS.break_threshold_hours
         : Number(row.break_threshold_hours),
+    supervisor_enabled: row.supervisor_enabled ?? DEFAULT_VENUE_SETTINGS.supervisor_enabled,
+    supervisor_label:
+      row.supervisor_label?.trim() || DEFAULT_VENUE_SETTINGS.supervisor_label,
+    supervisor_deduct_break:
+      row.supervisor_deduct_break ?? DEFAULT_VENUE_SETTINGS.supervisor_deduct_break,
   }
 }
 

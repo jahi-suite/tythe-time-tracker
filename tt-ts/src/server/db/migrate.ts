@@ -110,6 +110,18 @@ async function ensureVenueSettingsColumns(client: DbClient): Promise<void> {
       name: 'break_threshold_hours',
       type: 'NUMERIC(5,2) NOT NULL DEFAULT 6',
     },
+    {
+      name: 'supervisor_enabled',
+      type: 'BOOLEAN NOT NULL DEFAULT TRUE',
+    },
+    {
+      name: 'supervisor_label',
+      type: "TEXT NOT NULL DEFAULT 'Supervisor'",
+    },
+    {
+      name: 'supervisor_deduct_break',
+      type: 'BOOLEAN NOT NULL DEFAULT TRUE',
+    },
   ] as const
 
   for (const column of venueSettingsColumns) {
@@ -129,13 +141,20 @@ async function ensureVenueSettingsColumns(client: DbClient): Promise<void> {
          enhanced_end_hour = COALESCE(enhanced_end_hour, 4),
          break_deduct_enabled = COALESCE(break_deduct_enabled, TRUE),
          break_deduct_minutes = COALESCE(break_deduct_minutes, 20),
-         break_threshold_hours = COALESCE(break_threshold_hours, 6)
+         break_threshold_hours = COALESCE(break_threshold_hours, 6),
+         supervisor_enabled = COALESCE(supervisor_enabled, TRUE),
+         supervisor_label = COALESCE(NULLIF(TRIM(supervisor_label), ''), 'Supervisor'),
+         supervisor_deduct_break = COALESCE(supervisor_deduct_break, TRUE)
      WHERE enhanced_enabled IS NULL
         OR enhanced_start_hour IS NULL
         OR enhanced_end_hour IS NULL
         OR break_deduct_enabled IS NULL
         OR break_deduct_minutes IS NULL
-        OR break_threshold_hours IS NULL`
+        OR break_threshold_hours IS NULL
+        OR supervisor_enabled IS NULL
+        OR supervisor_label IS NULL
+        OR TRIM(supervisor_label) = ''
+        OR supervisor_deduct_break IS NULL`
   )
   if ((backfillRes.rowCount ?? 0) > 0) {
     console.log(
