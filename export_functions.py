@@ -1,8 +1,12 @@
 import pandas as pd
-from datetime import datetime, timedelta, timezone, time as dtime
+from datetime import datetime, timedelta, time as dtime
 import logging
 from reportlab.lib import colors
 
+from tythe_time_tracker.core.payroll_engine import (
+    apply_break_deduction as _apply_break_deduction,
+    split_shift_by_rate as _split_shift_by_rate,
+)
 from tythe_time_tracker.utils.time_utils import TimeUtils
 from tythe_time_tracker.core.auth import get_all_users
 from tythe_time_tracker.database.connection import DatabaseConnection, get_db_connection
@@ -11,8 +15,8 @@ from reportlab.lib.pagesizes import letter, A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
-import io
 import base64
+import io
 
 logger = logging.getLogger(__name__)
 
@@ -110,75 +114,12 @@ def is_bst_enhanced_hours(dt):
     return hour >= 19 or hour < 4
 
 def split_shift_by_rate(clock_in, clock_out, is_supervisor):
-    """
-    Returns a dict: {'Standard': hours, 'Enhanced': hours, 'Supervisor': hours}
-    All times are assumed to be UTC and will be converted to BST for rate logic.
-    Splits at 19:00 (7PM) and 04:00 (4AM) BST boundaries.
-    Handles overnight shifts correctly.
-    """
-    if not clock_out:
-        return {'Standard': 0, 'Enhanced': 0, 'Supervisor': 0}
-    if is_supervisor:
-        total = (clock_out - clock_in).total_seconds() / 3600
-        return {'Standard': 0, 'Enhanced': 0, 'Supervisor': round(total, 2)}
-    # Convert to BST and make naive for comparison
-    bst_in = get_bst_time(clock_in).replace(tzinfo=None)
-    bst_out = get_bst_time(clock_out).replace(tzinfo=None)
-    if bst_out <= bst_in:
-        return {'Standard': 0, 'Enhanced': 0, 'Supervisor': 0}
-    
-    # Enhanced window: 19:00 BST to 04:00 BST next day
-    # Always ends at 4:00 BST on the day after the shift starts
-    if bst_in.hour < 4:
-        # Shift starts in early morning, enhanced window is 19:00 previous day to 04:00 current day
-        enhanced_start = datetime.combine(bst_in.date() - timedelta(days=1), dtime(19, 0))
-        enhanced_end = datetime.combine(bst_in.date(), dtime(4, 0))
-    else:
-        # Shift starts after 4 AM, enhanced window is 19:00 current day to 04:00 next day
-        enhanced_start = datetime.combine(bst_in.date(), dtime(19, 0))
-        enhanced_end = datetime.combine(bst_in.date() + timedelta(days=1), dtime(4, 0))
-    
-    # Calculate overlap with enhanced window
-    enh_start = max(bst_in, enhanced_start)
-    enh_end = min(bst_out, enhanced_end)
-    enhanced_hours = max((enh_end - enh_start).total_seconds() / 3600, 0) if enh_start < enh_end else 0
-    # Standard: the rest
-    total_hours = (bst_out - bst_in).total_seconds() / 3600
-    standard_hours = total_hours - enhanced_hours
-    return {
-        'Standard': round(standard_hours, 2),
-        'Enhanced': round(enhanced_hours, 2),
-        'Supervisor': 0
-    }
+    """Compatibility wrapper around the shared payroll engine."""
+    return _split_shift_by_rate(clock_in, clock_out, is_supervisor)
 
 def apply_break_deduction(split):
-    """Apply a 20-minute unpaid break for 6h+ shifts to the majority rate bucket."""
-    adjusted = {
-        'Standard': round(float(split.get('Standard', 0) or 0), 2),
-        'Enhanced': round(float(split.get('Enhanced', 0) or 0), 2),
-        'Supervisor': round(float(split.get('Supervisor', 0) or 0), 2),
-    }
-
-    total_hours = adjusted['Standard'] + adjusted['Enhanced'] + adjusted['Supervisor']
-    if total_hours < 6:
-        return adjusted
-
-    break_hours = 20 / 60
-    order = ['Standard', 'Enhanced', 'Supervisor']
-    majority = 'Standard'
-    max_hours = adjusted['Standard']
-
-    for key in order[1:]:
-        if adjusted[key] > max_hours:
-            majority = key
-            max_hours = adjusted[key]
-
-    adjusted[majority] -= min(adjusted[majority], break_hours)
-
-    adjusted['Standard'] = round(adjusted['Standard'], 2)
-    adjusted['Enhanced'] = round(adjusted['Enhanced'], 2)
-    adjusted['Supervisor'] = round(adjusted['Supervisor'], 2)
-    return adjusted
+    """Compatibility wrapper around the shared payroll engine."""
+    return _apply_break_deduction(split)
 
 def _get_user_rates_map():
     """Build map of display_name (lower) -> {standard_rate, enhanced_rate, supervisor_rate}."""

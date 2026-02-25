@@ -10,6 +10,7 @@ from .models import (
     ClockInRequest, ClockOutRequest, ExportRequest, OverallSummary, 
     ShiftRequest, StaffSummary, TimeEntry, TimeSplit
 )
+from .payroll_engine import split_shift_by_rate
 from ..database.repository import TimeEntryRepository
 from ..database.connection import get_db_connection, DatabaseConnection
 from ..utils.time_utils import TimeUtils
@@ -437,37 +438,16 @@ class TimeTrackingService:
         Returns:
             TimeSplit containing the calculated hours.
         """
-        if not time_entry.clock_out:
-            return TimeSplit(standard_hours=0.0, enhanced_hours=0.0, supervisor_hours=0.0)
-        
-        # Calculate total duration
-        duration = time_entry.clock_out - time_entry.clock_in
-        total_hours = duration.total_seconds() / 3600
-        
-        # If supervisor, all hours are supervisor hours
-        if time_entry.pay_rate_type == PayRateType.SUPERVISOR:
-            return TimeSplit(
-                standard_hours=0.0,
-                enhanced_hours=0.0,
-                supervisor_hours=total_hours
-            )
-        
-        # Calculate split based on clock-in time
-        clock_in_hour = time_entry.clock_in.hour
-        
-        # Enhanced hours: 7 PM (19:00) to 4 AM (04:00)
-        if clock_in_hour >= 19 or clock_in_hour < 4:
-            return TimeSplit(
-                standard_hours=0.0,
-                enhanced_hours=total_hours,
-                supervisor_hours=0.0
-            )
-        else:
-            return TimeSplit(
-                standard_hours=total_hours,
-                enhanced_hours=0.0,
-                supervisor_hours=0.0
-            )
+        split = split_shift_by_rate(
+            time_entry.clock_in,
+            time_entry.clock_out,
+            time_entry.pay_rate_type == PayRateType.SUPERVISOR,
+        )
+        return TimeSplit(
+            standard_hours=split["Standard"],
+            enhanced_hours=split["Enhanced"],
+            supervisor_hours=split["Supervisor"],
+        )
     
     def calculate_staff_summary(self, entries: List[TimeEntry]) -> dict[str, StaffSummary]:
         """Calculate summary statistics for each staff member.
