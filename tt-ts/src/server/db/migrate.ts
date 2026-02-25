@@ -55,10 +55,11 @@ async function ensureVenueSchema(
 ): Promise<string> {
   await client.query(
     `CREATE TABLE IF NOT EXISTS ${DB.VENUES_TABLE} (
-       ${DB.ID_COLUMN} UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-       slug TEXT NOT NULL UNIQUE,
-       name TEXT NOT NULL,
-       ${DB.CREATED_AT_COLUMN} TIMESTAMPTZ NOT NULL DEFAULT NOW()
+     ${DB.ID_COLUMN} UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     slug TEXT NOT NULL UNIQUE,
+     name TEXT NOT NULL,
+     active BOOLEAN NOT NULL DEFAULT TRUE,
+     ${DB.CREATED_AT_COLUMN} TIMESTAMPTZ NOT NULL DEFAULT NOW()
      )`
   )
 
@@ -82,6 +83,29 @@ async function ensureVenueSchema(
   }
 
   return venueRes.rows[0].id
+}
+
+async function ensureVenueActiveColumn(client: DbClient): Promise<void> {
+  // Ensure venues.active exists for soft deactivation.
+  if (!(await columnExists(client, DB.VENUES_TABLE, 'active'))) {
+    await client.query(
+      `ALTER TABLE ${DB.VENUES_TABLE}
+       ADD COLUMN active BOOLEAN NOT NULL DEFAULT TRUE`
+    )
+    console.log(`[migrate] Added ${DB.VENUES_TABLE}.active column`)
+    return
+  }
+
+  const backfillRes = await client.query(
+    `UPDATE ${DB.VENUES_TABLE}
+     SET active = TRUE
+     WHERE active IS NULL`
+  )
+  if ((backfillRes.rowCount ?? 0) > 0) {
+    console.log(
+      `[migrate] Backfilled ${backfillRes.rowCount} ${DB.VENUES_TABLE} row(s) with active=true`
+    )
+  }
 }
 
 async function ensureVenueSettingsColumns(client: DbClient): Promise<void> {
@@ -202,6 +226,7 @@ export async function runMigrations(): Promise<void> {
 
   try {
     const defaultVenueId = await ensureVenueSchema(client)
+    await ensureVenueActiveColumn(client)
     await ensureVenueSettingsColumns(client)
 
     await ensureVenueColumnIndexAndFk(client, DB.USERS_TABLE)
