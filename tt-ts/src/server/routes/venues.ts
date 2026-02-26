@@ -168,9 +168,11 @@ router.post('/resend-verification', async (req, res) => {
     res.json({ message: 'If the account exists and is not verified, a new email has been sent.' })
   } catch (error) {
     console.error('Error resending verification email', error)
-    res.status(500).json({
-      error: 'Failed to resend verification email. Check server logs for verification link, or verify SMTP_HOST, SMTP_USER, SMTP_PASS in .env.',
-    })
+    const hint = emailService.getSmtpErrorHint(error)
+    const errorMsg = hint
+      ? `Failed to resend verification email. ${hint}`
+      : 'Failed to resend verification email. Check server logs for verification link, or verify SMTP_HOST, SMTP_USER, SMTP_PASS in .env.'
+    res.status(500).json({ error: errorMsg })
   }
 })
 
@@ -312,6 +314,85 @@ router.put('/:slug/settings', requireAdmin, async (req, res) => {
   )
   const settings = await auth.getVenueSettings(venue.id)
   res.json(settings)
+})
+
+router.get('/:slug/export-account-data', requireAdmin, async (req, res) => {
+  const slug = String(req.params.slug ?? '').trim()
+  const sessionVenueId = req.session?.venue_id
+  if (!slug || !sessionVenueId) {
+    res.status(400).json({ error: 'Slug required' })
+    return
+  }
+  const venue = await auth.getVenueBySlug(slug)
+  if (!venue) {
+    res.status(404).json({ error: 'Venue not found' })
+    return
+  }
+  if (venue.id !== sessionVenueId) {
+    res.status(403).json({ error: 'Can only export your own venue data' })
+    return
+  }
+
+  const client = await getClient()
+  try {
+    const venueRow = await client.query<{
+      id: string; slug: string; name: string; active: boolean; created_at: Date
+      email_verified: boolean; admin_email: string | null; is_founder: boolean; subscription_tier: string
+    }>(
+      `SELECT ${DB.ID_COLUMN} AS id, slug, name, active, created_at,
+              ${DB.EMAIL_VERIFIED_COLUMN} AS email_verified,
+              ${DB.ADMIN_EMAIL_COLUMN} AS admin_email,
+              ${DB.IS_FOUNDER_COLUMN} AS is_founder,
+              ${DB.SUBSCRIPTION_TIER_COLUMN} AS subscription_tier
+       FROM ${DB.VENUES_TABLE} WHERE ${DB.ID_COLUMN} = $1`,
+      [venue.id]
+    )
+
+    const settings = await auth.getVenueSettings(venue.id)
+
+    const usersRow = await client.query<{
+      id: string; username: string; display_name: string; role: string
+      standard_rate: number | null; enhanced_rate: number | null; supervisor_rate: number | null
+      created_at: Date
+    }>(
+      `SELECT id, username, display_name, role,
+              ${DB.STANDARD_RATE_COLUMN} AS standard_rate,
+              ${DB.ENHANCED_RATE_COLUMN} AS enhanced_rate,
+              ${DB.SUPERVISOR_RATE_COLUMN} AS supervisor_rate,
+              created_at
+       FROM ${DB.USERS_TABLE}
+       WHERE ${DB.VENUE_ID_COLUMN} = $1
+       ORDER BY role, display_name`,
+      [venue.id]
+    )
+
+    const entriesRow = await client.query<{
+      id: string; user_id: string | null; employee: string; clock_in: Date
+      clock_out: Date | null; pay_rate_type: string; created_at: Date
+    }>(
+      `SELECT id, ${DB.USER_ID_COLUMN} AS user_id, employee, clock_in, clock_out,
+              ${DB.PAY_RATE_TYPE_COLUMN} AS pay_rate_type, created_at
+       FROM ${DB.TIME_ENTRIES_TABLE}
+       WHERE ${DB.VENUE_ID_COLUMN} = $1
+       ORDER BY clock_in`,
+      [venue.id]
+    )
+
+    const exportData = {
+      venue: venueRow.rows[0],
+      settings,
+      users: usersRow.rows,
+      time_entries: entriesRow.rows,
+    }
+
+    const dateStr = new Date().toISOString().slice(0, 10)
+    const filename = `tythe-export-${slug}-${dateStr}.json`
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+    res.setHeader('Content-Type', 'application/json')
+    res.json(exportData)
+  } finally {
+    client.release()
+  }
 })
 
 router.get('/:slug', async (req, res) => {
