@@ -26,6 +26,11 @@ export function ExportPage() {
 
   return (
     <div className="page page-dashboard export-dashboard">
+      {!user?.venue?.email_verified ? (
+        <div className="card message-warning">
+          Verify your email to enable export functionality.
+        </div>
+      ) : null}
       <h2>Export Timesheet</h2>
       <div className="card">
         <div className="user-card-badges">
@@ -70,16 +75,17 @@ export function ExportPage() {
                   value={employee}
                   onChange={(e) => setEmployee(e.target.value)}
                   placeholder="Employee name"
+                  disabled={!user?.venue?.email_verified}
                 />
               </label>
             ) : null}
             <label>
               Start date:
-              <input type="date" value={start} onChange={(e) => setStart(e.target.value)} />
+              <input type="date" value={start} onChange={(e) => setStart(e.target.value)} disabled={!user?.venue?.email_verified} />
             </label>
             <label>
               End date:
-              <input type="date" value={end} onChange={(e) => setEnd(e.target.value)} />
+              <input type="date" value={end} onChange={(e) => setEnd(e.target.value)} disabled={!user?.venue?.email_verified} />
             </label>
           </div>
         </div>
@@ -94,10 +100,10 @@ export function ExportPage() {
             {start || end ? ' using the selected date range.' : ' with the current date filter settings.'}
           </p>
           <div className="btn-row export-download-actions">
-            <a href={excelUrl} download className="btn-primary">
+            <a href={excelUrl} download className="btn-primary" disabled={!user?.venue?.email_verified}>
               Download Excel
             </a>
-            <a href={pdfUrl} download className="btn-secondary">
+            <a href={pdfUrl} download className="btn-secondary" disabled={!user?.venue?.email_verified}>
               Download PDF
             </a>
           </div>

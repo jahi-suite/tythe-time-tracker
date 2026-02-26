@@ -867,6 +867,11 @@ export function ManagerPage() {
 
   return (
     <div className="page">
+      {!user?.venue?.email_verified && (
+        <div className="card message-warning">
+          Verify your email to add staff and manage shifts.
+        </div>
+      )}
       <h2>Manager Dashboard</h2>
       <div className="card">
         <p className="message-success">Logged in as {user?.display_name || user?.username || 'User'}</p>
@@ -875,16 +880,16 @@ export function ManagerPage() {
         <button onClick={() => setTab('entries')} className={tab === 'entries' ? 'active' : ''}>
           View All Entries
         </button>
-        <button onClick={() => setTab('add')} className={tab === 'add' ? 'active' : ''}>
+        <button onClick={() => setTab('add')} className={tab === 'add' ? 'active' : ''} disabled={!user?.venue?.email_verified}>
           Add Shift
         </button>
-        <button onClick={() => setTab('edit')} className={tab === 'edit' ? 'active' : ''}>
+        <button onClick={() => setTab('edit')} className={tab === 'edit' ? 'active' : ''} disabled={!user?.venue?.email_verified}>
           Edit Shift
         </button>
-        <button onClick={() => setTab('delete')} className={tab === 'delete' ? 'active' : ''}>
+        <button onClick={() => setTab('delete')} className={tab === 'delete' ? 'active' : ''} disabled={!user?.venue?.email_verified}>
           Delete Entry
         </button>
-        <button onClick={() => setTab('users')} className={tab === 'users' ? 'active' : ''}>
+        <button onClick={() => setTab('users')} className={tab === 'users' ? 'active' : ''} disabled={!user?.venue?.email_verified}>
           Manage Users
         </button>
         <button onClick={() => setTab('audit')} className={tab === 'audit' ? 'active' : ''}>
@@ -895,10 +900,10 @@ export function ManagerPage() {
         <div className="card">
           <h3>All Time Entries</h3>
           <div className="dashboard-toolbar">
-            <a href={exportExcelUrl()} download className="btn-primary" style={{ textDecoration: 'none' }}>
+            <a href={exportExcelUrl()} download className="btn-primary" style={{ textDecoration: 'none' }} disabled={!user?.venue?.email_verified}>
               Export All to Excel
             </a>
-            <a href={exportPdfUrl()} download className="btn-secondary" style={{ textDecoration: 'none' }}>
+            <a href={exportPdfUrl()} download className="btn-secondary" style={{ textDecoration: 'none' }} disabled={!user?.venue?.email_verified}>
               Export All to PDF
             </a>
           </div>
