@@ -193,9 +193,23 @@ export function VenueSettingsPage() {
         </button>
       </form>
 
+      <section className="account-actions">
+        <h3>Account data</h3>
+        <p className="form-hint">Download all venue data (staff, time entries) as a JSON file.</p>
+        <button
+          type="button"
+          onClick={() => { window.location.href = venues.exportAccountData(venueSlug) }}
+        >
+          Export account data
+        </button>
+      </section>
+
       <style>{`
         .venue-settings-page { max-width: 520px; }
         .venue-settings-intro { color: var(--tt-text-muted, #666); margin-bottom: 1.5rem; }
+        .account-actions { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--tt-border, #ddd); }
+        .account-actions h3 { margin-bottom: 0.5rem; }
+        .account-actions button { margin-top: 0.75rem; }
         .venue-settings-form fieldset {
           border: 1px solid var(--tt-border, #ddd);
           border-radius: 6px;

@@ -87,6 +87,8 @@ export const venues = {
     }),
   verifyDevBypass: () =>
     fetchApi<{ ok: boolean; message: string }>('/venues/verify-dev-bypass', { method: 'POST' }),
+  exportAccountData: (slug: string) =>
+    `${API}/venues/${encodeURIComponent(slug)}/export-account-data`,
 }
 
 export const auth = {
