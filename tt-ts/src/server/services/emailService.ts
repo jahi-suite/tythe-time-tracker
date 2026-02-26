@@ -205,6 +205,11 @@ export async function resendVerificationEmail(venueId: string): Promise<ResendRe
     venue.id
   );
 
-  await sendVerificationEmail(venue.admin_email, venue.name, token);
-  return { ok: true };
+  try {
+    await sendVerificationEmail(venue.admin_email, venue.name, token);
+    return { ok: true };
+  } catch (sendError) {
+    console.error(`[EmailService] resend_failed venueId=${venueId} to=${venue.admin_email}`, sendError);
+    throw sendError;
+  }
 }
