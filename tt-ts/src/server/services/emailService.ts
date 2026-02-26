@@ -94,10 +94,20 @@ export async function sendVerificationEmail(venueEmail: string, venueName: strin
 }
 
 /**
+ * Result of a resend operation.
+ */
+export interface ResendResult {
+  ok: boolean;
+  rateLimited?: boolean;
+  retryAfterMinutes?: number;
+  message?: string;
+}
+
+/**
  * Resend verification email for a venue.
  * Implementation follows anti-enumeration: never reveals if account exists.
  */
-export async function resendVerificationEmail(venueId: string) {
+export async function resendVerificationEmail(venueId: string): Promise<ResendResult> {
   console.log(`[EmailService] resend_requested venueId=${venueId}`);
   const res = await query<{
     id: string;
@@ -119,19 +129,27 @@ export async function resendVerificationEmail(venueId: string) {
 
   // Anti-enumeration: if venue not found, or already verified, or founder, just return
   if (!venue || venue.is_founder || venue.email_verified || !venue.admin_email) {
-    return;
+    return { ok: true }; // Still say "ok" to avoid enumeration
   }
 
-  // Rate limit check: 5 per hour
+  // Rate limit check: 5 per hour using audit_log
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-  const recentEmailsRes = await query<{ count: string }>(
-    `SELECT COUNT(*) FROM ${DB.VENUES_TABLE} 
-     WHERE ${DB.ID_COLUMN} = $1 AND ${DB.VERIFICATION_SENT_AT_COLUMN} > $2`,
+  const recentEmailsRes = await query<{ count: string; last_sent: Date | null }>(
+    `SELECT COUNT(*) as count, MAX(created_at) as last_sent 
+     FROM ${DB.AUDIT_LOG_TABLE} 
+     WHERE ${DB.VENUE_ID_COLUMN} = $1 
+       AND target_table = 'venues' 
+       AND new_values->>'event' = 'verification_email_sent'
+       AND created_at > $2`,
     [venue.id, oneHourAgo]
   );
   
-  if (parseInt(recentEmailsRes.rows[0].count, 10) >= 5) {
-    return;
+  const count = parseInt(recentEmailsRes.rows[0].count, 10);
+  if (count >= 5) {
+    const lastSent = recentEmailsRes.rows[0].last_sent ? new Date(recentEmailsRes.rows[0].last_sent) : oneHourAgo;
+    const retryAfterMinutes = Math.max(1, Math.ceil((lastSent.getTime() + 60 * 60 * 1000 - Date.now()) / (60 * 1000)));
+    console.log(`[EmailService] resend_rate_limited venueId=${venueId} count=${count}`);
+    return { ok: false, rateLimited: true, retryAfterMinutes };
   }
 
   const token = generateToken();
@@ -145,5 +163,18 @@ export async function resendVerificationEmail(venueId: string) {
     [tokenHash, venue.id]
   );
 
+  // Record in audit log for rate limiting
+  const { insertAuditLog } = await import('../db/repository.js');
+  await insertAuditLog(
+    'add',
+    'venues',
+    venue.id,
+    'system',
+    null,
+    { event: 'verification_email_sent' },
+    venue.id
+  );
+
   await sendVerificationEmail(venue.admin_email, venue.name, token);
+  return { ok: true };
 }

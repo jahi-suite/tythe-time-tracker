@@ -130,7 +130,14 @@ router.post('/resend-verification', async (req, res) => {
   }
 
   try {
-    await emailService.resendVerificationEmail(venueId)
+    const result = await emailService.resendVerificationEmail(venueId)
+    if (result.rateLimited) {
+      res.status(429).json({
+        error: `Too many resend attempts. Please try again in ${result.retryAfterMinutes} minutes.`,
+        retryAfterMinutes: result.retryAfterMinutes,
+      })
+      return
+    }
     // Anti-enumeration: always return success
     res.json({ message: 'If the account exists and is not verified, a new email has been sent.' })
   } catch (error) {

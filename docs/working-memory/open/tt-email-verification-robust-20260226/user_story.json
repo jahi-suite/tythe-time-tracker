@@ -24,7 +24,7 @@
       "id": "evr-04-resend-rate-limit-feedback",
       "title": "Rate limit feedback on resend",
       "acceptance_criteria": "When resend hits 5/hour limit: return 429 with retryAfterMinutes. Client shows 'Try again in X minutes'.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "evr-05-email-diagnostics",
