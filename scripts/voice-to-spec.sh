@@ -1,24 +1,23 @@
 #!/usr/bin/env bash
-# voice-to-spec.sh — record or accept an audio file, transcribe via Whisper, start spec session
+# voice-to-spec.sh — record via mic, transcribe via Whisper, start spec session
 #
 # Transcription (in order of preference):
 #   1. Local whisper CLI   — no API key needed: pip install openai-whisper
 #   2. OpenAI Whisper API  — set OPENAI_API_KEY in .env or shell
 #
 # Usage:
-#   ./scripts/voice-to-spec.sh              # live recording (requires working audio)
+#   ./scripts/voice-to-spec.sh              # live mic recording
 #   ./scripts/voice-to-spec.sh idea.m4a     # use an existing audio file
 
 set -euo pipefail
 
-TMPFILE=$(mktemp /tmp/voice-XXXXXX.wav)
-trap 'rm -f "$TMPFILE"' EXIT
+TMPWAV=$(mktemp /tmp/voice-XXXXXX.wav)
+trap 'rm -f "$TMPWAV" "${TMPWAV%.wav}.txt"' EXIT
 
 # ── Pick transcription method ─────────────────────────────────────────────────
 if command -v whisper &>/dev/null; then
   TRANSCRIBE_METHOD="local"
 else
-  # Try loading OPENAI_API_KEY from .env
   if [[ -f ".env" ]]; then
     export $(grep -E '^OPENAI_API_KEY=' .env | xargs) 2>/dev/null || true
   fi
@@ -29,8 +28,6 @@ else
     echo "" >&2
     echo "Install local Whisper (no API key needed):" >&2
     echo "  pip install openai-whisper" >&2
-    echo "" >&2
-    echo "Or set OPENAI_API_KEY in your .env file to use the OpenAI API." >&2
     exit 1
   fi
 fi
@@ -42,41 +39,47 @@ if [[ -n "${1:-}" ]]; then
     echo "Error: file not found: $INPUT_FILE" >&2
     exit 1
   fi
-  echo "Using file: $INPUT_FILE"
-  ffmpeg -y -i "$INPUT_FILE" -ar 16000 -ac 1 "$TMPFILE" -loglevel error
+  echo "Converting $INPUT_FILE..."
+  ffmpeg -y -i "$INPUT_FILE" -ar 16000 -ac 1 "$TMPWAV" -loglevel error
 else
+  # Live recording via WSLg PulseAudio
+  # PULSE_SERVER is set automatically by WSLg: unix:/mnt/wslg/PulseServer
+  if [[ -z "${PULSE_SERVER:-}" ]] && [[ -S "/mnt/wslg/PulseServer" ]]; then
+    export PULSE_SERVER="unix:/mnt/wslg/PulseServer"
+  fi
+
   echo ""
-  echo "Speak your feature idea. Press Ctrl+C when done."
+  echo "  Listening... press Enter to stop."
   echo ""
-  if ffmpeg -y -f pulse -i default -ar 16000 -ac 1 "$TMPFILE" -loglevel error 2>/dev/null; then
-    :
-  elif ffmpeg -y -f alsa -i default -ar 16000 -ac 1 "$TMPFILE" -loglevel error 2>/dev/null; then
-    :
-  else
+
+  # Record in background, stop when user presses Enter
+  ffmpeg -y -f pulse -i default -ar 16000 -ac 1 "$TMPWAV" -loglevel error &
+  FFMPEG_PID=$!
+
+  read -r -s   # wait for Enter
+  kill -INT "$FFMPEG_PID" 2>/dev/null || true
+  wait "$FFMPEG_PID" 2>/dev/null || true
+
+  if [[ ! -s "$TMPWAV" ]]; then
     echo "" >&2
-    echo "Live recording not available (no audio input detected in WSL2)." >&2
-    echo "" >&2
-    echo "Record on your phone instead, then run:" >&2
-    echo "  make voice FILE=path/to/recording.m4a" >&2
+    echo "Error: no audio captured." >&2
+    echo "If your mic isn't working, try: make voice FILE=path/to/recording.m4a" >&2
     exit 1
   fi
 fi
 
 # ── Transcribe ────────────────────────────────────────────────────────────────
-echo ""
-echo "Transcribing..."
+echo "  Transcribing..."
 
 if [[ "$TRANSCRIBE_METHOD" == "local" ]]; then
-  TXTFILE=$(mktemp /tmp/voice-XXXXXX)
-  trap 'rm -f "$TMPFILE" "$TXTFILE.txt"' EXIT
-  whisper "$TMPFILE" --model small --output_format txt --output_dir "$(dirname "$TXTFILE")" \
-    --output_filename "$(basename "$TXTFILE")" --verbose False 2>/dev/null
-  TRANSCRIPT=$(cat "${TXTFILE}.txt" 2>/dev/null || echo "")
+  whisper "$TMPWAV" --model small --output_format txt \
+    --output_dir /tmp --verbose False 2>/dev/null
+  TRANSCRIPT=$(cat "${TMPWAV%.wav}.txt" 2>/dev/null | tr -d '\n' | xargs)
 else
   TRANSCRIPT=$(curl -s https://api.openai.com/v1/audio/transcriptions \
     -H "Authorization: Bearer $OPENAI_API_KEY" \
     -F model="whisper-1" \
-    -F file="@$TMPFILE" \
+    -F file="@$TMPWAV" \
     | jq -r '.text')
 fi
 
@@ -86,10 +89,9 @@ if [[ -z "$TRANSCRIPT" ]] || [[ "$TRANSCRIPT" == "null" ]]; then
 fi
 
 echo ""
-echo "─────────────────────────────────"
-echo "Transcribed:"
-echo "$TRANSCRIPT"
-echo "─────────────────────────────────"
+echo "  ────────────────────────────────"
+echo "  $TRANSCRIPT"
+echo "  ────────────────────────────────"
 echo ""
 
 # ── Start spec session ────────────────────────────────────────────────────────
