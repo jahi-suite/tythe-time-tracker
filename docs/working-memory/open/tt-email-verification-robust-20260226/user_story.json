@@ -48,7 +48,7 @@
       "id": "evr-08-verify",
       "title": "Final verification",
       "acceptance_criteria": "npm run build. Full flow: signup → auto-login → dashboard → resend from banner → verify → manager enabled.",
-      "passes": false
+      "passes": true
     }
   ]
 }
