@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { timesheet, shifts, users, audit, exportExcelUrl, exportPdfUrl, type User as ApiUser, type AuditLog } from '../api'
+import { venues, timesheet, shifts, users, audit, exportExcelUrl, exportPdfUrl, type User as ApiUser, type AuditLog } from '../api'
 
 function formatAuditDescription(l: AuditLog): string {
   const tbl = l.target_table === 'users' ? 'user' : 'shift'
@@ -390,6 +390,24 @@ export function ManagerPage() {
   const [userSearch, setUserSearch] = useState('')
   const [userFilter, setUserFilter] = useState<'all' | 'admin' | 'employee' | 'active' | 'inactive'>('all')
   const [payRatesExpanded, setPayRatesExpanded] = useState<Record<string, boolean>>({})
+
+  const [resendLoading, setResendLoading] = useState(false)
+  const [resendError, setResendError] = useState('')
+  const [resendSuccess, setResendSuccess] = useState('')
+
+  const handleResendVerification = async () => {
+    setResendLoading(true)
+    setResendError('')
+    setResendSuccess('')
+    try {
+      const res = await venues.resendVerification()
+      setResendSuccess(res.message || 'Verification email sent. Check your inbox and spam folder.')
+    } catch (err) {
+      setResendError(err instanceof Error ? err.message : 'Failed to send verification email. Check SMTP config.')
+    } finally {
+      setResendLoading(false)
+    }
+  }
 
   const getInitials = (displayName: string) => {
     return displayName
@@ -868,8 +886,20 @@ export function ManagerPage() {
   return (
     <div className="page">
       {!user?.venue?.email_verified && (
-        <div className="card message-warning">
-          Verify your email to add staff and manage shifts.
+        <div className="card message-warning" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div>Verify your email to add staff and manage shifts.</div>
+          {resendSuccess && <div className="message-success" style={{ fontSize: '0.9rem', padding: '0.4rem 0.6rem' }}>{resendSuccess}</div>}
+          {resendError && <div className="message-error" style={{ fontSize: '0.9rem', padding: '0.4rem 0.6rem' }}>{resendError}</div>}
+          <div style={{ marginTop: '0.25rem' }}>
+            <button
+              onClick={handleResendVerification}
+              disabled={resendLoading}
+              className="btn-secondary"
+              style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
+            >
+              {resendLoading ? 'Sending...' : 'Resend verification email'}
+            </button>
+          </div>
         </div>
       )}
       <h2>Manager Dashboard</h2>

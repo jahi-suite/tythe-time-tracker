@@ -80,6 +80,11 @@ export const venues = {
         password: data.adminPassword,
       }),
     }),
+  resendVerification: (venueId?: string) =>
+    fetchApi<{ message: string }>('/venues/resend-verification', {
+      method: 'POST',
+      body: JSON.stringify({ venueId }),
+    }),
 }
 
 export const auth = {

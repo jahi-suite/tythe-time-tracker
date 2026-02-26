@@ -12,7 +12,7 @@
       "id": "evr-02-resend-from-dashboard",
       "title": "Resend verification from manager dashboard",
       "acceptance_criteria": "Unverified banner has 'Resend verification email' button. Click calls resend API. Shows success or error message.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "evr-03-resend-auth-optional",
