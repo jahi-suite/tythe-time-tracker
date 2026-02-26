@@ -42,7 +42,7 @@
       "id": "evr-07-edge-cases-doc",
       "title": "Troubleshooting documentation",
       "acceptance_criteria": "docs/email-verification-troubleshooting.md: SMTP not configured, APP_BASE_URL, rate limit, token expired, spam. README link.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "evr-08-verify",

@@ -67,6 +67,8 @@ See `STREAMLIT_CLOUD_DATABASE.md` for step-by-step setup.
 
 Deploy to **Google Cloud Run** via "Deploy from repository". Push to the connected branch triggers a build and deploy. See `docs/CICD_SETUP.md` and `docs/GCP_CLOUD_RUN_SETUP.md`.
 
+For issues with email verification, see [Email Verification Troubleshooting](docs/email-verification-troubleshooting.md).
+
 ## Browser Support (Mobile)
 
 - Streamlit officially supports **Safari 16.6+**
