@@ -120,7 +120,10 @@ router.get('/verify-email', async (req, res) => {
 })
 
 router.post('/resend-verification', async (req, res) => {
-  const venueId = String(req.body.venueId ?? '').trim()
+  const sessionVenueId = req.session?.venue_id
+  const bodyVenueId = String(req.body.venueId ?? '').trim()
+  const venueId = sessionVenueId || bodyVenueId
+
   if (!venueId) {
     res.status(400).json({ error: 'Venue ID is required' })
     return

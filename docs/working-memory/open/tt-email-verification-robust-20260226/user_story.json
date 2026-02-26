@@ -18,7 +18,7 @@
       "id": "evr-03-resend-auth-optional",
       "title": "Resend endpoint: session or body",
       "acceptance_criteria": "POST /resend-verification: if authenticated, use session venue_id (no body). If unauthenticated, require venueId in body. Both paths work.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "evr-04-resend-rate-limit-feedback",

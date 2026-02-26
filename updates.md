@@ -2,6 +2,7 @@
 2026-02-26T00:00:00Z - Implemented vf-01: Refactored requireEmailVerified and requireEmailVerifiedForManager middleware.
 2026-02-26T00:00:00Z - Implemented vf-02: Included `email_verified` in /api/auth/me response.
 2026-02-26T00:00:00Z - Implemented vf-03: Show banner and disable UI elements for unverified venues.
+2026-02-26T00:00:00Z - Implemented evr-03: Resend verification endpoint supports session or body venueId.
 2026-02-26T00:00:00Z - Implemented evr-02: Resend verification from manager dashboard banner.
 2026-02-26T00:00:00Z - Implemented evr-01: Auto-login after venue signup.
 2026-02-26T00:00:00Z - Implemented vf-04: Verified build and script, confirmed unverified access.
