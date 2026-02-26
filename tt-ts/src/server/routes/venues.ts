@@ -395,6 +395,64 @@ router.get('/:slug/export-account-data', requireAdmin, async (req, res) => {
   }
 })
 
+router.post('/:slug/delete-account', requireAdmin, async (req, res) => {
+  const slug = String(req.params.slug ?? '').trim()
+  const sessionVenueId = req.session?.venue_id
+  if (!slug || !sessionVenueId) {
+    res.status(400).json({ error: 'Slug required' })
+    return
+  }
+  const venue = await auth.getVenueBySlug(slug)
+  if (!venue) {
+    res.status(404).json({ error: 'Venue not found' })
+    return
+  }
+  if (venue.id !== sessionVenueId) {
+    res.status(403).json({ error: 'Can only delete your own venue' })
+    return
+  }
+  // Founder venue is protected from deletion to prevent accidental loss
+  if (venue.is_founder) {
+    res.status(403).json({ error: 'The founder venue cannot be deleted' })
+    return
+  }
+
+  const client = await getClient()
+  try {
+    await client.query('BEGIN')
+    // Delete in FK-safe order: entries first, then users, then venue
+    await client.query(
+      `DELETE FROM ${DB.TIME_ENTRIES_TABLE} WHERE ${DB.VENUE_ID_COLUMN} = $1`,
+      [venue.id]
+    )
+    await client.query(
+      `DELETE FROM ${DB.USERS_TABLE} WHERE ${DB.VENUE_ID_COLUMN} = $1`,
+      [venue.id]
+    )
+    await client.query(
+      `DELETE FROM ${DB.VENUES_TABLE} WHERE ${DB.ID_COLUMN} = $1`,
+      [venue.id]
+    )
+    await client.query('COMMIT')
+    console.log(`[Venues] delete_account slug=${slug} venueId=${venue.id}`)
+  } catch (error) {
+    await client.query('ROLLBACK')
+    console.error('Failed to delete venue', error)
+    res.status(500).json({ error: 'Failed to delete venue' })
+    return
+  } finally {
+    client.release()
+  }
+
+  // Destroy session after successful delete so user cannot continue in app
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('[Venues] session destroy error after delete', err)
+    }
+    res.json({ ok: true, redirectUrl: '/venues' })
+  })
+})
+
 router.get('/:slug', async (req, res) => {
   const slug = String(req.params.slug ?? '').trim()
   if (!slug) {
