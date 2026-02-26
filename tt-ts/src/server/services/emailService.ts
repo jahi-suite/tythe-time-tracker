@@ -11,6 +11,10 @@ const SMTP_PASS = process.env.SMTP_PASS;
 const EMAIL_FROM = process.env.EMAIL_FROM || 'noreply@karisuite.com';
 const APP_BASE_URL = process.env.APP_BASE_URL || 'http://localhost:3000';
 
+if (process.env.NODE_ENV === 'production' && APP_BASE_URL.includes('localhost')) {
+  console.warn(`[EmailService] WARNING: APP_BASE_URL is set to localhost in production: ${APP_BASE_URL}`);
+}
+
 const transporter = nodemailer.createTransport({
   host: SMTP_HOST,
   port: SMTP_PORT,
@@ -80,7 +84,7 @@ export async function sendVerificationEmail(venueEmail: string, venueName: strin
 
   const hasSmtp = !!(SMTP_USER && SMTP_PASS);
   if (!hasSmtp) {
-    console.log(`[EmailService] SMTP not configured — verification link (copy for local testing):\n  ${verifyLink}`);
+    console.info(`[EmailService] INFO: SMTP not configured. Verification link for ${venueEmail}: ${verifyLink}`);
     return;
   }
 
@@ -88,7 +92,8 @@ export async function sendVerificationEmail(venueEmail: string, venueName: strin
     await sendWithRetry(mailOptions);
     console.log(`[EmailService] verification_email_sent to=${venueEmail}`);
   } catch (error) {
-    console.error(`[EmailService] verification_email_failed to=${venueEmail}`, error);
+    const reason = error instanceof Error ? error.message : String(error);
+    console.error(`[EmailService] verification_email_failed to=${venueEmail} reason=${reason}`);
     throw error;
   }
 }

@@ -30,7 +30,7 @@
       "id": "evr-05-email-diagnostics",
       "title": "Email send diagnostics and logging",
       "acceptance_criteria": "SMTP fail: log verification_email_failed with reason. SMTP not configured: log link at INFO. Consider APP_BASE_URL validation on startup.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "evr-06-verify-pending-ux",
