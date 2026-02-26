@@ -12,7 +12,7 @@
     {"id": "ev-08-ui-pages", "title": "Verify pending and error pages", "acceptance_criteria": "VerifyPendingPage, VerifyEmailPage (expired), ResendConfirmationPage. Match app theme.", "passes": true},
     {"id": "ev-09-logging", "title": "Audit logging events", "acceptance_criteria": "Log: verification_email_sent, verification_email_failed, verification_success, verification_failed, resend_requested, founder_bypass_used.", "passes": true},
     {"id": "ev-10-docs", "title": "Google setup documentation", "acceptance_criteria": "docs/google-email-setup.md (SMTP Relay), docs/secret-manager-setup.md.", "passes": true},
-    {"id": "ev-11-tests", "title": "Test coverage", "acceptance_criteria": "Tests: normal blocked until verified; founder never blocked; expired token; token reuse; dashboard blocked; resend rate limit; SMTP retry.", "passes": false},
-    {"id": "ev-12-verify", "title": "Final verification", "acceptance_criteria": "npm run build passes. Full flow works. Founder bypass works.", "passes": false}
+    {"id": "ev-11-tests", "title": "Test coverage", "acceptance_criteria": "Tests: normal blocked until verified; founder never blocked; expired token; token reuse; dashboard blocked; resend rate limit; SMTP retry.", "passes": true},
+    {"id": "ev-12-verify", "title": "Final verification", "acceptance_criteria": "npm run build passes. Full flow works. Founder bypass works.", "passes": true}
   ]
 }

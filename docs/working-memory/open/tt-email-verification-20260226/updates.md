@@ -12,4 +12,5 @@
 - 2026-02-26: Completed ev-08-ui-pages. Created VerifyPendingPage, added routes to App.tsx, and updated LoginPage to show verification success messages.
 - 2026-02-26: Completed ev-09-logging. Added Cloud Logging events for email verification lifecycle (sent, failed, success, resend, founder bypass).
 - 2026-02-26: Completed ev-10-docs. Verified existence of docs/google-email-setup.md and docs/secret-manager-setup.md.
+- 2026-02-26: Completed ev-11-tests & ev-12-verify. Verified full flow, build passes, and Tythe Barn (founder) bypass works as expected.
 
