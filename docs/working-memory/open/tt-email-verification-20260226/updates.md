@@ -6,4 +6,5 @@
 - 2026-02-26: Completed ev-02-founder-logic. Applied founder rule for tythebarn in venue creation and retrieval, and added mandatory code comments.
 - 2026-02-26: Completed ev-03-email-service. Created EmailService using nodemailer with SMTP relay, implementing 3 retries with exponential backoff, resend rate limiting (5/hour), and anti-enumeration. Installed nodemailer and @types/nodemailer.
 - 2026-02-26: Completed ev-04-secrets. Created documentation for Google Workspace SMTP Relay (docs/google-email-setup.md) and Secret Manager (docs/secret-manager-setup.md). Updated .env.example with SMTP and APP_BASE_URL variables.
+- 2026-02-26: Completed ev-05-signup-flow. Updated venue creation to require adminEmail, generate and hash verification tokens, and send verification emails for non-founder venues. Skip verification for Tythe Barn.
 

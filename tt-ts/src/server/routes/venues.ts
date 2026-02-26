@@ -6,6 +6,7 @@ import { getClient, query } from '../db/connection.js'
 import { createIpRateLimit } from '../middleware/rateLimit.js'
 import { requireAdmin, requireAuth } from '../middleware/auth.js'
 import * as auth from '../auth/index.js'
+import * as emailService from '../services/emailService.js'
 
 const router = Router()
 
@@ -34,6 +35,7 @@ function parseCreateVenueBody(body: unknown): {
   username: string
   password: string
   displayName: string
+  adminEmail: string
 } {
   const record = (body && typeof body === 'object' ? body : {}) as Record<string, unknown>
   return {
@@ -41,6 +43,7 @@ function parseCreateVenueBody(body: unknown): {
     username: String(record.adminUsername ?? record.username ?? '').trim(),
     password: String(record.adminPassword ?? record.password ?? ''),
     displayName: String(record.adminDisplayName ?? record.displayName ?? '').trim(),
+    adminEmail: String(record.adminEmail ?? record.email ?? '').trim(),
   }
 }
 
@@ -205,12 +208,12 @@ router.get('/:slug', async (req, res) => {
 })
 
 router.post('/', createVenueRateLimit, async (req, res) => {
-  const { venueName, username, password, displayName } = parseCreateVenueBody(req.body)
+  const { venueName, username, password, displayName, adminEmail } = parseCreateVenueBody(req.body)
 
-  if (!venueName || !username || !password || !displayName) {
+  if (!venueName || !username || !password || !displayName || !adminEmail) {
     res
       .status(400)
-      .json({ error: 'Venue name, username, password, and display name are required' })
+      .json({ error: 'Venue name, admin email, username, password, and display name are required' })
     return
   }
 
@@ -232,12 +235,21 @@ router.post('/', createVenueRateLimit, async (req, res) => {
     const isFounder = slug === 'tythebarn'
     const emailVerified = isFounder // Founder is pre-verified
     const subscriptionTier = isFounder ? 'FOUNDER' : 'FREE'
+    
+    let token: string | null = null
+    let tokenHash: string | null = null
+    
+    if (!isFounder) {
+      token = emailService.generateToken()
+      tokenHash = await emailService.hashToken(token)
+    }
 
     const venueInsert = await client.query<{ id: string; slug: string; name: string }>(
-      `INSERT INTO ${DB.VENUES_TABLE} (slug, name, ${DB.IS_FOUNDER_COLUMN}, ${DB.EMAIL_VERIFIED_COLUMN}, ${DB.SUBSCRIPTION_TIER_COLUMN})
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO ${DB.VENUES_TABLE} 
+       (slug, name, ${DB.IS_FOUNDER_COLUMN}, ${DB.EMAIL_VERIFIED_COLUMN}, ${DB.SUBSCRIPTION_TIER_COLUMN}, ${DB.ADMIN_EMAIL_COLUMN}, ${DB.VERIFICATION_TOKEN_HASH_COLUMN}, ${DB.VERIFICATION_SENT_AT_COLUMN})
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING ${DB.ID_COLUMN}, slug, name`,
-      [slug, venueName, isFounder, emailVerified, subscriptionTier]
+      [slug, venueName, isFounder, emailVerified, subscriptionTier, adminEmail, tokenHash, tokenHash ? new Date() : null]
     )
 
     const venue = venueInsert.rows[0]
@@ -249,8 +261,19 @@ router.post('/', createVenueRateLimit, async (req, res) => {
     )
 
     await client.query('COMMIT')
+
+    // Send email AFTER commit to ensure DB is ready
+    if (!isFounder && token) {
+      try {
+        await emailService.sendVerificationEmail(adminEmail, venueName, token)
+      } catch (emailError) {
+        console.error('Failed to send verification email on signup', emailError)
+        // We don't rollback here as the account is created, but user might need to resend
+      }
+    }
+
     res.status(201).json({
-      redirectUrl: `/${venue.slug}/login`,
+      redirectUrl: isFounder ? `/${venue.slug}/login` : `/verify-email-pending?venueId=${venue.id}`,
       venue: { slug: venue.slug, name: venue.name },
     })
   } catch (error) {
