@@ -152,10 +152,10 @@ export async function createApp() {
   app.use('/api/timesheet', timesheetRoutes)
 
   // Manager routes require email verification (except for founder Tythe Barn)
-  app.use('/api/shifts', shiftsRoutes)
-  app.use('/api/users', usersRoutes)
-  app.use('/api/audit', auditRoutes)
-  app.use('/api/export', exportRoutes)
+  app.use('/api/shifts', requireEmailVerifiedForManager, shiftsRoutes)
+  app.use('/api/users', requireEmailVerifiedForManager, usersRoutes)
+  app.use('/api/audit', requireEmailVerifiedForManager, auditRoutes)
+  app.use('/api/export', requireEmailVerifiedForManager, exportRoutes)
   app.use('/api/dev', devRoutes)
 
   return app
