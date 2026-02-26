@@ -3,13 +3,17 @@ import { useAuth } from '../context/AuthContext'
 import { venues, type VenueSettings } from '../api'
 
 export function VenueSettingsPage() {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
   const venueSlug = user?.venue?.slug
   const [settings, setSettings] = useState<VenueSettings | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
   const [form, setForm] = useState({
     enhanced_enabled: true,
     enhanced_start_hour: 19,
@@ -43,6 +47,20 @@ export function VenueSettingsPage() {
       .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load'))
       .finally(() => setLoading(false))
   }, [venueSlug])
+
+  const handleDeleteAccount = async () => {
+    if (!venueSlug) return
+    setDeleting(true)
+    setDeleteError('')
+    try {
+      const result = await venues.deleteAccount(venueSlug)
+      await logout()
+      window.location.href = result.redirectUrl ?? '/venues'
+    } catch (e) {
+      setDeleteError(e instanceof Error ? e.message : 'Failed to delete account')
+      setDeleting(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -204,6 +222,52 @@ export function VenueSettingsPage() {
         </button>
       </section>
 
+      <section className="account-actions delete-account-section">
+        <h3>Delete account</h3>
+        <p className="form-hint">Permanently delete this venue and all associated data. This cannot be undone.</p>
+        <button
+          type="button"
+          className="btn-danger"
+          onClick={() => { setShowDeleteModal(true); setDeleteConfirm(''); setDeleteError('') }}
+        >
+          Delete account
+        </button>
+      </section>
+
+      {showDeleteModal && (
+        <div className="modal-overlay">
+          <div className="modal-box">
+            <h3>Delete account</h3>
+            <p>This will permanently delete <strong>{user?.venue?.name ?? venueSlug}</strong> and all its data. Type the venue name to confirm:</p>
+            <input
+              type="text"
+              value={deleteConfirm}
+              onChange={(e) => setDeleteConfirm(e.target.value)}
+              placeholder={user?.venue?.name ?? venueSlug}
+              autoFocus
+            />
+            {deleteError && <p className="message-error">{deleteError}</p>}
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="btn-danger"
+                disabled={deleting || deleteConfirm !== (user?.venue?.name ?? venueSlug)}
+                onClick={handleDeleteAccount}
+              >
+                {deleting ? 'Deleting...' : 'Confirm delete'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleting}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style>{`
         .venue-settings-page { max-width: 520px; }
         .venue-settings-intro { color: var(--tt-text-muted, #666); margin-bottom: 1.5rem; }
@@ -230,6 +294,14 @@ export function VenueSettingsPage() {
         }
         .form-row { display: flex; gap: 1.5rem; flex-wrap: wrap; }
         .form-hint { font-size: 0.85rem; color: var(--tt-text-muted, #666); margin-top: 0.5rem; }
+        .delete-account-section { border-top-color: #f8d7da; }
+        .btn-danger { background: #c0392b; color: #fff; border: none; padding: 0.4rem 0.9rem; border-radius: 4px; cursor: pointer; }
+        .btn-danger:disabled { opacity: 0.5; cursor: not-allowed; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-box { background: #fff; border-radius: 8px; padding: 1.5rem; max-width: 400px; width: 90%; box-shadow: 0 4px 24px rgba(0,0,0,0.2); }
+        .modal-box h3 { margin-top: 0; }
+        .modal-box input { width: 100%; padding: 0.4rem; margin: 0.75rem 0; box-sizing: border-box; }
+        .modal-actions { display: flex; gap: 0.75rem; margin-top: 0.5rem; }
       `}</style>
     </div>
   )
