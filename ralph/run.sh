@@ -35,6 +35,17 @@ for arg in "$@"; do
     --dry-run)  MODE="dry-run" ;;
     --help|-h)
       echo "Usage: ./ralph/run.sh <task-id> [--status|--once|--dry-run]"
+      echo ""
+      echo "Backends (set RALPH_BACKEND):"
+      echo "  claude   - Claude Code CLI (default)"
+      echo "  gemini   - Google Gemini CLI (npm i -g @google/gemini-cli; gemini login)"
+      echo "  cursor   - Cursor agent (uses RALPH_MODEL)"
+      echo "  codex    - Cursor with Codex model"
+      echo "  codex-cli - OpenAI Codex CLI"
+      echo ""
+      echo "Claude models (RALPH_CLAUDE_MODEL): haiku | sonnet | opus (default: sonnet)"
+      echo "Example: RALPH_BACKEND=gemini ./ralph/run.sh tt-my-task-20260226"
+      echo "Example: RALPH_CLAUDE_MODEL=sonnet ./ralph/run.sh tt-my-task-20260226"
       exit 0
       ;;
     -*)
@@ -69,9 +80,10 @@ fi
 
 MAX_ITERATIONS="${RALPH_MAX_ITERATIONS:-30}"
 SLEEP_BETWEEN="${RALPH_SLEEP:-3}"
-BACKEND="${RALPH_BACKEND:-gemini}"
+BACKEND="${RALPH_BACKEND:-claude}"
 MODEL="${RALPH_MODEL:-grok}"
-CLAUDE_MODEL="${RALPH_CLAUDE_MODEL:-}"
+# Claude models: haiku (fast, fewer tokens) | sonnet | opus (most capable). Default sonnet for Ralph.
+export RALPH_CLAUDE_MODEL="${RALPH_CLAUDE_MODEL:-sonnet}"
 
 info()  { echo -e "\033[1;34m[INFO]\033[0m $*"; }
 ok()    { echo -e "\033[1;32m[ OK ]\033[0m $*"; }
