@@ -36,7 +36,7 @@
       "id": "evr-06-verify-pending-ux",
       "title": "VerifyPendingPage improvements",
       "acceptance_criteria": "Add 'Already have an account? Log in' link. Resend works with venueId in body for unauthenticated users.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "evr-07-edge-cases-doc",

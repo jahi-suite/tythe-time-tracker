@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { venues } from '../api'
 
 export function VerifyPendingPage() {
   const [searchParams] = useSearchParams()
@@ -13,15 +14,10 @@ export function VerifyPendingPage() {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch('/api/venues/resend-verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ venueId }),
-      })
-      if (!res.ok) throw new Error('Failed to resend')
+      await venues.resendVerification(venueId)
       setResent(true)
     } catch (err) {
-      setError('Failed to resend verification email. Please try again.')
+      setError(err instanceof Error ? err.message : 'Failed to resend verification email. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -62,7 +58,7 @@ export function VerifyPendingPage() {
         
         <div style={{ marginTop: '2rem' }}>
           <Link to="/login" style={{ fontSize: '0.9rem', color: 'var(--tt-accent)' }}>
-            Return to login
+            Already have an account? Log in
           </Link>
         </div>
       </div>
