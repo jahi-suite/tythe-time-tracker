@@ -53,6 +53,85 @@ function isUniqueViolation(error: unknown): boolean {
   return maybePg.code === '23505'
 }
 
+router.get('/verify-email', async (req, res) => {
+  const token = String(req.query.token ?? '').trim()
+  if (!token) {
+    res.status(400).send('Verification token is required')
+    return
+  }
+
+  const client = await getClient()
+  try {
+    // Find venue with an active token
+    const result = await client.query<{
+      id: string;
+      slug: string;
+      verification_token_hash: string;
+      verification_sent_at: Date;
+    }>(
+      `SELECT ${DB.ID_COLUMN} as id, slug, ${DB.VERIFICATION_TOKEN_HASH_COLUMN} as verification_token_hash, ${DB.VERIFICATION_SENT_AT_COLUMN} as verification_sent_at
+       FROM ${DB.VENUES_TABLE}
+       WHERE ${DB.VERIFICATION_TOKEN_HASH_COLUMN} IS NOT NULL
+         AND ${DB.EMAIL_VERIFIED_COLUMN} = FALSE`
+    )
+
+    let foundVenue = null
+    for (const row of result.rows) {
+      if (await emailService.compareToken(token, row.verification_token_hash)) {
+        foundVenue = row
+        break
+      }
+    }
+
+    if (!foundVenue) {
+      res.status(400).send('Invalid or expired verification token')
+      return
+    }
+
+    // Check expiry (24h)
+    const sentAt = new Date(foundVenue.verification_sent_at).getTime()
+    const now = Date.now()
+    if (now - sentAt > 24 * 60 * 60 * 1000) {
+      res.status(400).send('Verification token has expired. Please request a new one.')
+      return
+    }
+
+    // Mark as verified
+    await client.query(
+      `UPDATE ${DB.VENUES_TABLE}
+       SET ${DB.EMAIL_VERIFIED_COLUMN} = TRUE,
+           ${DB.VERIFICATION_TOKEN_HASH_COLUMN} = NULL
+       WHERE ${DB.ID_COLUMN} = $1`,
+      [foundVenue.id]
+    )
+
+    // Redirect to login or dashboard
+    res.redirect(`/${foundVenue.slug}/login?verified=true`)
+  } catch (error) {
+    console.error('Error during email verification', error)
+    res.status(500).send('An error occurred during verification')
+  } finally {
+    client.release()
+  }
+})
+
+router.post('/resend-verification', async (req, res) => {
+  const venueId = String(req.body.venueId ?? '').trim()
+  if (!venueId) {
+    res.status(400).json({ error: 'Venue ID is required' })
+    return
+  }
+
+  try {
+    await emailService.resendVerificationEmail(venueId)
+    // Anti-enumeration: always return success
+    res.json({ message: 'If the account exists and is not verified, a new email has been sent.' })
+  } catch (error) {
+    console.error('Error resending verification email', error)
+    res.status(500).json({ error: 'Failed to resend verification email' })
+  }
+})
+
 router.get('/search', async (req, res) => {
   const q = String(req.query.q ?? '').trim()
   if (!q) {
