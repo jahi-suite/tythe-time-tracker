@@ -54,7 +54,7 @@ export async function compareToken(token: string, hash: string): Promise<boolean
 }
 
 export async function sendVerificationEmail(venueEmail: string, venueName: string, token: string) {
-  const verifyLink = `${APP_BASE_URL}/verify-email?token=${token}`;
+  const verifyLink = `${APP_BASE_URL}/api/venues/verify-email?token=${token}`;
   
   const mailOptions: nodemailer.SendMailOptions = {
     from: EMAIL_FROM,
@@ -77,6 +77,12 @@ export async function sendVerificationEmail(venueEmail: string, venueName: strin
       </div>
     `,
   };
+
+  const hasSmtp = !!(SMTP_USER && SMTP_PASS);
+  if (!hasSmtp) {
+    console.log(`[EmailService] SMTP not configured — verification link (copy for local testing):\n  ${verifyLink}`);
+    return;
+  }
 
   try {
     await sendWithRetry(mailOptions);
