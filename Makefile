@@ -1,4 +1,7 @@
-.PHONY: plan build once plan-once dev typecheck
+.PHONY: spec plan build once plan-once dev typecheck
+
+spec:
+	cat PROMPT_spec.md | claude --model opus
 
 plan:
 	./loop.sh plan
