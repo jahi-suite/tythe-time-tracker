@@ -1,23 +1,21 @@
-.PHONY: spec voice plan build once plan-once dev typecheck
+.PHONY: lisa voice ralph dev typecheck
 
-spec:
+# Phase 1 — Requirements: vibe with Lisa, produce specs/*.md
+lisa:
 	cat PROMPT_spec.md | claude --model opus
 
+# Phase 1 (voice variant) — speak your idea, Lisa transcribes and runs
 voice:
 	./scripts/voice-to-spec.sh $(FILE)
 
-plan:
-	./loop.sh plan
+# Phase 2 — Build loop: plan then build, one task per iteration
+# Usage: make ralph          (build loop, unlimited)
+#        make ralph N=5      (build loop, max 5 iterations)
+#        make ralph MODE=plan (plan mode — update IMPLEMENTATION_PLAN.md)
+ralph:
+	./loop.sh $(MODE) $(N)
 
-build:
-	./loop.sh
-
-plan-once:
-	./loop.sh plan 1
-
-once:
-	./loop.sh 1
-
+# Dev utilities
 dev:
 	cd src && npm run dev
 
