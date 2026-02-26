@@ -38,11 +38,17 @@ export interface VenueIdentity {
   id: string
   slug: string
   name: string
+  email_verified: boolean
+  is_founder: boolean
+  subscription_tier: string
 }
 
 export async function getVenueBySlug(slug: string): Promise<VenueIdentity | null> {
   const res = await query<VenueIdentity>(
-    `SELECT ${DB.ID_COLUMN} AS id, slug, name
+    `SELECT ${DB.ID_COLUMN} AS id, slug, name,
+            ${DB.EMAIL_VERIFIED_COLUMN} AS email_verified,
+            ${DB.IS_FOUNDER_COLUMN} AS is_founder,
+            ${DB.SUBSCRIPTION_TIER_COLUMN} AS subscription_tier
      FROM ${DB.VENUES_TABLE}
      WHERE LOWER(slug) = LOWER($1)
        AND active = true`,
@@ -53,7 +59,10 @@ export async function getVenueBySlug(slug: string): Promise<VenueIdentity | null
 
 export async function getVenueById(id: string): Promise<VenueIdentity | null> {
   const res = await query<VenueIdentity>(
-    `SELECT ${DB.ID_COLUMN} AS id, slug, name
+    `SELECT ${DB.ID_COLUMN} AS id, slug, name,
+            ${DB.EMAIL_VERIFIED_COLUMN} AS email_verified,
+            ${DB.IS_FOUNDER_COLUMN} AS is_founder,
+            ${DB.SUBSCRIPTION_TIER_COLUMN} AS subscription_tier
      FROM ${DB.VENUES_TABLE}
      WHERE ${DB.ID_COLUMN} = $1
        AND active = true`,

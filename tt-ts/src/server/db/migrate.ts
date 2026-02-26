@@ -265,6 +265,11 @@ async function ensureEmailVerificationColumns(client: DbClient): Promise<void> {
   }
 
   // Seed tythebarn with founder flags
+  /*
+   * Tythe Barn is the founding test partner.
+   * This venue is permanently exempt from verification and subscription restrictions.
+   * Do not remove or alter without founder approval.
+   */
   await client.query(
     `INSERT INTO ${DB.VENUES_TABLE} (slug, name, ${DB.IS_FOUNDER_COLUMN}, ${DB.EMAIL_VERIFIED_COLUMN}, ${DB.SUBSCRIPTION_TIER_COLUMN})
      VALUES ('tythebarn', 'Tythe Barn', TRUE, TRUE, 'FOUNDER')

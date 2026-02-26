@@ -224,11 +224,20 @@ router.post('/', createVenueRateLimit, async (req, res) => {
   try {
     await client.query('BEGIN')
 
+    /*
+     * Tythe Barn is the founding test partner.
+     * This venue is permanently exempt from verification and subscription restrictions.
+     * Do not remove or alter without founder approval.
+     */
+    const isFounder = slug === 'tythebarn'
+    const emailVerified = isFounder // Founder is pre-verified
+    const subscriptionTier = isFounder ? 'FOUNDER' : 'FREE'
+
     const venueInsert = await client.query<{ id: string; slug: string; name: string }>(
-      `INSERT INTO ${DB.VENUES_TABLE} (slug, name)
-       VALUES ($1, $2)
+      `INSERT INTO ${DB.VENUES_TABLE} (slug, name, ${DB.IS_FOUNDER_COLUMN}, ${DB.EMAIL_VERIFIED_COLUMN}, ${DB.SUBSCRIPTION_TIER_COLUMN})
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING ${DB.ID_COLUMN}, slug, name`,
-      [slug, venueName]
+      [slug, venueName, isFounder, emailVerified, subscriptionTier]
     )
 
     const venue = venueInsert.rows[0]
