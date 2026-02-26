@@ -1,0 +1,12 @@
+{
+  "initiative": "tt-ralph-test-20260226",
+  "updated": "2026-02-26",
+  "stories": [
+    {
+      "id": "ralph-test-01",
+      "title": "Record test run in updates.md",
+      "acceptance_criteria": "Append one line to updates.md with timestamp. Commit. Set passes: true.",
+      "passes": true
+    }
+  ]
+}
