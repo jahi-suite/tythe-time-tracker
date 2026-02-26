@@ -84,8 +84,9 @@ export async function sendVerificationEmail(venueEmail: string, venueName: strin
 
   const hasSmtp = !!(SMTP_USER && SMTP_PASS);
   if (!hasSmtp) {
-    console.info(`[EmailService] INFO: SMTP not configured. Verification link for ${venueEmail}: ${verifyLink}`);
-    return;
+    const error = new Error(`SMTP not configured — set SMTP_USER and SMTP_PASS in .env. Verification link for ${venueEmail}: ${verifyLink}`);
+    console.error(`[EmailService] ERROR: ${error.message}`);
+    throw error;
   }
 
   try {
@@ -106,8 +107,6 @@ export interface ResendResult {
   rateLimited?: boolean;
   retryAfterMinutes?: number;
   message?: string;
-  /** When true, SMTP failed but link was logged to console (dev fallback) */
-  linkLoggedToConsole?: boolean;
 }
 
 /**
@@ -182,17 +181,6 @@ export async function resendVerificationEmail(venueId: string): Promise<ResendRe
     venue.id
   );
 
-  try {
-    await sendVerificationEmail(venue.admin_email, venue.name, token);
-    return { ok: true };
-  } catch (sendError) {
-    const verifyLink = `${APP_BASE_URL}/api/venues/verify-email?token=${token}`;
-    console.error(`[EmailService] resend_failed venueId=${venueId} to=${venue.admin_email}`, sendError);
-    console.info(`[EmailService] FALLBACK: Verification link (copy for manual use): ${verifyLink}`);
-    // Dev fallback: don't throw — return success so user can get link from console
-    if (process.env.NODE_ENV !== 'production') {
-      return { ok: true, linkLoggedToConsole: true };
-    }
-    throw sendError;
-  }
+  await sendVerificationEmail(venue.admin_email, venue.name, token);
+  return { ok: true };
 }

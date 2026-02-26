@@ -164,12 +164,6 @@ router.post('/resend-verification', async (req, res) => {
       })
       return
     }
-    if (result.linkLoggedToConsole) {
-      res.json({
-        message: 'Email could not be sent (SMTP not configured or failed). Check the server terminal for the verification link.',
-      })
-      return
-    }
     // Anti-enumeration: always return success
     res.json({ message: 'If the account exists and is not verified, a new email has been sent.' })
   } catch (error) {
