@@ -2,6 +2,16 @@
 
 Progress log. One story per iteration; commit after each.
 
+## 2026-02-26 — ved-03-delete-api ✅
+
+Added `POST /:slug/delete-account` endpoint to `tt-ts/src/server/routes/venues.ts`.
+- Admin-only (requireAdmin), session venue_id must match slug.
+- Blocks founder venue (is_founder=true) with 403.
+- Deletes in FK-safe order in a transaction: time_entries → users → venue.
+- On success: destroys session via `req.session.destroy()`, returns `{ ok: true, redirectUrl: '/venues' }`.
+- Build passes. Verify: 5/6 pass (only failing check is delete UI in VenueSettingsPage.tsx — next story).
+- Commit: 18fbcf2
+
 ## 2026-02-26 — ved-02-export-ui ✅
 
 Added `venues.exportAccountData(slug)` to `tt-ts/src/client/api.ts` (returns download URL).
