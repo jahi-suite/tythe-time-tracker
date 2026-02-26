@@ -78,7 +78,13 @@ export async function sendVerificationEmail(venueEmail: string, venueName: strin
     `,
   };
 
-  await sendWithRetry(mailOptions);
+  try {
+    await sendWithRetry(mailOptions);
+    console.log(`[EmailService] verification_email_sent to=${venueEmail}`);
+  } catch (error) {
+    console.error(`[EmailService] verification_email_failed to=${venueEmail}`, error);
+    throw error;
+  }
 }
 
 /**
@@ -86,6 +92,7 @@ export async function sendVerificationEmail(venueEmail: string, venueName: strin
  * Implementation follows anti-enumeration: never reveals if account exists.
  */
 export async function resendVerificationEmail(venueId: string) {
+  console.log(`[EmailService] resend_requested venueId=${venueId}`);
   const res = await query<{
     id: string;
     slug: string;

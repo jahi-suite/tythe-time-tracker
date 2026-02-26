@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { auth, venues } from '../api'
 
 export function LoginPage() {
   const { login } = useAuth()
   const { venueSlug } = useParams()
+  const [searchParams] = useSearchParams()
+  const isVerified = searchParams.get('verified') === 'true'
   const effectiveVenueSlug = (venueSlug || 'tythe').trim() || 'tythe'
   const isTytheVenue = effectiveVenueSlug.toLowerCase() === 'tythe'
   const [venueName, setVenueName] = useState<string | null>(null)
@@ -46,6 +48,11 @@ export function LoginPage() {
         <h1 className="login-title">Sign in — {venueName ?? effectiveVenueSlug}</h1>
         <p className="login-subtitle">Clock in. Check timesheets. Export when needed.</p>
       </div>
+      {isVerified && (
+        <p className="message-success" style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+          Email verified successfully! You can now log in.
+        </p>
+      )}
       <form onSubmit={handleLogin} className="login-form">
         <input
           type="text"

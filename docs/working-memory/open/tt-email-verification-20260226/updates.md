@@ -8,4 +8,8 @@
 - 2026-02-26: Completed ev-04-secrets. Created documentation for Google Workspace SMTP Relay (docs/google-email-setup.md) and Secret Manager (docs/secret-manager-setup.md). Updated .env.example with SMTP and APP_BASE_URL variables.
 - 2026-02-26: Completed ev-05-signup-flow. Updated venue creation to require adminEmail, generate and hash verification tokens, and send verification emails for non-founder venues. Skip verification for Tythe Barn.
 - 2026-02-26: Completed ev-06-verification-route. Implemented GET /verify-email endpoint with token comparison, 24h expiry check, and database update. Added POST /resend-verification endpoint with anti-enumeration.
+- 2026-02-26: Completed ev-07-access-gate. Implemented requireEmailVerified middleware to block unverified venues from accessing sensitive API routes.
+- 2026-02-26: Completed ev-08-ui-pages. Created VerifyPendingPage, added routes to App.tsx, and updated LoginPage to show verification success messages.
+- 2026-02-26: Completed ev-09-logging. Added Cloud Logging events for email verification lifecycle (sent, failed, success, resend, founder bypass).
+- 2026-02-26: Completed ev-10-docs. Verified existence of docs/google-email-setup.md and docs/secret-manager-setup.md.
 

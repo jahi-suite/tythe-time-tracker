@@ -84,6 +84,7 @@ router.get('/verify-email', async (req, res) => {
     }
 
     if (!foundVenue) {
+      console.log('[Venues] verification_failed reason=invalid_token')
       res.status(400).send('Invalid or expired verification token')
       return
     }
@@ -92,6 +93,7 @@ router.get('/verify-email', async (req, res) => {
     const sentAt = new Date(foundVenue.verification_sent_at).getTime()
     const now = Date.now()
     if (now - sentAt > 24 * 60 * 60 * 1000) {
+      console.log(`[Venues] verification_failed reason=expired venueId=${foundVenue.id}`)
       res.status(400).send('Verification token has expired. Please request a new one.')
       return
     }
@@ -104,6 +106,8 @@ router.get('/verify-email', async (req, res) => {
        WHERE ${DB.ID_COLUMN} = $1`,
       [foundVenue.id]
     )
+
+    console.log(`[Venues] verification_success venueId=${foundVenue.id}`)
 
     // Redirect to login or dashboard
     res.redirect(`/${foundVenue.slug}/login?verified=true`)
@@ -321,6 +325,10 @@ router.post('/', createVenueRateLimit, async (req, res) => {
     if (!isFounder) {
       token = emailService.generateToken()
       tokenHash = await emailService.hashToken(token)
+    }
+
+    if (isFounder) {
+      console.log(`[Venues] founder_bypass_used slug=${slug}`)
     }
 
     const venueInsert = await client.query<{ id: string; slug: string; name: string }>(

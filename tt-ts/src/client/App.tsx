@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import { MarketingLandingPage } from './pages/MarketingLandingPage'
 import { VenueLandingPage } from './pages/VenueLandingPage'
 import { LoginPage, FirstSetupPage } from './pages/LoginPage'
+import { VerifyPendingPage } from './pages/VerifyPendingPage'
 import { Layout } from './pages/Layout'
 import { ClockPage } from './pages/ClockPage'
 import { TimesheetPage } from './pages/TimesheetPage'
@@ -84,6 +85,7 @@ function AppRoutes() {
       <Route path="/" element={<MarketingLandingPage />} />
       <Route path="/venues" element={<VenueLandingPage />} />
       <Route path="/dev/venues" element={<DevVenuesPage />} />
+      <Route path="/verify-email-pending" element={<VerifyPendingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/:venueSlug/login" element={<LoginPage />} />
       <Route path="/terms" element={<TermsPage />} />
