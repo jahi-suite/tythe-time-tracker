@@ -11,6 +11,12 @@ const SMTP_PASS = process.env.SMTP_PASS;
 const EMAIL_FROM = process.env.EMAIL_FROM || 'noreply@karisuite.com';
 const APP_BASE_URL = process.env.APP_BASE_URL || 'http://localhost:3000';
 
+if (SMTP_USER && SMTP_PASS) {
+  console.log(`[EmailService] SMTP configured: host=${SMTP_HOST} port=${SMTP_PORT} user=${SMTP_USER}`);
+} else {
+  console.log(`[EmailService] SMTP NOT configured — set SMTP_USER and SMTP_PASS in .env`);
+}
+
 if (process.env.NODE_ENV === 'production' && APP_BASE_URL.includes('localhost')) {
   console.warn(`[EmailService] WARNING: APP_BASE_URL is set to localhost in production: ${APP_BASE_URL}`);
 }
