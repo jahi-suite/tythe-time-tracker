@@ -279,6 +279,16 @@ async function ensureEmailVerificationColumns(client: DbClient): Promise<void> {
          ${DB.SUBSCRIPTION_TIER_COLUMN} = 'FOUNDER'`
   );
   console.log(`[migrate] Seeded tythebarn with founder flags`);
+
+  // Default tythe venue (slug=tythe) is also exempt — used for dev/default
+  await client.query(
+    `UPDATE ${DB.VENUES_TABLE}
+     SET ${DB.IS_FOUNDER_COLUMN} = TRUE,
+         ${DB.EMAIL_VERIFIED_COLUMN} = TRUE,
+         ${DB.SUBSCRIPTION_TIER_COLUMN} = 'FOUNDER'
+     WHERE slug = $1`,
+    [DEFAULT_VENUE_SLUG]
+  );
 }
 
 export async function runMigrations(): Promise<void> {
