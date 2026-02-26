@@ -198,7 +198,7 @@ router.get('/me', async (req, res) => {
     standard_rate: freshUser.standard_rate ?? null,
     enhanced_rate: freshUser.enhanced_rate ?? null,
     supervisor_rate: freshUser.supervisor_rate ?? null,
-    venue: { slug: venue.slug, name: venue.name },
+    venue: { slug: venue.slug, name: venue.name, email_verified: venue.email_verified },
   })
 })
 
