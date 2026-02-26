@@ -388,18 +388,22 @@ router.post('/', createVenueRateLimit, async (req, res) => {
     await client.query('COMMIT')
 
     // Send email AFTER commit to ensure DB is ready
+    let emailSent = true
+    let emailErrorMsg: string | undefined
     if (!isFounder && token) {
       try {
         await emailService.sendVerificationEmail(adminEmail, venueName, token)
       } catch (emailError) {
         console.error('Failed to send verification email on signup', emailError)
-        // We don't rollback here as the account is created, but user might need to resend
+        emailSent = false
+        emailErrorMsg = emailError instanceof Error ? emailError.message : String(emailError)
       }
     }
 
     res.status(201).json({
       redirectUrl: isFounder ? `/${venue.slug}/login` : `/verify-email-pending?venueId=${venue.id}`,
       venue: { slug: venue.slug, name: venue.name },
+      warning: emailSent ? undefined : `Venue created but verification email could not be sent: ${emailErrorMsg}. Please check SMTP configuration or try resending from the login page.`,
     })
   } catch (error) {
     await client.query('ROLLBACK')
