@@ -23,6 +23,27 @@ run_with_timeout() {
   timeout "$TIMEOUT_SEC" "$@" 2>&1
 }
 
+# Run a probe in background and log "still running" every 5s until it finishes.
+run_probe_with_progress() {
+  local label="$1"
+  shift
+  local out_file
+  out_file=$(mktemp)
+  (
+    run_with_timeout "$@"
+  ) > "$out_file" 2>&1 &
+  local pid=$!
+  local start=${SECONDS:-0}
+  while kill -0 "$pid" 2>/dev/null; do
+    sleep 5
+    local elapsed=$((SECONDS - start))
+    echo -e "\033[0;36m[LOG]\033[0m   ... $label still running (${elapsed}s)" >&2
+  done
+  wait "$pid" 2>/dev/null || true
+  cat "$out_file"
+  rm -f "$out_file"
+}
+
 # ── Claude ───────────────────────────────────────────────────
 check_claude() {
   local claude_bin
@@ -35,7 +56,7 @@ check_claude() {
   for model in haiku sonnet opus; do
     log "Claude ($model): running probe (timeout ${TIMEOUT_SEC}s)..."
     export RALPH_CLAUDE_MODEL="$model"
-    out=$(run_with_timeout bash -c "cd \"$REPO_ROOT\" && \"$claude_bin\" -p --dangerously-skip-permissions --no-session-persistence --model \"$model\" \"$PROBE_PROMPT\"" 2>&1) || true
+    out=$(run_probe_with_progress "Claude ($model)" bash -c "cd \"$REPO_ROOT\" && \"$claude_bin\" -p --dangerously-skip-permissions --no-session-persistence --model \"$model\" \"$PROBE_PROMPT\"") || true
     exit_code=$?
     log "Claude ($model): exit_code=$exit_code, output lines=$(echo "$out" | wc -l)"
     if echo "$out" | grep -qi "OK\|exactly.*OK"; then
@@ -76,7 +97,7 @@ check_gemini() {
   fi
   info "Gemini: testing default model"
   log "Gemini: running probe (timeout ${TIMEOUT_SEC}s)..."
-  out=$(run_with_timeout bash -c "printf '%s' \"$PROBE_PROMPT\" | $gemini_cmd --yolo --model \"\${RALPH_GEMINI_MODEL:-gemini-2.0-flash}\"" 2>&1) || true
+  out=$(run_probe_with_progress "Gemini" bash -c "printf '%s' \"$PROBE_PROMPT\" | $gemini_cmd --yolo --model \"\${RALPH_GEMINI_MODEL:-gemini-2.0-flash}\"") || true
   exit_code=$?
   log "Gemini: exit_code=$exit_code, output lines=$(echo "$out" | wc -l)"
   if echo "$out" | grep -qi "OK\|exactly.*OK"; then
@@ -101,7 +122,7 @@ check_cursor() {
   fi
   info "Cursor: testing (cursor agent)"
   log "Cursor: running probe (timeout ${TIMEOUT_SEC}s)..."
-  out=$(run_with_timeout cursor agent --print --force --workspace "$REPO_ROOT" "$PROBE_PROMPT" 2>&1) || true
+  out=$(run_probe_with_progress "Cursor" cursor agent --print --force --workspace "$REPO_ROOT" "$PROBE_PROMPT") || true
   log "Cursor: exit_code=$?, output lines=$(echo "$out" | wc -l)"
   if echo "$out" | grep -qi "OK\|exactly.*OK"; then
     ok "cursor (default)"
@@ -124,7 +145,7 @@ check_codex_cli() {
   fi
   info "Codex CLI: testing"
   log "Codex CLI: running probe (timeout ${TIMEOUT_SEC}s)..."
-  out=$(run_with_timeout bash -c "cd \"$REPO_ROOT\" && \"$codex_bin\" exec -C \"$REPO_ROOT\" --full-auto \"$PROBE_PROMPT\"" 2>&1) || true
+  out=$(run_probe_with_progress "Codex CLI" bash -c "cd \"$REPO_ROOT\" && \"$codex_bin\" exec -C \"$REPO_ROOT\" --full-auto \"$PROBE_PROMPT\"") || true
   log "Codex CLI: exit_code=$?, output lines=$(echo "$out" | wc -l)"
   if echo "$out" | grep -qi "OK\|exactly.*OK"; then
     ok "codex-cli"
