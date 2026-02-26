@@ -128,10 +128,12 @@ export async function resendVerificationEmail(venueId: string): Promise<ResendRe
     admin_email: string;
     is_founder: boolean;
     email_verified: boolean;
+    verification_sent_at: Date | null;
   }>(
     `SELECT ${DB.ID_COLUMN} as id, slug, name, ${DB.ADMIN_EMAIL_COLUMN} as admin_email,
             ${DB.IS_FOUNDER_COLUMN} as is_founder,
-            ${DB.EMAIL_VERIFIED_COLUMN} as email_verified
+            ${DB.EMAIL_VERIFIED_COLUMN} as email_verified,
+            ${DB.VERIFICATION_SENT_AT_COLUMN} as verification_sent_at
      FROM ${DB.VENUES_TABLE}
      WHERE ${DB.ID_COLUMN} = $1`,
     [venueId]
@@ -146,20 +148,36 @@ export async function resendVerificationEmail(venueId: string): Promise<ResendRe
 
   // Rate limit check: 5 per hour using audit_log
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-  const recentEmailsRes = await query<{ count: string; last_sent: Date | null }>(
-    `SELECT COUNT(*) as count, MAX(created_at) as last_sent 
-     FROM ${DB.AUDIT_LOG_TABLE} 
-     WHERE ${DB.VENUE_ID_COLUMN} = $1 
-       AND target_table = 'venues' 
-       AND new_values->>'event' = 'verification_email_sent'
-       AND created_at > $2`,
-    [venue.id, oneHourAgo]
-  );
+  let count = 0;
+  let lastSent: Date | null = null;
   
-  const count = parseInt(recentEmailsRes.rows[0].count, 10);
+  try {
+    const recentEmailsRes = await query<{ count: string; last_sent: Date | null }>(
+      `SELECT COUNT(*) as count, MAX(created_at) as last_sent 
+       FROM ${DB.AUDIT_LOG_TABLE} 
+       WHERE ${DB.VENUE_ID_COLUMN} = $1 
+         AND target_table = 'venues' 
+         AND new_values->>'event' = 'verification_email_sent'
+         AND created_at > $2`,
+      [venue.id, oneHourAgo]
+    );
+    count = parseInt(recentEmailsRes.rows[0].count, 10);
+    lastSent = recentEmailsRes.rows[0].last_sent ? new Date(recentEmailsRes.rows[0].last_sent) : null;
+  } catch (error) {
+    console.error(`[EmailService] WARNING: Failed to query rate limit from audit_log. Failing open to ensure emails send.`, error);
+    // Fallback: check verification_sent_at on venue if query failed
+    if (venue.verification_sent_at) {
+      const lastSentAt = new Date(venue.verification_sent_at);
+      if (lastSentAt > oneHourAgo) {
+        // If we know we sent one recently, we can at least count that one
+        count = 1;
+        lastSent = lastSentAt;
+      }
+    }
+  }
+  
   if (count >= 5) {
-    const lastSent = recentEmailsRes.rows[0].last_sent ? new Date(recentEmailsRes.rows[0].last_sent) : oneHourAgo;
-    const retryAfterMinutes = Math.max(1, Math.ceil((lastSent.getTime() + 60 * 60 * 1000 - Date.now()) / (60 * 1000)));
+    const retryAfterMinutes = Math.max(1, Math.ceil(((lastSent?.getTime() ?? oneHourAgo.getTime()) + 60 * 60 * 1000 - Date.now()) / (60 * 1000)));
     console.log(`[EmailService] resend_rate_limited venueId=${venueId} count=${count}`);
     return { ok: false, rateLimited: true, retryAfterMinutes };
   }
