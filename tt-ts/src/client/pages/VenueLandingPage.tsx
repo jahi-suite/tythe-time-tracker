@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { venues } from '../api'
+import { venues, auth } from '../api'
 
 const SEARCH_DEBOUNCE_MS = 300
 
@@ -65,7 +65,14 @@ export function VenueLandingPage() {
         adminDisplayName: createDisplayName.trim(),
         adminPassword: createPassword,
       })
-      window.location.href = res.redirectUrl
+      // Auto-login after creation
+      try {
+        await auth.login(createUsername.trim(), createPassword, res.venue.slug)
+        navigate(`/${res.venue.slug}/clock`)
+      } catch (loginErr) {
+        console.warn('Auto-login failed after signup:', loginErr)
+        window.location.href = res.redirectUrl
+      }
     } catch (err) {
       setCreateError(err instanceof Error ? err.message : 'Failed to create venue')
     } finally {

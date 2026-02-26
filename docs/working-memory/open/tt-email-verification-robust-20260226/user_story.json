@@ -1,0 +1,54 @@
+{
+  "initiative": "tt-email-verification-robust-20260226",
+  "updated": "2026-02-26",
+  "stories": [
+    {
+      "id": "evr-01-auto-login-signup",
+      "title": "Auto-login after venue signup",
+      "acceptance_criteria": "After venue create (non-founder): client calls auth.login with form credentials, redirects to dashboard. User lands in app logged in. No redirect to verify-email-pending.",
+      "passes": true
+    },
+    {
+      "id": "evr-02-resend-from-dashboard",
+      "title": "Resend verification from manager dashboard",
+      "acceptance_criteria": "Unverified banner has 'Resend verification email' button. Click calls resend API. Shows success or error message.",
+      "passes": false
+    },
+    {
+      "id": "evr-03-resend-auth-optional",
+      "title": "Resend endpoint: session or body",
+      "acceptance_criteria": "POST /resend-verification: if authenticated, use session venue_id (no body). If unauthenticated, require venueId in body. Both paths work.",
+      "passes": false
+    },
+    {
+      "id": "evr-04-resend-rate-limit-feedback",
+      "title": "Rate limit feedback on resend",
+      "acceptance_criteria": "When resend hits 5/hour limit: return 429 with retryAfterMinutes. Client shows 'Try again in X minutes'.",
+      "passes": false
+    },
+    {
+      "id": "evr-05-email-diagnostics",
+      "title": "Email send diagnostics and logging",
+      "acceptance_criteria": "SMTP fail: log verification_email_failed with reason. SMTP not configured: log link at INFO. Consider APP_BASE_URL validation on startup.",
+      "passes": false
+    },
+    {
+      "id": "evr-06-verify-pending-ux",
+      "title": "VerifyPendingPage improvements",
+      "acceptance_criteria": "Add 'Already have an account? Log in' link. Resend works with venueId in body for unauthenticated users.",
+      "passes": false
+    },
+    {
+      "id": "evr-07-edge-cases-doc",
+      "title": "Troubleshooting documentation",
+      "acceptance_criteria": "docs/email-verification-troubleshooting.md: SMTP not configured, APP_BASE_URL, rate limit, token expired, spam. README link.",
+      "passes": false
+    },
+    {
+      "id": "evr-08-verify",
+      "title": "Final verification",
+      "acceptance_criteria": "npm run build. Full flow: signup → auto-login → dashboard → resend from banner → verify → manager enabled.",
+      "passes": false
+    }
+  ]
+}
