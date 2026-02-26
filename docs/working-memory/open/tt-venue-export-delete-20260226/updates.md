@@ -1,5 +1,18 @@
 # tt-venue-export-delete-20260226 — updates
 
+## 2026-02-26 — ved-04-delete-ui ✅ + ved-05-verify ✅
+
+Added `deleteAccount(slug)` to `venues` in `tt-ts/src/client/api.ts` (POST /venues/:slug/delete-account).
+Added "Delete account" section to `VenueSettingsPage.tsx`:
+- Danger-styled button opens a confirmation modal.
+- Modal requires typing exact venue name before confirm button enables.
+- On confirm: calls `venues.deleteAccount(slug)`, calls `logout()`, then `window.location.href = result.redirectUrl`.
+- Inline error shown on API failure; cancel/disabled-during-delete handled.
+- Also added CSS for modal overlay, modal box, and `.btn-danger`.
+Build passes (npm run build). Verify script: 6/6 pass.
+All stories pass. Task complete.
+Commits: c8947fe (feat), then docs commit.
+
 Progress log. One story per iteration; commit after each.
 
 ## 2026-02-26 — ved-03-delete-api ✅

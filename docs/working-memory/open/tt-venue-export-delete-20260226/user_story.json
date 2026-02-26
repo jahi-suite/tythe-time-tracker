@@ -5,7 +5,7 @@
     {"id": "ved-01-export-api", "title": "Export account data API", "acceptance_criteria": "GET or POST endpoint returns JSON: venue, settings, users (no password hashes), time_entries for session venue. Admin-only, session venue_id matches slug.", "passes": true},
     {"id": "ved-02-export-ui", "title": "Export button and download", "acceptance_criteria": "Venue settings page has 'Export account data' button; triggers download of tythe-export-{slug}-{date}.json.", "passes": true},
     {"id": "ved-03-delete-api", "title": "Delete account API", "acceptance_criteria": "POST endpoint deletes venue and related data. Admin-only, session venue matches. Optional block for tythebarn. On success destroy session, return redirect info.", "passes": true},
-    {"id": "ved-04-delete-ui", "title": "Delete account button and confirmation", "acceptance_criteria": "Venue settings has 'Delete account' with confirmation modal (e.g. type venue name). On confirm call API, then logout and redirect to /venues or login.", "passes": false},
-    {"id": "ved-05-verify", "title": "Build and verification", "acceptance_criteria": "npm run build passes. verify script passes. Export downloads file; delete confirms then clears session and redirects.", "passes": false}
+    {"id": "ved-04-delete-ui", "title": "Delete account button and confirmation", "acceptance_criteria": "Venue settings has 'Delete account' with confirmation modal (e.g. type venue name). On confirm call API, then logout and redirect to /venues or login.", "passes": true},
+    {"id": "ved-05-verify", "title": "Build and verification", "acceptance_criteria": "npm run build passes. verify script passes. Export downloads file; delete confirms then clears session and redirects.", "passes": true}
   ]
 }
