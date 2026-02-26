@@ -347,7 +347,7 @@ function UserCard({
 }
 
 export function ManagerPage() {
-  const { user } = useAuth()
+  const { user, refresh } = useAuth()
   const [entries, setEntries] = useState<Array<{ id: string; employee: string; clock_in: string; clock_out: string | null; pay_rate_type: string }>>([])
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([])
   const [userList, setUserList] = useState<ApiUser[]>([])
@@ -394,6 +394,11 @@ export function ManagerPage() {
   const [resendLoading, setResendLoading] = useState(false)
   const [resendError, setResendError] = useState('')
   const [resendSuccess, setResendSuccess] = useState('')
+  const [devBypassLoading, setDevBypassLoading] = useState(false)
+
+  const isLocalhost =
+    typeof window !== 'undefined' &&
+    ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname.toLowerCase())
 
   const handleResendVerification = async () => {
     setResendLoading(true)
@@ -406,6 +411,21 @@ export function ManagerPage() {
       setResendError(err instanceof Error ? err.message : 'Failed to send verification email. Check SMTP config.')
     } finally {
       setResendLoading(false)
+    }
+  }
+
+  const handleVerifyDevBypass = async () => {
+    setDevBypassLoading(true)
+    setResendError('')
+    setResendSuccess('')
+    try {
+      const res = await venues.verifyDevBypass()
+      setResendSuccess(res.message || 'Verified. Refreshing...')
+      await refresh()
+    } catch (err) {
+      setResendError(err instanceof Error ? err.message : 'Dev bypass failed')
+    } finally {
+      setDevBypassLoading(false)
     }
   }
 
@@ -890,7 +910,7 @@ export function ManagerPage() {
           <div>Verify your email to add staff and manage shifts.</div>
           {resendSuccess && <div className="message-success" style={{ fontSize: '0.9rem', padding: '0.4rem 0.6rem' }}>{resendSuccess}</div>}
           {resendError && <div className="message-error" style={{ fontSize: '0.9rem', padding: '0.4rem 0.6rem' }}>{resendError}</div>}
-          <div style={{ marginTop: '0.25rem' }}>
+          <div style={{ marginTop: '0.25rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             <button
               onClick={handleResendVerification}
               disabled={resendLoading}
@@ -899,6 +919,17 @@ export function ManagerPage() {
             >
               {resendLoading ? 'Sending...' : 'Resend verification email'}
             </button>
+            {isLocalhost && (
+              <button
+                onClick={handleVerifyDevBypass}
+                disabled={devBypassLoading}
+                className="btn-secondary"
+                style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}
+                title="Skip email verification (localhost only)"
+              >
+                {devBypassLoading ? 'Verifying...' : 'Verify without email (dev)'}
+              </button>
+            )}
           </div>
         </div>
       )}

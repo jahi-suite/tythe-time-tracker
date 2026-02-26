@@ -38,6 +38,10 @@ ls docs/working-memory/open/
 
 Do NOT try to complete an entire multi-step task in one session.
 
+## End-of-Turn Summary
+
+When you finish a story (pass or fail), always end with a brief summary: what you did, what passed, and what remains. Do NOT skip the summary. Example: "Done: implemented requireEmailVerifiedForManager on users route. Story vf-01 passes. Next: vf-02."
+
 ## Never Self-Assess as Done
 
 External verification decides completion:

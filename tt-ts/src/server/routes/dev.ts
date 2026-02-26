@@ -73,6 +73,30 @@ router.post('/venues/:slug/deactivate', requireDevVenuesEnabled, requireDevSecre
   res.json(result.rows[0])
 })
 
+router.post('/venues/:slug/verify', requireDevVenuesEnabled, requireDevSecret, async (req, res) => {
+  const slug = String(req.params.slug ?? '').trim().toLowerCase()
+  if (!slug) {
+    res.status(400).json({ error: 'Slug required' })
+    return
+  }
+
+  const result = await query<{ id: string; slug: string; name: string }>(
+    `UPDATE ${DB.VENUES_TABLE}
+     SET ${DB.EMAIL_VERIFIED_COLUMN} = TRUE, ${DB.VERIFICATION_TOKEN_HASH_COLUMN} = NULL
+     WHERE slug = $1
+     RETURNING ${DB.ID_COLUMN}, slug, name`,
+    [slug]
+  )
+
+  if (result.rowCount === 0) {
+    res.status(404).json({ error: 'Venue not found' })
+    return
+  }
+
+  console.log(`[Dev] venue_verified slug=${slug}`)
+  res.json({ ok: true, venue: result.rows[0] })
+})
+
 router.post('/venues/:slug/reactivate', requireDevVenuesEnabled, requireDevSecret, async (req, res) => {
   const slug = String(req.params.slug ?? '').trim().toLowerCase()
   if (!slug) {

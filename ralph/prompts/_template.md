@@ -31,3 +31,4 @@ Find this story in user_story.json. Implement its acceptance criteria per the pl
 
 - Commit after every atomic change. Update updates.md. Mark story passed when acceptance criteria are met.
 - On failure: record in updates.md what you tried, what worked, what didn't, what to try next.
+- **End with a brief summary.** When done, write 1–2 sentences: what you did, what passed, what's next. Do NOT skip the summary.

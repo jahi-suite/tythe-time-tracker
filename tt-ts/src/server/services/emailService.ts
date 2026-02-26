@@ -106,6 +106,8 @@ export interface ResendResult {
   rateLimited?: boolean;
   retryAfterMinutes?: number;
   message?: string;
+  /** When true, SMTP failed but link was logged to console (dev fallback) */
+  linkLoggedToConsole?: boolean;
 }
 
 /**
@@ -180,6 +182,17 @@ export async function resendVerificationEmail(venueId: string): Promise<ResendRe
     venue.id
   );
 
-  await sendVerificationEmail(venue.admin_email, venue.name, token);
-  return { ok: true };
+  try {
+    await sendVerificationEmail(venue.admin_email, venue.name, token);
+    return { ok: true };
+  } catch (sendError) {
+    const verifyLink = `${APP_BASE_URL}/api/venues/verify-email?token=${token}`;
+    console.error(`[EmailService] resend_failed venueId=${venueId} to=${venue.admin_email}`, sendError);
+    console.info(`[EmailService] FALLBACK: Verification link (copy for manual use): ${verifyLink}`);
+    // Dev fallback: don't throw — return success so user can get link from console
+    if (process.env.NODE_ENV !== 'production') {
+      return { ok: true, linkLoggedToConsole: true };
+    }
+    throw sendError;
+  }
 }

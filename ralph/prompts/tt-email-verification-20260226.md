@@ -18,3 +18,7 @@ Read `docs/working-memory/open/tt-email-verification-20260226/plan.md` and `user
 ## Pick
 
 Read `updates.md` to see what's done. Skip completed stories. Do ev-01-migration through ev-12-verify in order.
+
+## End with summary
+
+When done, write 1–2 sentences: what you did, what passed, what's next. Do NOT skip the summary.

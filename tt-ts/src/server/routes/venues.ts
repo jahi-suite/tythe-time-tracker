@@ -119,6 +119,32 @@ router.get('/verify-email', async (req, res) => {
   }
 })
 
+/** Dev only: mark current venue as verified without email. Requires auth + localhost. */
+router.post('/verify-dev-bypass', requireAuth, async (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    res.status(404).json({ error: 'Not found' })
+    return
+  }
+  const host = (req.hostname || req.get('host') || '').split(':')[0].toLowerCase()
+  if (host !== 'localhost' && host !== '127.0.0.1' && host !== '::1') {
+    res.status(403).json({ error: 'Dev bypass only available on localhost' })
+    return
+  }
+  const venueId = req.session?.venue_id
+  if (!venueId) {
+    res.status(400).json({ error: 'No venue in session' })
+    return
+  }
+  await query(
+    `UPDATE ${DB.VENUES_TABLE}
+     SET ${DB.EMAIL_VERIFIED_COLUMN} = TRUE, ${DB.VERIFICATION_TOKEN_HASH_COLUMN} = NULL
+     WHERE ${DB.ID_COLUMN} = $1`,
+    [venueId]
+  )
+  console.log(`[Venues] verify_dev_bypass venueId=${venueId}`)
+  res.json({ ok: true, message: 'Venue marked as verified. Refresh the page.' })
+})
+
 router.post('/resend-verification', async (req, res) => {
   const sessionVenueId = req.session?.venue_id
   const bodyVenueId = String(req.body.venueId ?? '').trim()
@@ -138,11 +164,19 @@ router.post('/resend-verification', async (req, res) => {
       })
       return
     }
+    if (result.linkLoggedToConsole) {
+      res.json({
+        message: 'Email could not be sent (SMTP not configured or failed). Check the server terminal for the verification link.',
+      })
+      return
+    }
     // Anti-enumeration: always return success
     res.json({ message: 'If the account exists and is not verified, a new email has been sent.' })
   } catch (error) {
     console.error('Error resending verification email', error)
-    res.status(500).json({ error: 'Failed to resend verification email' })
+    res.status(500).json({
+      error: 'Failed to resend verification email. Check server logs for verification link, or verify SMTP_HOST, SMTP_USER, SMTP_PASS in .env.',
+    })
   }
 })
 

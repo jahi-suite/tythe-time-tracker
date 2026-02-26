@@ -24,7 +24,7 @@ export interface AuthUser {
   standard_rate?: number | null
   enhanced_rate?: number | null
   supervisor_rate?: number | null
-  venue?: { slug: string; name: string }
+  venue?: { slug: string; name: string; email_verified?: boolean }
 }
 
 export interface VenueSearchResult {
@@ -85,6 +85,8 @@ export const venues = {
       method: 'POST',
       body: JSON.stringify({ venueId }),
     }),
+  verifyDevBypass: () =>
+    fetchApi<{ ok: boolean; message: string }>('/venues/verify-dev-bypass', { method: 'POST' }),
 }
 
 export const auth = {

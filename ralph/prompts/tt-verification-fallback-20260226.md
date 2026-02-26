@@ -16,3 +16,7 @@ Read `docs/working-memory/open/tt-verification-fallback-20260226/plan.md` and `u
 ## Pick
 
 Read `updates.md` to see what's done. Skip completed stories. Do vf-01 through vf-04 in order.
+
+## End with summary
+
+When done, write 1–2 sentences: what you did, what passed, what's next. Do NOT skip the summary.
