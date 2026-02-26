@@ -151,11 +151,25 @@ Times stored UTC; display in BST. Per-user rates stored in `users` table.
 
 ---
 
+## Subagents
+
+You can and should spawn subagents for parallelisable work. Examples:
+
+- **Explore** — delegate deep codebase searches to keep your context clean
+  - "Find all places that reference `pay_rate_type`"
+  - "How does the export route work end to end?"
+- **Parallel implementation** — spawn one agent per independent module (e.g. client component + server route at the same time)
+- **Verification** — spawn an agent to run the build and report results while you prepare the next change
+
+Prefer subagents when a task has two or more independent parts that don't need to share context.
+
+---
+
 ## Workflow
 
 1. Read `IMPLEMENTATION_PLAN.md` — find first incomplete task
 2. Read relevant spec in `specs/`
-3. Implement one atomic unit
+3. Implement one atomic unit (spawn subagents for independent parts)
 4. Run `cd src && npx tsc --noEmit && npm run build` — must pass
 5. Commit
 6. Mark task complete in `IMPLEMENTATION_PLAN.md`, commit
