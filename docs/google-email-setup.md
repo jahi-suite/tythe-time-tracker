@@ -1,8 +1,31 @@
-# Google Workspace SMTP Relay Setup
+# Email Setup for KariSuite
 
-To enable email verification, KariSuite uses Google Workspace SMTP Relay.
+KariSuite sends verification emails via SMTP. Two options:
 
-## Configuration Steps
+---
+
+## Option A: Gmail (personal account) — quickest for local dev
+
+1. **Enable 2FA** on your Google account: [myaccount.google.com/security](https://myaccount.google.com/security)
+2. **Create an App Password**: [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
+   - Select "Mail" and your device, then Generate
+   - Copy the 16-character password (e.g. `abcd efgh ijkl mnop`)
+3. **Add to `tt-ts/.env`**:
+   ```
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USER=your-gmail@gmail.com
+   SMTP_PASS=your-16-char-app-password
+   EMAIL_FROM="KariSuite <your-gmail@gmail.com>"
+   APP_BASE_URL=http://localhost:3000
+   ```
+4. Restart the server.
+
+---
+
+## Option B: Google Workspace SMTP Relay
+
+For production with a custom domain.
 
 1.  **Google Admin Console**:
     *   Go to `Apps` > `Google Workspace` > `Gmail` > `Routing`.
