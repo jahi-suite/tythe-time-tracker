@@ -1,0 +1,30 @@
+{
+  "initiative": "tt-verification-fallback-20260226",
+  "updated": "2026-02-26",
+  "stories": [
+    {
+      "id": "vf-01-middleware-refactor",
+      "title": "Refactor verification middleware for soft block",
+      "acceptance_criteria": "requireEmailVerified allows unverified through. New requireEmailVerifiedForManager returns 403 for unverified. Apply to users, shifts, export, audit routes only. Clock, timesheet, auth remain accessible.",
+      "passes": true
+    },
+    {
+      "id": "vf-02-auth-me-flag",
+      "title": "Include email_verified in auth/me response",
+      "acceptance_criteria": "GET /api/auth/me returns venue.email_verified (boolean) so client can show banner and disable manager UI.",
+      "passes": true
+    },
+    {
+      "id": "vf-03-client-banner",
+      "title": "Banner and disabled manager UI for unverified",
+      "acceptance_criteria": "When venue.email_verified is false: show banner 'Verify your email to add staff and manage shifts'; disable Add User, Manage Users actions, shift add/edit/delete, export. Employee clock and timesheet work.",
+      "passes": true
+    },
+    {
+      "id": "vf-04-verify",
+      "title": "Final verification",
+      "acceptance_criteria": "npm run build passes. verify script passes. Unverified can login, clock, view timesheet; cannot add user; banner visible.",
+      "passes": true
+    }
+  ]
+}
