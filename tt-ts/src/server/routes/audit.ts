@@ -1,10 +1,12 @@
 import { Router } from 'express'
 import { getAuditLogs } from '../audit.js'
 import { requireManager } from '../middleware/auth.js'
+import { requireEmailVerifiedForManager } from '../middleware/verification.js'
 
 const router = Router()
 
 router.use(requireManager)
+router.use(requireEmailVerifiedForManager)
 
 router.get('/', async (req, res) => {
   const venueId = req.session?.venue_id

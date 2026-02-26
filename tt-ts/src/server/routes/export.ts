@@ -2,10 +2,12 @@ import { Router } from 'express'
 import * as timeTracking from '../services/timeTracking.js'
 import { exportToExcel, exportToPdf } from '../services/exportService.js'
 import { requireAuth, requireManager } from '../middleware/auth.js'
+import { requireEmailVerifiedForManager } from '../middleware/verification.js'
 
 const router = Router()
 
 router.use(requireAuth)
+router.use(requireEmailVerifiedForManager)
 
 router.get('/excel', async (req, res) => {
   const user = req.session!.user!

@@ -16,7 +16,7 @@ import auditRoutes from './routes/audit.js'
 import exportRoutes from './routes/export.js'
 import devRoutes from './routes/dev.js'
 import { requireSameOriginForMutations } from './middleware/csrf.js'
-import { requireEmailVerified } from './middleware/verification.js'
+import { requireEmailVerified, requireEmailVerifiedForManager } from './middleware/verification.js'
 import { getSessionCookieOptions } from './sessionConfig.js'
 import { getPool } from './db/connection.js'
 import { runMigrations } from './db/migrate.js'
@@ -148,11 +148,10 @@ export async function createApp() {
   app.use('/api/auth', authRoutes)
   app.use('/api/venues', venuesRoutes)
 
-  // Block access for unverified venues (except for founder Tythe Barn)
-  app.use(requireEmailVerified)
-
   app.use('/api/clock', clockRoutes)
   app.use('/api/timesheet', timesheetRoutes)
+
+  // Manager routes require email verification (except for founder Tythe Barn)
   app.use('/api/shifts', shiftsRoutes)
   app.use('/api/users', usersRoutes)
   app.use('/api/audit', auditRoutes)

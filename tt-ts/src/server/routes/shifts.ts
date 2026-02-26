@@ -1,6 +1,7 @@
 import { Router, type Request } from 'express'
 import * as timeTracking from '../services/timeTracking.js'
 import { requireManager } from '../middleware/auth.js'
+import { requireEmailVerifiedForManager } from '../middleware/verification.js'
 import { convertToUtc } from '../utils/timeUtils.js'
 import type { PayRateType } from '../../shared/types.js'
 
@@ -99,6 +100,7 @@ function validateShiftPayload(body: unknown): {
 }
 
 router.use(requireManager)
+router.use(requireEmailVerifiedForManager)
 
 router.post('/', async (req, res) => {
   const user = req.session!.user!

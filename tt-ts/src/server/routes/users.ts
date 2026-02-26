@@ -2,6 +2,7 @@ import { Router } from 'express'
 import * as auth from '../auth/index.js'
 import { logChange } from '../audit.js'
 import { requireAdmin, requireManager } from '../middleware/auth.js'
+import { requireEmailVerifiedForManager } from '../middleware/verification.js'
 import { createIpRateLimit } from '../middleware/rateLimit.js'
 import type { User } from '../../shared/types.js'
 import { DB } from '../../shared/constants.js'
@@ -82,6 +83,7 @@ async function ensureUserInVenue(userId: string, venueId: string): Promise<boole
 }
 
 router.use(requireManager)
+router.use(requireEmailVerifiedForManager)
 
 router.get('/', async (req, res) => {
   const venueId = req.session?.venue_id ?? null
