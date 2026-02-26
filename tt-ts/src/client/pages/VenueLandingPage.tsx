@@ -11,6 +11,7 @@ export function VenueLandingPage() {
   const [searching, setSearching] = useState(false)
   const [createMode, setCreateMode] = useState(false)
   const [createVenueName, setCreateVenueName] = useState('')
+  const [createAdminEmail, setCreateAdminEmail] = useState('')
   const [createUsername, setCreateUsername] = useState('')
   const [createDisplayName, setCreateDisplayName] = useState('')
   const [createPassword, setCreatePassword] = useState('')
@@ -42,8 +43,13 @@ export function VenueLandingPage() {
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setCreateError('')
-    if (!createVenueName.trim() || !createUsername.trim() || !createDisplayName.trim() || !createPassword) {
+    if (!createVenueName.trim() || !createAdminEmail.trim() || !createUsername.trim() || !createDisplayName.trim() || !createPassword) {
       setCreateError('All fields are required')
+      return
+    }
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRe.test(createAdminEmail.trim())) {
+      setCreateError('Please enter a valid email address')
       return
     }
     if (createPassword.length < 6) {
@@ -54,6 +60,7 @@ export function VenueLandingPage() {
     try {
       const res = await venues.create({
         venueName: createVenueName.trim(),
+        adminEmail: createAdminEmail.trim(),
         adminUsername: createUsername.trim(),
         adminDisplayName: createDisplayName.trim(),
         adminPassword: createPassword,
@@ -118,6 +125,13 @@ export function VenueLandingPage() {
                 placeholder="Venue name"
                 value={createVenueName}
                 onChange={(e) => setCreateVenueName(e.target.value)}
+                required
+              />
+              <input
+                type="email"
+                placeholder="Admin email"
+                value={createAdminEmail}
+                onChange={(e) => setCreateAdminEmail(e.target.value)}
                 required
               />
               <input

@@ -65,6 +65,7 @@ export const venues = {
     }),
   create: (data: {
     venueName: string
+    adminEmail: string
     adminUsername: string
     adminDisplayName: string
     adminPassword: string
@@ -73,6 +74,7 @@ export const venues = {
       method: 'POST',
       body: JSON.stringify({
         venueName: data.venueName,
+        adminEmail: data.adminEmail,
         username: data.adminUsername,
         displayName: data.adminDisplayName,
         password: data.adminPassword,
