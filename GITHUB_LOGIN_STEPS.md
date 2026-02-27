@@ -9,11 +9,11 @@ Do these steps **in your own terminal** (the one in Cursor or your computer).
 In the terminal, go to your project and run:
 
 ```bash
-cd /home/conno/cheesegrater
-./bin/gh auth login -w -h github.com -p https --skip-ssh-key
+cd ~/tythe-time-tracker
+gh auth login -w -h github.com -p https --skip-ssh-key
 ```
 
-(If `gh` is already in your PATH, you can just run: `gh auth login -w -h github.com -p https --skip-ssh-key`)
+(If `gh` is already in your PATH: `gh auth login -w -h github.com -p https --skip-ssh-key`)
 
 ---
 
@@ -55,7 +55,7 @@ Run:
 gh auth setup-git
 ```
 
-(Or: `./bin/gh auth setup-git` if you’re using the local `gh`.)
+(Or: `./bin/gh auth setup-git` if using a local `gh` binary.)
 
 ---
 
@@ -64,7 +64,7 @@ gh auth setup-git
 From the time tracker folder:
 
 ```bash
-cd /home/conno/cheesegrater/tythe-time-tracker
+cd ~/tythe-time-tracker
 git push origin main
 ```
 

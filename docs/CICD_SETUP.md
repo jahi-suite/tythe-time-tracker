@@ -17,7 +17,7 @@ Deploy via **Cloud Run "Deploy from repository"** in the Google Cloud Console.
 | Dockerfile path | `Dockerfile` (repo root) |
 | Build context | `.` (repo root) |
 
-The root `Dockerfile` builds the `tt-ts` app.
+The root `Dockerfile` builds the `src/` app.
 
 ## Push to Main → Deploy?
 
@@ -36,4 +36,4 @@ gcloud run revisions delete REVISION_NAME --region=europe-west2 --project=kariti
 
 ## Runtime Configuration
 
-After the first deploy, set env vars in Cloud Run. See `docs/GCP_CLOUD_RUN_SETUP.md` for Supabase, SESSION_SECRET, etc. Use `./ralph/set-cloudrun-env-from-dotenv.sh` to apply from `tt-ts/.env`.
+After the first deploy, set env vars in Cloud Run. See `docs/GCP_CLOUD_RUN_SETUP.md` for Supabase, SESSION_SECRET, etc. Use `./scripts/set-cloudrun-env-from-dotenv.sh` to apply from `src/.env`.

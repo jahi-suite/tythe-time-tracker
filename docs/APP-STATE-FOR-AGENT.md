@@ -9,7 +9,7 @@ This document describes the application as it exists today so another agent can 
 Web app for **The Tythe Barn** to track staff time: clock in/out, view timesheets, and manage entries. **Two implementations** share the same Supabase (PostgreSQL) database:
 
 1. **Streamlit** (`app.py`) — Python, deployable on Streamlit Cloud.
-2. **tt-ts** (`tt-ts/`) — TypeScript + React (Vite) + Node/Express, feature parity with Streamlit.
+2. **TypeScript app** (`src/`) — TypeScript + React (Vite) + Node/Express, feature parity with Streamlit. This is the primary build target.
 
 ---
 
@@ -122,23 +122,24 @@ tythe-time-tracker/
 │   └── utils/                      # time_utils, date_utils
 ├── docs/
 │   ├── APP-STATE-FOR-AGENT.md      # This file
-│   └── working-memory/
-│       ├── open/                   # Active Ralph tasks (plan.md + user_story.json)
-│       └── done/                   # Completed tasks — move here when all stories pass
-├── tt-ts/                          # TypeScript app (Vite + React + Express)
+│   └── archive/                    # Completed historical task records
+├── src/                            # TypeScript app (Vite + React + Express)
 │   ├── src/                        # Client: pages (Clock, Timesheet, Export, Manager), components, hooks
 │   └── server/                     # Express API, services, exportUtils
-└── ralph/                          # Ralph: run.sh, status.sh, prompts/_template.md
+├── specs/                          # Domain requirement specs (owned by Lisa)
+├── IMPLEMENTATION_PLAN.md          # Prioritised TODO list (owned by Ralph)
+└── scripts/                        # Operational utilities
 ```
 
 ---
 
-## Ralph tasks
+## Development workflow
 
-- **Completed** (in `docs/working-memory/done/`): All tasks. Run `./ralph/status.sh` to see.
-- **Open** (in `docs/working-memory/open/`): Active tasks. Create new tasks with plan.md + user_story.json. When all stories pass, **move the task folder from open/ to done/**.
+See `RALPH_README.md` for the full methodology. In brief:
 
-Run: `./ralph/run.sh <task-id>`. Status: `./ralph/status.sh`. Uses `ralph/prompts/_template.md` by default. On failure: record in updates.md what you tried, what worked, what didn't.
+- `make lisa` — interactive requirements session; produces `specs/*.md`
+- `make ralph MODE=plan` — audits codebase against specs; produces `IMPLEMENTATION_PLAN.md`
+- `make ralph` — build loop; implements one task per iteration from `IMPLEMENTATION_PLAN.md`
 
 ---
 

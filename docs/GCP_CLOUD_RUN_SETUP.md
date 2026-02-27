@@ -17,13 +17,13 @@ Deploy via **Cloud Run "Deploy from repository"** — push to the connected bran
 
 Set these in Cloud Run **Revision → Variables** (or via CLI).
 
-**From tt-ts/.env (CLI):**
+**From src/.env (CLI):**
 
 ```bash
-./ralph/set-cloudrun-env-from-dotenv.sh
+./scripts/set-cloudrun-env-from-dotenv.sh
 ```
 
-This reads `tt-ts/.env`, overrides `SUPABASE_PORT=6543`, adds `NODE_ENV=production` and `SESSION_STORE=pg`, and runs `gcloud run services update karitime`.
+This reads `src/.env`, overrides `SUPABASE_PORT=6543`, adds `NODE_ENV=production` and `SESSION_STORE=pg`, and runs `gcloud run services update karitime`.
 
 | Variable | Notes |
 |----------|-------|
@@ -50,8 +50,8 @@ gcloud run deploy karitime \
   --allow-unauthenticated
 ```
 
-Then run `./ralph/set-cloudrun-env-from-dotenv.sh` to set env vars.
+Then run `./scripts/set-cloudrun-env-from-dotenv.sh` to set env vars.
 
 ## Env Template
 
-Copy `tt-ts/gcp-env.template` and fill in values. Use it when configuring Cloud Run env vars or when creating `tt-ts/.env`.
+Copy `src/gcp-env.template` and fill in values. Use it when configuring Cloud Run env vars or when creating `src/.env`.

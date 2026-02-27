@@ -28,24 +28,24 @@ This analysis follows PASTA (7 phases) and reflects the increased sensitivity in
 ## 2. Define the Technical Scope (DT)
 
 ### Components in scope
-- Frontend: React SPA (served statically by Express from `tt-ts/dist`) via `tt-ts/src/server/index.ts:44`.
-- Backend API: Express 4 app with session auth in `tt-ts/src/server/index.ts:23`.
-- Auth/RBAC logic: `tt-ts/src/server/routes/auth.ts`, `tt-ts/src/server/middleware/auth.ts`, `tt-ts/src/server/auth/index.ts`.
+- Frontend: React SPA (served statically by Express from `src/dist`) via `src/src/server/index.ts:44`.
+- Backend API: Express 4 app with session auth in `src/src/server/index.ts:23`.
+- Auth/RBAC logic: `src/src/server/routes/auth.ts`, `src/src/server/middleware/auth.ts`, `src/src/server/auth/index.ts`.
 - Payroll-related logic:
-- Pay rates storage/update via `tt-ts/src/server/routes/users.ts:78` and `tt-ts/src/server/auth/index.ts:120`.
-- Payroll calculations/export via `tt-ts/src/server/services/exportUtils.ts:78` and `tt-ts/src/server/services/exportService.ts:13`.
-- Data access: PostgreSQL/Supabase via `pg` in `tt-ts/src/server/db/connection.ts` and repository functions in `tt-ts/src/server/db/repository.ts`.
-- Audit logs (partial coverage): `tt-ts/src/server/routes/audit.ts`, `tt-ts/src/server/audit.ts`, `tt-ts/src/server/services/timeTracking.ts:92`.
+- Pay rates storage/update via `src/src/server/routes/users.ts:78` and `src/src/server/auth/index.ts:120`.
+- Payroll calculations/export via `src/src/server/services/exportUtils.ts:78` and `src/src/server/services/exportService.ts:13`.
+- Data access: PostgreSQL/Supabase via `pg` in `src/src/server/db/connection.ts` and repository functions in `src/src/server/db/repository.ts`.
+- Audit logs (partial coverage): `src/src/server/routes/audit.ts`, `src/src/server/audit.ts`, `src/src/server/services/timeTracking.ts:92`.
 
 ### Key APIs / attack surface
-- `POST /api/auth/login` (`tt-ts/src/server/routes/auth.ts:7`)
-- `POST /api/auth/change-password` (`tt-ts/src/server/routes/auth.ts:41`)
-- `POST /api/auth/first-setup` (`tt-ts/src/server/routes/auth.ts:66`)
-- `GET/POST/PUT/DELETE /api/users...` including `/:id/pay-rates`, `/:id/reset-password`, `/:id/promote-admin` (`tt-ts/src/server/routes/users.ts`)
-- `GET /api/timesheet`, `GET /api/timesheet/all` (`tt-ts/src/server/routes/timesheet.ts`)
-- `POST/PUT/DELETE /api/shifts...` (`tt-ts/src/server/routes/shifts.ts`)
-- `GET /api/export/excel|pdf` (`tt-ts/src/server/routes/export.ts`)
-- `GET /api/audit` (`tt-ts/src/server/routes/audit.ts`)
+- `POST /api/auth/login` (`src/src/server/routes/auth.ts:7`)
+- `POST /api/auth/change-password` (`src/src/server/routes/auth.ts:41`)
+- `POST /api/auth/first-setup` (`src/src/server/routes/auth.ts:66`)
+- `GET/POST/PUT/DELETE /api/users...` including `/:id/pay-rates`, `/:id/reset-password`, `/:id/promote-admin` (`src/src/server/routes/users.ts`)
+- `GET /api/timesheet`, `GET /api/timesheet/all` (`src/src/server/routes/timesheet.ts`)
+- `POST/PUT/DELETE /api/shifts...` (`src/src/server/routes/shifts.ts`)
+- `GET /api/export/excel|pdf` (`src/src/server/routes/export.ts`)
+- `GET /api/audit` (`src/src/server/routes/audit.ts`)
 
 ### Trust boundaries
 - Browser <-> Express API (session cookie boundary)
@@ -58,38 +58,38 @@ This analysis follows PASTA (7 phases) and reflects the increased sensitivity in
 ### Roles and privileges (current)
 - `employee`: authenticated access to own clock/timesheet/export (`requireAuth`).
 - `manager`: all `requireManager` endpoints (includes user CRUD, pay rates, reset password, audit, shifts, all timesheets).
-- `admin`: same `requireManager` route access plus some admin-only checks inside service functions (e.g. admin promotion rules in `tt-ts/src/server/auth/index.ts:298`).
+- `admin`: same `requireManager` route access plus some admin-only checks inside service functions (e.g. admin promotion rules in `src/src/server/auth/index.ts:298`).
 
 ### Core assets
-- Credentials: usernames + bcrypt hashes (`tt-ts/src/server/auth/index.ts:22`, `:232`, `:254`).
-- Session state: `req.session.user` in server-side session store (`tt-ts/src/server/routes/auth.ts:18`).
-- Payroll data: `standard_rate`, `enhanced_rate`, `supervisor_rate` columns (`tt-ts/src/server/auth/index.ts:77`, `:120`).
-- Time entry data: employee identity, timestamps, pay rate type (`tt-ts/src/server/db/repository.ts:37`, `:173`).
-- Payroll exports (Excel/PDF) with totals and pay amounts (`tt-ts/src/server/services/exportService.ts:62`, `:188`).
-- Audit logs (currently focused on time entry changes) (`tt-ts/src/server/services/timeTracking.ts:92`, `:128`, `:137`).
+- Credentials: usernames + bcrypt hashes (`src/src/server/auth/index.ts:22`, `:232`, `:254`).
+- Session state: `req.session.user` in server-side session store (`src/src/server/routes/auth.ts:18`).
+- Payroll data: `standard_rate`, `enhanced_rate`, `supervisor_rate` columns (`src/src/server/auth/index.ts:77`, `:120`).
+- Time entry data: employee identity, timestamps, pay rate type (`src/src/server/db/repository.ts:37`, `:173`).
+- Payroll exports (Excel/PDF) with totals and pay amounts (`src/src/server/services/exportService.ts:62`, `:188`).
+- Audit logs (currently focused on time entry changes) (`src/src/server/services/timeTracking.ts:92`, `:128`, `:137`).
 
 ### Data flows (simplified)
 1. Login flow
 - Browser sends username/password to `/api/auth/login`.
-- `authenticateUser()` fetches active user and verifies bcrypt hash (`tt-ts/src/server/auth/index.ts:14`).
-- Session user object is stored in session (`tt-ts/src/server/routes/auth.ts:18`).
+- `authenticateUser()` fetches active user and verifies bcrypt hash (`src/src/server/auth/index.ts:14`).
+- Session user object is stored in session (`src/src/server/routes/auth.ts:18`).
 
 2. Employee clock/timesheet flow
 - Employee uses session-authenticated `/api/clock/*` and `/api/timesheet`.
-- Server binds actions to `session.user.display_name` (`tt-ts/src/server/routes/clock.ts:12`, `:22`, `tt-ts/src/server/routes/timesheet.ts:13`).
-- Repository queries time entries by `employee` string match (`tt-ts/src/server/db/repository.ts:58`, `:90`).
+- Server binds actions to `session.user.display_name` (`src/src/server/routes/clock.ts:12`, `:22`, `src/src/server/routes/timesheet.ts:13`).
+- Repository queries time entries by `employee` string match (`src/src/server/db/repository.ts:58`, `:90`).
 
 3. Manager/admin payroll flow
-- Manager/admin uses `/api/users/:id/pay-rates` to update user rates (`tt-ts/src/server/routes/users.ts:78`).
-- Server writes rate columns in `users` table (`tt-ts/src/server/auth/index.ts:127`).
-- Exports pull time entries + all users + pay rates, compute pay totals by display-name key (`tt-ts/src/server/services/exportService.ts:13`, `tt-ts/src/server/services/exportUtils.ts:103`).
+- Manager/admin uses `/api/users/:id/pay-rates` to update user rates (`src/src/server/routes/users.ts:78`).
+- Server writes rate columns in `users` table (`src/src/server/auth/index.ts:127`).
+- Exports pull time entries + all users + pay rates, compute pay totals by display-name key (`src/src/server/services/exportService.ts:13`, `src/src/server/services/exportUtils.ts:103`).
 
 4. Shift management + audit
-- Manager/admin modifies shifts via `/api/shifts` routes (`tt-ts/src/server/routes/shifts.ts`).
-- `timeTracking` logs add/edit/delete actions to `audit_log` (`tt-ts/src/server/services/timeTracking.ts:92`, `:128`, `:137`).
+- Manager/admin modifies shifts via `/api/shifts` routes (`src/src/server/routes/shifts.ts`).
+- `timeTracking` logs add/edit/delete actions to `audit_log` (`src/src/server/services/timeTracking.ts:92`, `:128`, `:137`).
 
 ### Important trust/identity design note
-- Time entries and payroll rate lookup are joined by human-readable employee/display name (case-insensitive trim), not immutable user ID (`tt-ts/src/server/db/repository.ts:58`, `:90`; `tt-ts/src/server/auth/index.ts:108`; `tt-ts/src/server/services/exportService.ts:17`). This creates integrity risks if names collide or are changed.
+- Time entries and payroll rate lookup are joined by human-readable employee/display name (case-insensitive trim), not immutable user ID (`src/src/server/db/repository.ts:58`, `:90`; `src/src/server/auth/index.ts:108`; `src/src/server/services/exportService.ts:17`). This creates integrity risks if names collide or are changed.
 
 ## 4. Analyze the Threats (TA)
 
@@ -101,93 +101,93 @@ This analysis follows PASTA (7 phases) and reflects the increased sensitivity in
 
 ### Relevant threat categories (mapped to this app)
 - Authentication attacks
-- Brute force / credential stuffing against `POST /api/auth/login` (no rate limiting visible in `tt-ts/src/server/routes/auth.ts:7`).
-- Session fixation/hijacking due to login not regenerating session ID (`tt-ts/src/server/routes/auth.ts:18`) and minimal cookie hardening (`tt-ts/src/server/index.ts:28`).
+- Brute force / credential stuffing against `POST /api/auth/login` (no rate limiting visible in `src/src/server/routes/auth.ts:7`).
+- Session fixation/hijacking due to login not regenerating session ID (`src/src/server/routes/auth.ts:18`) and minimal cookie hardening (`src/src/server/index.ts:28`).
 
 - Authorization / privilege escalation
-- Manager-level access currently includes pay-rate updates and broad user management through `router.use(requireManager)` in `tt-ts/src/server/routes/users.ts:7`.
-- Any manager can call `/:id/pay-rates` (`tt-ts/src/server/routes/users.ts:78`) and change payroll-affecting values.
-- Any manager can deactivate users or edit user records via same route group (`tt-ts/src/server/routes/users.ts:28`, `:60`, `:69`).
+- Manager-level access currently includes pay-rate updates and broad user management through `router.use(requireManager)` in `src/src/server/routes/users.ts:7`.
+- Any manager can call `/:id/pay-rates` (`src/src/server/routes/users.ts:78`) and change payroll-affecting values.
+- Any manager can deactivate users or edit user records via same route group (`src/src/server/routes/users.ts:28`, `:60`, `:69`).
 
 - Data integrity / payroll tampering
-- Unauthorized or mistaken pay-rate modification (lack of rate range/type validation in route and service: `tt-ts/src/server/routes/users.ts:79`, `tt-ts/src/server/auth/index.ts:120`).
-- Shift edits with arbitrary `payRateOverride` and date parsing without enum/date validation (`tt-ts/src/server/routes/shifts.ts:18`, `:31`, `:50`, `:64`).
-- Identity confusion from display-name joins causing wrong rates applied to shifts/exports if names duplicate or are changed (`tt-ts/src/server/services/exportService.ts:17`, `tt-ts/src/server/services/exportUtils.ts:106`).
+- Unauthorized or mistaken pay-rate modification (lack of rate range/type validation in route and service: `src/src/server/routes/users.ts:79`, `src/src/server/auth/index.ts:120`).
+- Shift edits with arbitrary `payRateOverride` and date parsing without enum/date validation (`src/src/server/routes/shifts.ts:18`, `:31`, `:50`, `:64`).
+- Identity confusion from display-name joins causing wrong rates applied to shifts/exports if names duplicate or are changed (`src/src/server/services/exportService.ts:17`, `src/src/server/services/exportUtils.ts:106`).
 
 - Data exfiltration
-- Managers/admins can export all timesheets and payroll totals via `/api/export/excel|pdf` (`tt-ts/src/server/routes/export.ts:17-21`, `:39-43`).
-- Audit logs accessible to managers and may expose operational metadata (`tt-ts/src/server/routes/audit.ts:7`).
-- `GET /api/users` returns all users including pay rates to managers (`tt-ts/src/server/routes/users.ts:9`, `tt-ts/src/server/auth/index.ts:66`).
+- Managers/admins can export all timesheets and payroll totals via `/api/export/excel|pdf` (`src/src/server/routes/export.ts:17-21`, `:39-43`).
+- Audit logs accessible to managers and may expose operational metadata (`src/src/server/routes/audit.ts:7`).
+- `GET /api/users` returns all users including pay rates to managers (`src/src/server/routes/users.ts:9`, `src/src/server/auth/index.ts:66`).
 
 - CSRF and browser attacks
 - Session-cookie auth is used, but no CSRF protection/token validation is implemented on state-changing routes.
-- `sameSite` is not set in session cookie config (`tt-ts/src/server/index.ts:28`), increasing CSRF exposure depending on browser defaults/deployment.
+- `sameSite` is not set in session cookie config (`src/src/server/index.ts:28`), increasing CSRF exposure depending on browser defaults/deployment.
 
 - Availability / abuse
-- Export generation (Excel/PDF) can be expensive and is available to any authenticated user for self and managers/admins for all data (`tt-ts/src/server/routes/export.ts`).
+- Export generation (Excel/PDF) can be expensive and is available to any authenticated user for self and managers/admins for all data (`src/src/server/routes/export.ts`).
 - Login endpoint can be abused for credential stuffing or DoS (no throttling / lockouts).
 - Default in-memory session store (`express-session` without `store`) is not suitable for production scale/reliability.
 
 ## 5. Vulnerability Analysis (VI)
 
 ### Positive controls observed
-- Passwords are hashed with bcrypt (`tt-ts/src/server/auth/index.ts:6`, `:10`).
-- SQL parameters are used for user-supplied values in auth/repository queries (e.g. `tt-ts/src/server/auth/index.ts:25`, `tt-ts/src/server/db/repository.ts:41`, `:177`), reducing direct SQL injection risk.
-- Basic RBAC middleware exists (`tt-ts/src/server/middleware/auth.ts:3`, `:12`).
-- Some sensitive admin actions include additional server-side checks (e.g. manager can only reset employee passwords in `tt-ts/src/server/auth/index.ts:272`; admin promotion restrictions in `:304-313`).
-- Time-entry add/edit/delete changes are audit logged (`tt-ts/src/server/services/timeTracking.ts:92`, `:128`, `:137`).
+- Passwords are hashed with bcrypt (`src/src/server/auth/index.ts:6`, `:10`).
+- SQL parameters are used for user-supplied values in auth/repository queries (e.g. `src/src/server/auth/index.ts:25`, `src/src/server/db/repository.ts:41`, `:177`), reducing direct SQL injection risk.
+- Basic RBAC middleware exists (`src/src/server/middleware/auth.ts:3`, `:12`).
+- Some sensitive admin actions include additional server-side checks (e.g. manager can only reset employee passwords in `src/src/server/auth/index.ts:272`; admin promotion restrictions in `:304-313`).
+- Time-entry add/edit/delete changes are audit logged (`src/src/server/services/timeTracking.ts:92`, `:128`, `:137`).
 
 ### Key vulnerabilities / gaps (concrete)
 
 #### V1. Weak production session configuration defaults
-- Session secret falls back to a hardcoded dev string if `SESSION_SECRET` is missing (`tt-ts/src/server/index.ts:25`).
-- No `sameSite` cookie setting (`tt-ts/src/server/index.ts:28`).
-- No custom session store configured (`tt-ts/src/server/index.ts:24` uses default MemoryStore via `express-session`).
+- Session secret falls back to a hardcoded dev string if `SESSION_SECRET` is missing (`src/src/server/index.ts:25`).
+- No `sameSite` cookie setting (`src/src/server/index.ts:28`).
+- No custom session store configured (`src/src/server/index.ts:24` uses default MemoryStore via `express-session`).
 - Impact: session hijacking risk, CSRF risk, operational instability/multi-instance inconsistency.
 
 #### V2. No session regeneration on login (session fixation risk)
-- Login directly assigns `req.session.user = user` (`tt-ts/src/server/routes/auth.ts:18`) instead of regenerating session ID.
+- Login directly assigns `req.session.user = user` (`src/src/server/routes/auth.ts:18`) instead of regenerating session ID.
 - Impact: attacker who can pre-seed a session ID may retain a usable authenticated session after victim login.
 
 #### V3. No rate limiting / brute-force controls on auth endpoints
-- `POST /api/auth/login` lacks throttling, lockouts, or backoff (`tt-ts/src/server/routes/auth.ts:7`).
-- Password change and reset endpoints also lack throttling (`tt-ts/src/server/routes/auth.ts:41`, `tt-ts/src/server/routes/users.ts:93`).
+- `POST /api/auth/login` lacks throttling, lockouts, or backoff (`src/src/server/routes/auth.ts:7`).
+- Password change and reset endpoints also lack throttling (`src/src/server/routes/auth.ts:41`, `src/src/server/routes/users.ts:93`).
 - Impact: credential stuffing, account takeover, admin/manager compromise leading to payroll compromise.
 
 #### V4. CSRF protections are absent on state-changing routes
 - State-changing endpoints rely on session cookies (`/api/users`, `/api/shifts`, `/api/auth/change-password`, etc.) with no CSRF tokens/origin checks visible.
-- Cookie config omits explicit `sameSite` (`tt-ts/src/server/index.ts:28`).
+- Cookie config omits explicit `sameSite` (`src/src/server/index.ts:28`).
 - Impact: authenticated manager/admin could be induced to perform payroll-impacting actions (pay-rate change, user deactivation, shift edit).
 
 #### V5. Payroll-integrity operations lack validation and audit logging
-- `/:id/pay-rates` forwards raw body values directly to `setUserPayRates` (`tt-ts/src/server/routes/users.ts:79-85`).
-- `setUserPayRates` updates DB without numeric/type/range validation (`tt-ts/src/server/auth/index.ts:120-137`).
+- `/:id/pay-rates` forwards raw body values directly to `setUserPayRates` (`src/src/server/routes/users.ts:79-85`).
+- `setUserPayRates` updates DB without numeric/type/range validation (`src/src/server/auth/index.ts:120-137`).
 - No audit log entry is created for pay-rate changes, user activation/deactivation, role changes, password resets, or promotions (time-entry changes are logged, but user/payroll changes are not).
 - Impact: silent pay tampering, accidental invalid values, weak forensic traceability for payroll disputes.
 
 #### V6. RBAC too coarse for payroll data (manager == admin for many payroll-sensitive endpoints)
-- `router.use(requireManager)` on `/api/users` grants managers access to all user CRUD + pay rates (`tt-ts/src/server/routes/users.ts:7`).
-- Managers can retrieve all users and pay rates via `GET /api/users` (`tt-ts/src/server/routes/users.ts:9`, `tt-ts/src/server/auth/index.ts:66-92`).
+- `router.use(requireManager)` on `/api/users` grants managers access to all user CRUD + pay rates (`src/src/server/routes/users.ts:7`).
+- Managers can retrieve all users and pay rates via `GET /api/users` (`src/src/server/routes/users.ts:9`, `src/src/server/auth/index.ts:66-92`).
 - Impact: broader-than-necessary payroll data access; increased insider/compromised-manager blast radius.
 
 #### V7. Identity linkage by display name instead of immutable user ID
-- Employee-facing time operations bind to `session.user.display_name` (`tt-ts/src/server/routes/clock.ts:12`, `tt-ts/src/server/routes/timesheet.ts:13`).
-- Repository queries and pay-rate lookup use case-insensitive display-name matching (`tt-ts/src/server/db/repository.ts:58`, `:90`; `tt-ts/src/server/auth/index.ts:108`).
-- Exports map pay rates by normalized display name (`tt-ts/src/server/services/exportService.ts:17`, `tt-ts/src/server/services/exportUtils.ts:106`).
+- Employee-facing time operations bind to `session.user.display_name` (`src/src/server/routes/clock.ts:12`, `src/src/server/routes/timesheet.ts:13`).
+- Repository queries and pay-rate lookup use case-insensitive display-name matching (`src/src/server/db/repository.ts:58`, `:90`; `src/src/server/auth/index.ts:108`).
+- Exports map pay rates by normalized display name (`src/src/server/services/exportService.ts:17`, `src/src/server/services/exportUtils.ts:106`).
 - Impact: duplicate names or renamed users can misattribute shifts/pay calculations (payroll integrity failure).
 
 #### V8. Input validation gaps on date/pay-rate-type fields
-- `new Date(...)` is used directly for query params and request body fields in `timesheet`, `export`, `shifts`, `audit` routes without validating `Invalid Date` (`tt-ts/src/server/routes/export.ts:13-14`, `tt-ts/src/server/routes/shifts.ts:26-29`, `tt-ts/src/server/routes/audit.ts:13-15`).
-- `payRateOverride` is forwarded without enum enforcement (`tt-ts/src/server/routes/shifts.ts:31`, `:64`).
+- `new Date(...)` is used directly for query params and request body fields in `timesheet`, `export`, `shifts`, `audit` routes without validating `Invalid Date` (`src/src/server/routes/export.ts:13-14`, `src/src/server/routes/shifts.ts:26-29`, `src/src/server/routes/audit.ts:13-15`).
+- `payRateOverride` is forwarded without enum enforcement (`src/src/server/routes/shifts.ts:31`, `:64`).
 - Impact: reliability issues, potential unhandled exceptions/500s, corrupted payroll/time data.
 
 #### V9. TLS DB config weakens certificate verification
-- PostgreSQL pool forces `ssl: { rejectUnauthorized: false }` (`tt-ts/src/server/db/connection.ts:17`).
+- PostgreSQL pool forces `ssl: { rejectUnauthorized: false }` (`src/src/server/db/connection.ts:17`).
 - Impact: weaker protection against MITM on DB connection in misconfigured or hostile networks.
 
 #### V10. First-setup bootstrap endpoint is public and should be tightly controlled
-- `/api/auth/first-setup` and `/api/auth/admin-count` are unauthenticated (`tt-ts/src/server/routes/auth.ts:56`, `:66`).
-- `createFirstManager()` checks table emptiness but not an out-of-band setup token (`tt-ts/src/server/auth/index.ts:287`).
+- `/api/auth/first-setup` and `/api/auth/admin-count` are unauthenticated (`src/src/server/routes/auth.ts:56`, `:66`).
+- `createFirstManager()` checks table emptiness but not an out-of-band setup token (`src/src/server/auth/index.ts:287`).
 - Impact: if exposed before legitimate setup, an attacker can initialize a manager account.
 
 ## 6. Attack Analysis (AM)
@@ -196,10 +196,10 @@ This analysis follows PASTA (7 phases) and reflects the increased sensitivity in
 Goal: Change an employee pay rate to fraudulently increase/decrease payroll.
 
 Attack path
-1. Attacker obtains manager credentials via credential stuffing against `/api/auth/login` (no rate limit; `tt-ts/src/server/routes/auth.ts:7`).
-2. Authenticated attacker calls `POST /api/users/:id/pay-rates` (`tt-ts/src/server/routes/users.ts:78`).
-3. Server accepts raw `standard/enhanced/supervisor` values and updates DB (`tt-ts/src/server/auth/index.ts:127`).
-4. Exports calculate pay using updated rates (`tt-ts/src/server/services/exportUtils.ts:103-120`).
+1. Attacker obtains manager credentials via credential stuffing against `/api/auth/login` (no rate limit; `src/src/server/routes/auth.ts:7`).
+2. Authenticated attacker calls `POST /api/users/:id/pay-rates` (`src/src/server/routes/users.ts:78`).
+3. Server accepts raw `standard/enhanced/supervisor` values and updates DB (`src/src/server/auth/index.ts:127`).
+4. Exports calculate pay using updated rates (`src/src/server/services/exportUtils.ts:103-120`).
 5. Change may be difficult to trace because pay-rate updates are not audit logged.
 
 Impact
@@ -223,8 +223,8 @@ Goal: Exfiltrate payroll totals and staff working patterns.
 
 Attack path
 1. Attacker compromises a manager account/session.
-2. Calls `GET /api/export/excel` without `employee` filter to retrieve all timesheets (`tt-ts/src/server/routes/export.ts:17-21`).
-3. Export service loads all user pay rates (`tt-ts/src/server/services/exportService.ts:14`) and computes per-employee pay totals (`tt-ts/src/server/services/exportUtils.ts:103-120`).
+2. Calls `GET /api/export/excel` without `employee` filter to retrieve all timesheets (`src/src/server/routes/export.ts:17-21`).
+3. Export service loads all user pay rates (`src/src/server/services/exportService.ts:14`) and computes per-employee pay totals (`src/src/server/services/exportUtils.ts:103-120`).
 4. Attacker exfiltrates Excel/PDF containing payroll-sensitive information.
 
 Impact
@@ -235,8 +235,8 @@ Goal: Cause pay to be calculated against wrong rates without direct DB access.
 
 Attack path
 1. Two users share the same or near-identical `display_name` (or display name is changed to collide).
-2. Time entries are stored/query-linked by employee name string (`tt-ts/src/server/db/repository.ts:37`, `:58`, `:90`).
-3. Export rate map also keys by normalized display name (`tt-ts/src/server/services/exportService.ts:17`).
+2. Time entries are stored/query-linked by employee name string (`src/src/server/db/repository.ts:37`, `:58`, `:90`).
+3. Export rate map also keys by normalized display name (`src/src/server/services/exportService.ts:17`).
 4. Payroll export applies incorrect pay rates to one or both users.
 
 Impact
@@ -262,13 +262,13 @@ Impact
 
 #### Immediate (high impact, low-medium effort)
 1. Enforce a real `SESSION_SECRET` in production and fail startup if missing.
-- Change `tt-ts/src/server/index.ts:25` to require env in production (no fallback).
+- Change `src/src/server/index.ts:25` to require env in production (no fallback).
 - Add `SESSION_SECRET` to deployment/env documentation.
 - Impact: removes predictable-secret risk.
 
 2. Harden session cookie settings and session lifecycle.
-- Add `sameSite: 'lax'` (or `'strict'` if UX allows), `name`, and optionally `rolling`/shorter idle timeout in `tt-ts/src/server/index.ts:28`.
-- Regenerate session ID on login before storing `req.session.user` in `tt-ts/src/server/routes/auth.ts:18`.
+- Add `sameSite: 'lax'` (or `'strict'` if UX allows), `name`, and optionally `rolling`/shorter idle timeout in `src/src/server/index.ts:28`.
+- Regenerate session ID on login before storing `req.session.user` in `src/src/server/routes/auth.ts:18`.
 - Clear cookie on logout in addition to destroy.
 - Impact: reduces CSRF/session fixation/hijack risk.
 

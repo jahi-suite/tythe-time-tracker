@@ -10,7 +10,7 @@ KariSuite sends verification emails via SMTP. Two options:
 2. **Create an App Password**: [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
    - Select "Mail" and your device, then Generate
    - Copy the 16-character password (e.g. `abcd efgh ijkl mnop`)
-3. **Add to `tt-ts/.env`**:
+3. **Add to `src/.env`**:
    ```
    SMTP_HOST=smtp.gmail.com
    SMTP_PORT=587

@@ -167,10 +167,10 @@ Prefer subagents when a task has two or more independent parts that don't need t
 
 ## Workflow
 
-1. Read `IMPLEMENTATION_PLAN.md` — find first incomplete task
-2. Read relevant spec in `specs/`
-3. Implement one atomic unit (spawn subagents for independent parts)
-4. Run `cd src && npx tsc --noEmit && npm run build` — must pass
-5. Commit
-6. Mark task complete in `IMPLEMENTATION_PLAN.md`, commit
-7. Write summary
+See `RALPH_README.md` for the full methodology.
+
+```
+make lisa            # requirements — interactive session → specs/*.md
+make ralph MODE=plan # planning — audit codebase → IMPLEMENTATION_PLAN.md
+make ralph           # build loop — one task per iteration
+```
